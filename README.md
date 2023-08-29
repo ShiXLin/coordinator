@@ -7,18 +7,17 @@
 [![JDK-8+](https://img.shields.io/badge/JDK-8-green.svg)]()
 [![JDK-11](https://img.shields.io/badge/JDK-11-green.svg)]()
 
-- 本项目基于 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 进行二次开发，采用 `Flowable` 扩展工作流应用场景，支持在线表单设计和丰富的工作流程设计能力。
+- 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，采用 `Flowable` 扩展工作流应用场景，支持在线表单设计和丰富的工作流程设计能力。
 - 本项目主要针对`Flowable`工作流场景开发，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
 - 采用`MIT开源协议`，完全免费给个人及企业使用。
 - 项目处于开发阶段，工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
 
 ## 参考文档
-- 项目文档：[RuoYi-Flowable-Plus开发文档](http://rfp-doc.konbai.work)
+- 项目文档：[RuoYi-Nbcio开发文档](http://rfp-doc.konbai.work)
 - 脚手架文档：[RuoYi-Vue-Plus文档](https://gitee.com/dromara/RuoYi-Vue-Plus/wikis/pages)
 
 ## 项目地址
-- Gitee：<https://gitee.com/KonBAI-Q/ruoyi-flowable-plus>
-- GitHub：<https://github.com/KonBAI-Q/RuoYi-Flowable-Plus>
+- Gitee：<https://gitee.com/nbacheng/ruoyi-nbcio>
 
 ## 在线演示
 演示服务不限制CURD操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。（将不定期清理数据）
@@ -34,22 +33,19 @@
 
 ## 技术交流群
 
-交流1群 🈵️ [![加入QQ群](https://img.shields.io/badge/QQ群-1007207992-blue.svg?style=flat)](https://jq.qq.com/?_wv=1027\&k=PYDZa1tA) </br>
-交流2群 [![加入QQ群](https://img.shields.io/badge/QQ群-725502135-blue.svg?style=flat)](https://jq.qq.com/?_wv=1027&k=J4zeZaKo) </br>
-交流3群 [![加入QQ群](https://img.shields.io/badge/QQ群-860980043-blue.svg?style=flat)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=NfqIsFMASOvIC6yHYwY6bnaSfdgcD1La&authKey=SeFDA4oFkb%2FkdvnI%2FJ3aJTJZkyzDaz8v8gybpzUATAilnKSCmyKhCE6R2jkXc5e2&noverify=0&group_code=860980043) </br>
+交流1群 
 
 ## 参与开源
-- 如遇到问题，欢迎提交到 [issues](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus/issues)（请按模版进行填写信息）。
-- 欢迎提交 [PR](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus/pulls) ，注意请提交到 `develop` 开发分支 统一测试发版。
+- 如遇到问题，欢迎提交到 [issues](https://gitee.com/nbacheng/ruoyi-nbcio/issues)（请按模版进行填写信息）。
+- 欢迎提交 [PR](https://gitee.com/nbacheng/ruoyi-nbcio/pulls) ，注意请提交到 `develop` 开发分支 统一测试发版。
 
 ## 特别鸣谢
-- [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 
-- [RuoYi-flowable](https://gitee.com/tony2y/RuoYi-flowable) 
+- [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 
 - [bpmn-process-designer](https://gitee.com/MiyueSC/bpmn-process-designer)
 
 ## 支持项目
 如果项目对你有帮助，请给项目点个Star。也可以通过下方二维码请作者喝一杯奶茶！
-![输入图片说明](http://qiniu-flowable.konbai.work/Collection-Code.jpg)
+![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
 
 ## 友情链接
 - [玩转RuoYi-Cloud-Plus - Flowable基础](https://blog.csdn.net/zhaozhiqiang1981/article/details/129240406)：文档包含Flowable基础知识、项目使用说明、源码解析等。（新人必看）
