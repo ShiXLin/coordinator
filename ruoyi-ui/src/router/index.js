@@ -80,8 +80,8 @@ export const constantRoutes = [
     hidden: true,
     children: [
       {
-        path: 'build/index',
-        component: () => import('@/views/tool/build/index'),
+        path: 'formdesigner/index',
+        component: () => import('@/views/tool/formdesigner/index'),
         name: 'FormBuild',
         meta: { title: '表单设计', icon: '' }
       }

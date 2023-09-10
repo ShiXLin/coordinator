@@ -121,9 +121,14 @@
     </el-dialog>
 
     <!--表单配置详情-->
-    <el-dialog :title="formTitle" :visible.sync="formConfOpen" width="60%" append-to-body>
+    <!--<el-dialog :title="formTitle" :visible.sync="formConfOpen" width="60%" append-to-body>
       <div class="test-form">
         <parser :key="new Date().getTime()"  :form-conf="formConf" />
+      </div>
+    </el-dialog>-->
+    <el-dialog :title="formTitle" :visible.sync="formConfOpen" width="60%" append-to-body>
+      <div class="test-form">
+        <preview :itemList="itemList"  :formConf="formConf" v-if="formConfOpen"/>
       </div>
     </el-dialog>
   </div>
@@ -133,11 +138,14 @@
 import { listForm, getForm, delForm, addForm, updateForm } from "@/api/workflow/form";
 import Editor from '@/components/Editor';
 import Parser from '@/utils/generator/parser'
+import preview from "@/components/formdesigner/components/preview";
+
 export default {
   name: "Form",
   components: {
     Editor,
-    Parser
+    Parser,
+    preview
   },
   data() {
     return {
@@ -162,6 +170,7 @@ export default {
       formTitle: "",
       // 是否显示弹出层
       open: false,
+      itemList:[],//formdesigner预览显示数据
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -231,14 +240,17 @@ export default {
     handleDetail(row){
       this.formConfOpen = true;
       this.formTitle = "流程表单配置详细";
-      this.formConf = JSON.parse(row.content)
+      const content = JSON.parse(row.content);
+      console.log("handleDetail content=",content);
+      this.formConf = content.config;
+      this.itemList = content.list;
     },
     /** 新增按钮操作 */
     handleAdd() {
       // this.reset();
       // this.open = true;
       // this.title = "添加流程表单";
-      this.$router.push({ path: '/tool/build/index', query: {formId: null }})
+      this.$router.push({ path: '/tool/formdesigner/index', query: {formId: null }})
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -249,7 +261,7 @@ export default {
       //   this.open = true;
       //   this.title = "修改流程表单";
       // });
-      this.$router.push({ path: '/tool/build/index', query: {formId: row.formId }})
+      this.$router.push({ path: '/tool/formdesigner/index', query: {formId: row.formId }})
     },
     /** 提交按钮 */
     submitForm() {
