@@ -1,6 +1,7 @@
 package com.ruoyi.generator.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ObjectUtil;
@@ -19,7 +20,6 @@ import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.JsonUtils;
 import com.ruoyi.common.utils.StreamUtils;
 import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.generator.domain.GenTable;
 import com.ruoyi.generator.domain.GenTableColumn;
 import com.ruoyi.generator.mapper.GenTableColumnMapper;
@@ -273,7 +273,7 @@ public class GenTableServiceImpl implements IGenTableService {
                 tpl.merge(context, sw);
                 try {
                     String path = getGenPath(table, template);
-                    FileUtils.writeUtf8String(sw.toString(), path);
+                    FileUtil.writeUtf8String(sw.toString(), path);
                 } catch (Exception e) {
                     throw new ServiceException("渲染模板失败，表名：" + table.getTableName());
                 }

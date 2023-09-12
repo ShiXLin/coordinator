@@ -71,6 +71,11 @@ public interface Constants {
      * 令牌
      */
     String TOKEN = "token";
+    
+    /**
+     * 资源映射路径 前缀
+     */
+    public static final String RESOURCE_PREFIX = "/profile";
 
 }
 

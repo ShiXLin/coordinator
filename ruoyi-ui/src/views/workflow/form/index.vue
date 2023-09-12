@@ -121,11 +121,6 @@
     </el-dialog>
 
     <!--表单配置详情-->
-    <!--<el-dialog :title="formTitle" :visible.sync="formConfOpen" width="60%" append-to-body>
-      <div class="test-form">
-        <parser :key="new Date().getTime()"  :form-conf="formConf" />
-      </div>
-    </el-dialog>-->
     <el-dialog :title="formTitle" :visible.sync="formConfOpen" width="60%" append-to-body>
       <div class="test-form">
         <preview :itemList="itemList"  :formConf="formConf" v-if="formConfOpen"/>
@@ -247,20 +242,10 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      // this.reset();
-      // this.open = true;
-      // this.title = "添加流程表单";
       this.$router.push({ path: '/tool/formdesigner/index', query: {formId: null }})
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      // this.reset();
-      // const formId = row.formId || this.ids
-      // getForm(formId).then(response => {
-      //   this.form = response.data;
-      //   this.open = true;
-      //   this.title = "修改流程表单";
-      // });
       this.$router.push({ path: '/tool/formdesigner/index', query: {formId: row.formId }})
     },
     /** 提交按钮 */

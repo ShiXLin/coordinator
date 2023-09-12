@@ -25,7 +25,9 @@ function vModel(self, dataObject) {
     }
     dataObject.attrs['before-upload'] = file=>{
       //非限定后缀不允许上传
+      console.log("before-upload file",file);
       const fileName = file.name;
+      console.log("before-upload fileName",fileName);
       const suffixName = fileName.split('.').pop();
 
       if(!self.conf.accept.includes(suffixName)){
@@ -41,9 +43,10 @@ function vModel(self, dataObject) {
 
     //for get return file url add by nbacheng 2022-09-07
     dataObject.attrs['on-success'] = file=>{
-        //console.log("on-success",file);
-        var filename=file.message.substring(file.message.lastIndexOf('/')+1)  //获取文件名称
-        let fileObj = {name: filename, url: file.message}
+
+        console.log("on-success file",file);
+        var filename=file.data.fileName.substring(file.data.fileName.lastIndexOf('/')+1)  //获取文件名称
+        let fileObj = {name: filename, url: file.data.fileName}
         console.log("dataObject=",dataObject);
         console.log("self.conf=",self.conf);
         let oldValue = [];

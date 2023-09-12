@@ -24,7 +24,7 @@ public class ProcessFormUtils {
      * @param data 表单内容
      */
     public static void fillFormData(FormConf formConf, Map<String, Object> data) {
-        for (Map<String, Object> field : formConf.getFields()) {
+        for (Map<String, Object> field : formConf.getList()) {
             recursiveFillField(field, data);
         }
     }

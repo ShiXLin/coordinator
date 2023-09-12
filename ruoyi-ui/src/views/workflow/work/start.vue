@@ -5,8 +5,18 @@
         <span>发起流程</span>
       </div>
       <el-col :span="18" :offset="3">
-        <div class="form-conf" v-if="formOpen">
+       <!-- <div class="form-conf" v-if="formOpen">
           <parser :key="new Date().getTime()" :form-conf="formData" @submit="submit" ref="parser" @getData="getData"/>
+        </div>-->
+        <form-builder ref="formBuilder" v-if="formOpen" v-model="formVal" :buildData="formCode" />
+        <div style="margin-bottom:15px;text-align:center">
+            <el-button type="primary" class="button" @click="submitForm">提交</el-button>
+        </div>
+      </el-col>
+      <!--初始化流程加载显示formdesigner表单-->
+      <el-col :span="18" :offset="3" v-if="formViewOpen">
+        <div class="test-form">
+          <form-viewer ref="formView" v-model="formVal" :buildData="formCode" />
         </div>
       </el-col>
     </el-card>
@@ -16,11 +26,16 @@
 <script>
 import { getProcessForm, startProcess } from '@/api/workflow/process'
 import Parser from '@/utils/generator/parser'
+//for formdesigner
+  import formBuilder from '@/components/formdesigner/components/formBuilder'
+  import formViewer from '@/components/formdesigner/components/formViewer'
 
 export default {
   name: 'WorkStart',
   components: {
-    Parser
+    Parser,
+    formBuilder,
+    formViewer,
   },
   data() {
     return {
@@ -28,7 +43,11 @@ export default {
       deployId: null,
       procInsId: null,
       formOpen: false,
-      formData: {},
+      formData: {}, // formdesigner 默认表单数据
+      formCode:'', //formdesigner 变量
+      formVal:'',  //formdesigner 数据
+      formViewOpen: false,  //是否显示formdesigner的输入后提交的表单
+      formViewData: '',    //显示formdesigner的输入后提交的表单数据
     }
   },
   created() {
@@ -44,8 +63,10 @@ export default {
         deployId: this.deployId,
         procInsId: this.procInsId
       }).then(res => {
+        console.log("getProcessForm res=",res);
         if (res.data) {
           this.formData = res.data;
+          this.formCode = JSON.stringify(res.data);
           this.formOpen = true
         }
       })
@@ -70,6 +91,36 @@ export default {
           variables.push(variableData)
         })
         this.variables = variables;
+      }
+    },
+    /** 申请流程表单formdesigner数据提交 nbacheng2023-09-10 */
+    submitForm() {
+      this.$refs.formBuilder.validate();
+      if(this.formVal !='') {
+        //console.log("submitForm formVal",this.formVal);
+        //console.log("submitForm formCode",this.formCode);
+        this.formViewOpen = true;
+        this.formConfOpen = false;
+        const variables=JSON.parse(this.formVal);
+        const formData = JSON.parse(this.formCode);
+        formData.formValue = JSON.parse(this.formVal);
+
+        if (this.definitionId) {
+          variables.variables = formData;
+          console.log("variables=", variables);
+          // 启动流程并将表单数据加入流程变量
+          /*definitionStartByDefId(this.taskForm.procDefId, JSON.stringify(variables)).then(res => {
+            this.$message.success(res.message);
+            this.goBack();
+          })*/
+          // 启动流程并将表单数据加入流程变量
+          startProcess(this.definitionId, JSON.stringify(variables)).then(res => {
+            this.$modal.msgSuccess(res.msg);
+            this.$tab.closeOpenPage({
+              path: '/work/own'
+            })
+          })
+        }
       }
     },
     submit(data) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * 读取项目相关配置
  *
- * @author Lion Li
+ * @author nbacheng
  */
 
 @Data
@@ -35,6 +35,12 @@ public class RuoYiConfig {
      * 实例演示开关
      */
     private boolean demoEnabled;
+    
+    /** 上传类型  本地：local, Minio：minio, 阿里云：alioss */
+    private static String uploadtype;
+    
+    /** 上传路径 */
+    private static String profile;
 
     /**
      * 缓存懒加载
@@ -51,4 +57,51 @@ public class RuoYiConfig {
         RuoYiConfig.addressEnabled = addressEnabled;
     }
 
+	 /**
+     * 获取导入上传路径
+     */
+    public static String getImportPath()
+    {
+        return getProfile() + "/import";
+    }
+
+    /**
+     * 获取头像上传路径
+     */
+    public static String getAvatarPath()
+    {
+        return getProfile() + "/avatar";
+    }
+
+    /**
+     * 获取下载路径
+     */
+    public static String getDownloadPath()
+    {
+        return getProfile() + "/download/";
+    }
+
+    /**
+     * 获取上传路径
+     */
+    public static String getUploadPath()
+    {
+        return getProfile() + "/upload";
+    }
+
+	public static String getProfile() {
+		return profile;
+	}
+
+	public void setProfile(String profile) {
+		RuoYiConfig.profile = profile;
+	}
+
+	public static String getUploadtype() {
+		return uploadtype;
+	}
+
+	public void setUploadtype(String uploadtype) {
+		RuoYiConfig.uploadtype = uploadtype;
+	}
 }

@@ -4,7 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.resource.ClassPathResource;
 import cn.hutool.core.util.ObjectUtil;
 import com.ruoyi.common.exception.ServiceException;
-import com.ruoyi.common.utils.file.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.lionsoul.ip2region.xdb.Searcher;
 
@@ -23,13 +22,13 @@ public class RegionUtils {
 
     static {
         String fileName = "/ip2region.xdb";
-        File existFile = FileUtils.file(FileUtil.getTmpDir() + FileUtil.FILE_SEPARATOR + fileName);
-        if (!FileUtils.exist(existFile)) {
+        File existFile = FileUtil.file(FileUtil.getTmpDir() + FileUtil.FILE_SEPARATOR + fileName);
+        if (!FileUtil.exist(existFile)) {
             ClassPathResource fileStream = new ClassPathResource(fileName);
             if (ObjectUtil.isEmpty(fileStream.getStream())) {
                 throw new ServiceException("RegionUtils初始化失败，原因：IP地址库数据不存在！");
             }
-            FileUtils.writeFromStream(fileStream.getStream(), existFile);
+            FileUtil.writeFromStream(fileStream.getStream(), existFile);
         }
 
         String dbPath = existFile.getPath();

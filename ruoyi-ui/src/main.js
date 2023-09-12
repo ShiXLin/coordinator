@@ -38,7 +38,7 @@ import VueMeta from 'vue-meta'
 // 字典数据组件
 import DictData from '@/components/DictData'
 
-//for formdesigner  add by nbchang 2022-09-03
+//for formdesigner  add by nbchang 2023-09-10
 import formDesigner from '@/components/formdesigner/components/index'
 import '@/components/formdesigner/assets/iconfont/iconfont.js'
 
@@ -66,7 +66,7 @@ Vue.component('ImagePreview', ImagePreview)
 Vue.use(directive)
 Vue.use(plugins)
 Vue.use(VueMeta)
-//for formdesigner  add by nbchang 2022-09-03
+//for formdesigner  add by nbchang 2023-09-10
 Vue.use(formDesigner);
 DictData.install()
 

@@ -8,6 +8,10 @@ ruoyi:
   copyrightYear: 2023
   # 实例演示开关
   demoEnabled: true
+  # 本地：local\Minio：minio\阿里云：alioss
+  uploadtype: local
+  #文件上传根目录 设置
+  profile: /home/nbcio
   # 获取ip地址开关
   addressEnabled: true
   # 缓存懒加载
@@ -26,8 +30,8 @@ captcha:
 
 # 开发环境配置
 server:
-  # 服务器的HTTP端口，默认为8080
-  port: 8080
+  # 服务器的HTTP端口，默认为9060
+  port: 9060
   servlet:
     # 应用的访问路径
     context-path: /
@@ -162,7 +166,7 @@ mybatis-plus:
     # 更详细的日志输出 会有性能损耗 org.apache.ibatis.logging.stdout.StdOutImpl
     # 关闭日志记录 (可单纯使用 p6spy 分析) org.apache.ibatis.logging.nologging.NoLoggingImpl
     # 默认日志输出 org.apache.ibatis.logging.slf4j.Slf4jImpl
-    logImpl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    #logImpl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     # 是否打印 Logo banner
     banner: true

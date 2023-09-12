@@ -725,7 +725,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         if (ObjectUtil.isNotEmpty(deployFormVo)) {
             FormConf currTaskFormData = JsonUtils.parseObject(deployFormVo.getContent(), FormConf.class);
             if (null != currTaskFormData) {
-                currTaskFormData.setFormBtns(false);
+                //currTaskFormData.setFormBtns(false);
                 ProcessFormUtils.fillFormData(currTaskFormData, taskIns.getTaskLocalVariables());
                 return currTaskFormData;
             }
@@ -785,9 +785,9 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                 String title = localScope ? formName.concat("(" + flowElement.getName() + ")") : formName;
                 FormConf formConf = JsonUtils.parseObject(formInfo.getContent(), FormConf.class);
                 if (null != formConf) {
-                    formConf.setTitle(title);
-                    formConf.setDisabled(true);
-                    formConf.setFormBtns(false);
+                    //formConf.setTitle(title);
+                    //formConf.setDisabled(true);
+                    //formConf.setFormBtns(false);
                     ProcessFormUtils.fillFormData(formConf, variables);
                     procFormList.add(formConf);
                 }
@@ -811,9 +811,9 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         if (ObjectUtil.isNotNull(startFormInfo)) {
             FormConf formConf = JsonUtils.parseObject(startFormInfo.getContent(), FormConf.class);
             if (null != formConf) {
-                formConf.setTitle(startEvent.getName());
-                formConf.setDisabled(true);
-                formConf.setFormBtns(false);
+                //formConf.setTitle(startEvent.getName());
+                //formConf.setDisabled(true);
+                //formConf.setFormBtns(false);
                 ProcessFormUtils.fillFormData(formConf, historicProcIns.getProcessVariables());
                 procFormList.add(formConf);
             }
@@ -848,9 +848,9 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             if (ObjectUtil.isNotNull(deployFormVo)) {
                 FormConf formConf = JsonUtils.parseObject(deployFormVo.getContent(), FormConf.class);
                 if (null != formConf) {
-                    formConf.setTitle(userTask.getName());
-                    formConf.setDisabled(true);
-                    formConf.setFormBtns(false);
+                    //formConf.setTitle(userTask.getName());
+                    //formConf.setDisabled(true);
+                    //formConf.setFormBtns(false);
                     ProcessFormUtils.fillFormData(formConf, variables);
                     procFormList.add(formConf);
                 }
