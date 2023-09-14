@@ -68,13 +68,24 @@
 
       <el-tab-pane label="表单信息" name="form">
         <div v-if="formOpen">
-          <el-card class="box-card" shadow="never" v-for="(formInfo, index) in processFormList" :key="index">
+          <!--<el-card class="box-card" shadow="never" v-for="(formInfo, index) in processFormList" :key="index">
             <div slot="header" class="clearfix">
               <span>{{ formInfo.title }}</span>
             </div>
-            <!--流程处理表单模块-->
+
             <el-col :span="20" :offset="2">
               <parser :form-conf="formInfo"/>
+            </el-col>
+          </el-card>-->
+
+          <el-card class="box-card" shadow="never" v-for="(formInfo, index) in formViewData" :key="index">
+            <!--<div slot="header" class="clearfix">
+              <span>{{ formInfo.title }}</span>
+            </div>-->
+            <!--流程处理表单模块-->
+            <el-col :span="20" :offset="2">
+              <!-- <parser :form-conf="formInfo"/> -->
+              <form-viewer ref="formViewer" v-model="formVal[index]" :buildData="formInfo" />
             </el-col>
           </el-card>
         </div>
@@ -211,13 +222,15 @@ import { selectUser, deptTreeSelect } from '@/api/system/user'
 import ProcessViewer from '@/components/ProcessViewer'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import Treeselect from '@riophae/vue-treeselect'
+import formViewer from '@/components/formdesigner/components/formViewer'
 
 export default {
   name: "WorkDetail",
   components: {
     ProcessViewer,
     Parser,
-    Treeselect
+    Treeselect,
+    formViewer
   },
   props: {},
   computed: {
@@ -313,7 +326,9 @@ export default {
       nextUser: [],
       userMultipleSelection: [],
       userDialogTitle: '',
-      userOpen: false
+      userOpen: false,
+      formVal:[], //formdesigner
+      formViewData: [], //显示formdesigner的输入后提交的表单数据
     };
   },
   created() {
@@ -425,9 +440,14 @@ export default {
     getProcessDetails(procInsId, taskId) {
       const params = {procInsId: procInsId, taskId: taskId}
       detailProcess(params).then(res => {
+        console.log("detailProcess res=",res);
         const data = res.data;
         this.xmlData = data.bpmnXml;
         this.processFormList = data.processFormList;
+        this.processFormList.forEach((item, index) => {
+          this.formVal[index] = JSON.stringify(item.formValues);
+          this.formViewData[index] = JSON.stringify(item);
+        });
         this.taskFormOpen = data.existTaskForm;
         if (this.taskFormOpen) {
           this.taskFormData = data.taskFormData;

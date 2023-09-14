@@ -124,6 +124,7 @@ export default {
     formConf(){
       if(this.buildData!==''){
         const buildData = JSON.parse(this.buildData);
+        console.log("formConf buildData=",buildData);
         buildData.config.disabled = this.disabled;
         return buildData.config;
       }else{

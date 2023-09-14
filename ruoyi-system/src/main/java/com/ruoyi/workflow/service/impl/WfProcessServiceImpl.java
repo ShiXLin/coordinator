@@ -38,6 +38,8 @@ import com.ruoyi.workflow.mapper.WfDeployFormMapper;
 import com.ruoyi.workflow.service.IWfProcessService;
 import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.collections4.map.HashedMap;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -61,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -769,7 +772,14 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                 }
                 variables = historicProcIns.getProcessVariables();
                 processFormKeys.add(formKey);
+            }  
+           
+            Map<String, Object> formvariables = new HashedMap<String, Object>();
+            //遍历Map
+            if(variables.containsKey("variables")) {
+              formvariables = (Map<String, Object>)((Map<String, Object>) variables.get("variables")).get("formValue");
             }
+ 
             // 非节点表单此处查询结果可能有多条，只获取第一条信息
             List<WfDeployFormVo> formInfoList = deployFormMapper.selectVoList(new LambdaQueryWrapper<WfDeployForm>()
                 .eq(WfDeployForm::getDeployId, historicProcIns.getDeploymentId())
@@ -778,17 +788,16 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 
             //@update by Brath：避免空集合导致的NULL空指针
             WfDeployFormVo formInfo = formInfoList.stream().findFirst().orElse(null);
-
+         
             if (ObjectUtil.isNotNull(formInfo)) {
                 // 旧数据 formInfo.getFormName() 为 null
                 String formName = Optional.ofNullable(formInfo.getFormName()).orElse(StringUtils.EMPTY);
                 String title = localScope ? formName.concat("(" + flowElement.getName() + ")") : formName;
                 FormConf formConf = JsonUtils.parseObject(formInfo.getContent(), FormConf.class);
                 if (null != formConf) {
-                    //formConf.setTitle(title);
-                    //formConf.setDisabled(true);
-                    //formConf.setFormBtns(false);
-                    ProcessFormUtils.fillFormData(formConf, variables);
+                    //ProcessFormUtils.fillFormData(formConf, variables);
+                	formConf.setTitle(title);
+                	formConf.setFormValues(formvariables);
                     procFormList.add(formConf);
                 }
             }

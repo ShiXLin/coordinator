@@ -13,6 +13,11 @@ import java.util.Map;
  */
 @Data
 public class FormConf {
+	
+	/**
+     * 标题
+     */
+    private String title;
 
     /**
      * 表单列表
@@ -25,5 +30,10 @@ public class FormConf {
      */
     
     private Map<String, Object> config;
+    
+    /**
+     * 表单列表实际值
+     */
+    private Map<String, Object> formValues;
     
 }

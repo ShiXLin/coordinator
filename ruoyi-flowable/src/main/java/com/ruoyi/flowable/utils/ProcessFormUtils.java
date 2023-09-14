@@ -31,7 +31,7 @@ public class ProcessFormUtils {
 
     @SuppressWarnings("unchecked")
     private static void recursiveFillField(final Map<String, Object> field, final Map<String, Object> data) {
-        if (!field.containsKey(CONFIG)) {
+        if (!data.containsKey(CONFIG)) {
             return;
         }
         Map<String, Object> configMap = (Map<String, Object>) field.get(CONFIG);
