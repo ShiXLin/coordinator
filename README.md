@@ -30,7 +30,7 @@
 
 ## 技术交流群
 
-交流1群 
+QQ交流群: 703572701 
 
 ## 参与开源
 - 如遇到问题，欢迎提交到 [issues](https://gitee.com/nbacheng/ruoyi-nbcio/issues)（请按模版进行填写信息）。
