@@ -10,7 +10,7 @@
 - 项目处于开发移植阶段，准备把nbcio-boot相关功能移植过来，因为还没完成相关工作，工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
 
 ## 参考文档
-- 项目文档：[RuoYi-Nbcio开发文档](http://rfp-doc.konbai.work)
+- 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向原项目文档](http://rfp-doc.konbai.work)
 - 脚手架文档：[RuoYi-Vue-Plus文档](https://gitee.com/dromara/RuoYi-Vue-Plus/wikis/pages)
 
 ## 项目地址
@@ -19,7 +19,7 @@
 ## 在线演示
 演示服务不限制CURD操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。（将不定期清理数据）
 
-[RuoYi-Flowable-Plus 在线演示](http://159.75.158.189/)
+[RuoYi-Nbcio 在线演示](http://122.227.135.243:9666/)
 
 |                 | 账号  | 密码      |
 |---------------- | ----- | -------- |
