@@ -18,6 +18,7 @@ function vModel(self, dataObject) {
      */
     const token = getToken();
     dataObject.attrs['headers'] = {"Authorization":"Bearer " + token};
+    dataObject.attrs['action'] = process.env.VUE_APP_BASE_API + '/common/upload'; 
     console.log("dataObject.props.value",dataObject.props.value)
     if(dataObject.props.value!==undefined && dataObject.props.value !==''){
       const filevalue = JSON.parse(dataObject.props.value);

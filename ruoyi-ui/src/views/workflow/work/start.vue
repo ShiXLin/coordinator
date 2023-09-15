@@ -5,9 +5,6 @@
         <span>发起流程</span>
       </div>
       <el-col :span="18" :offset="3">
-       <!-- <div class="form-conf" v-if="formOpen">
-          <parser :key="new Date().getTime()" :form-conf="formData" @submit="submit" ref="parser" @getData="getData"/>
-        </div>-->
         <form-builder ref="formBuilder" v-if="formOpen" v-model="formVal" :buildData="formCode" />
         <div style="margin-bottom:15px;text-align:center">
             <el-button type="primary" class="button" @click="submitForm">提交</el-button>
@@ -97,8 +94,6 @@ export default {
     submitForm() {
       this.$refs.formBuilder.validate();
       if(this.formVal !='') {
-        //console.log("submitForm formVal",this.formVal);
-        //console.log("submitForm formCode",this.formCode);
         this.formViewOpen = true;
         this.formConfOpen = false;
         const variables=JSON.parse(this.formVal);
@@ -109,31 +104,16 @@ export default {
           variables.variables = formData;
           console.log("variables=", variables);
           // 启动流程并将表单数据加入流程变量
-          /*definitionStartByDefId(this.taskForm.procDefId, JSON.stringify(variables)).then(res => {
-            this.$message.success(res.message);
-            this.goBack();
-          })*/
-          // 启动流程并将表单数据加入流程变量
           startProcess(this.definitionId, JSON.stringify(variables)).then(res => {
             this.$modal.msgSuccess(res.msg);
             this.$tab.closeOpenPage({
-              path: '/work/own'
+              path: '/task/own'
             })
           })
         }
       }
     },
-    submit(data) {
-      if (data && this.definitionId) {
-        // 启动流程并将表单数据加入流程变量
-        startProcess(this.definitionId, JSON.stringify(data.valData)).then(res => {
-          this.$modal.msgSuccess(res.msg);
-          this.$tab.closeOpenPage({
-            path: '/work/own'
-          })
-        })
-      }
-    }
+  
   }
 }
 </script>

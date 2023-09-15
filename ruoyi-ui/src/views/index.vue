@@ -4,7 +4,7 @@
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
         <h2>RuoYi-Nbcio后台管理框架</h2>
         <p>
-          RuoYi-Nbcio 是基于 RuoYi-Vue-Plus
+          RuoYi-Nbcio 是基于 RuoYi-Flowable-Plus
           <br/>
           * 前端开发框架 Vue、Element UI<br/>
           * 后端开发框架 Spring Boot<br/>
