@@ -143,8 +143,9 @@ export default {
         formData.append("avatarfile", data, this.options.filename);
         uploadAvatar(formData).then(response => {
           this.open = false;
-          this.options.img = response.data.imgUrl;
+          this.options.img = process.env.VUE_APP_BASE_API + response.data.imgUrl;
           store.commit('SET_AVATAR', this.options.img);
+	        console.log("uploadImg this.options.img=",this.options.img);
           this.$modal.msgSuccess("修改成功");
           this.visible = false;
         });

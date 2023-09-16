@@ -3,24 +3,35 @@ package com.ruoyi.web.controller.system;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.hutool.core.io.FileUtil;
 import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.config.RuoYiConfig;
+import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.exception.file.FileNameLengthLimitExceededException;
+import com.ruoyi.common.exception.file.FileSizeLimitExceededException;
+import com.ruoyi.common.exception.file.InvalidExtensionException;
 import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.MimeTypeUtils;
+import com.ruoyi.framework.config.ServerConfig;
 import com.ruoyi.system.domain.SysOss;
 import com.ruoyi.system.domain.vo.SysOssVo;
 import com.ruoyi.system.service.ISysOssService;
 import com.ruoyi.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +47,20 @@ import java.util.Map;
 @RequestMapping("/system/user/profile")
 public class SysProfileController extends BaseController {
 
+	@Autowired
+    private ServerConfig serverConfig;
+	
     private final ISysUserService userService;
     private final ISysOssService iSysOssService;
+    
+    @Value(value = "${ruoyi.profile}")
+    private String uploadpath;
+
+    /**
+     * 本地：local minio：minio 阿里：alioss
+     */
+    @Value(value="${ruoyi.uploadtype}")
+    private String uploadtype;
 
     /**
      * 个人信息
@@ -114,12 +137,32 @@ public class SysProfileController extends BaseController {
             if (!StringUtils.equalsAnyIgnoreCase(extension, MimeTypeUtils.IMAGE_EXTENSION)) {
                 return R.fail("文件格式不正确，请上传" + Arrays.toString(MimeTypeUtils.IMAGE_EXTENSION) + "格式");
             }
-            SysOssVo oss = iSysOssService.upload(avatarfile);
-            String avatar = oss.getUrl();
-            if (userService.updateUserAvatar(getUsername(), avatar)) {
-                ajax.put("imgUrl", avatar);
-                return R.ok(ajax);
+            if(Constants.UPLOAD_TYPE_LOCAL.equals(uploadtype)) {
+            	 // 上传文件路径
+                String filePath = RuoYiConfig.getAvatarPath();
+                // 上传并返回新文件名称
+                String fileName = null;
+				try {
+					fileName = FileUploadUtils.upload(filePath, avatarfile);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+                if (userService.updateUserAvatar(getUsername(), fileName)) {
+	                ajax.put("imgUrl", fileName);
+	                return R.ok(ajax);
+	            }
             }
+            else {
+	            SysOssVo oss = iSysOssService.upload(avatarfile);
+	            String avatar = oss.getUrl();
+	            if (userService.updateUserAvatar(getUsername(), avatar)) {
+	                ajax.put("imgUrl", avatar);
+	                return R.ok(ajax);
+	            }
+            }
+            
         }
         return R.fail("上传图片异常，请联系管理员");
     }

@@ -77,5 +77,12 @@ public interface Constants {
      */
     public static final String RESOURCE_PREFIX = "/profile";
 
+    /**
+     * 文件上传类型（本地：local，Minio：minio，阿里云：alioss）
+     */
+    public static final String UPLOAD_TYPE_LOCAL = "local";
+    public static final String UPLOAD_TYPE_MINIO = "minio";
+    public static final String UPLOAD_TYPE_OSS = "alioss";
+    
 }
 

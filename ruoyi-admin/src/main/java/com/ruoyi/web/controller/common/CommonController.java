@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +41,15 @@ public class CommonController
     private ServerConfig serverConfig;
 
     private static final String FILE_DELIMETER = ",";
+    
+    @Value(value = "${ruoyi.profile}")
+    private String uploadpath;
+
+    /**
+     * 本地：local minio：minio 阿里：alioss
+     */
+    @Value(value="${ruoyi.uploadtype}")
+    private String uploadtype;
 
     /**
      * 通用下载请求
@@ -87,7 +97,7 @@ public class CommonController
             // 上传并返回新文件名称
             String fileName = FileUploadUtils.upload(filePath, file);
             String url = serverConfig.getUrl() + fileName;
-            Map<String, String> map = new HashMap<>(2);
+            Map<String, String> map = new HashMap<>(4);
             map.put("url", url);
             map.put("fileName", fileName);
             map.put("newFileName", FileUtils.getName(fileName));
@@ -125,7 +135,7 @@ public class CommonController
                 newFileNames.add(FileUtils.getName(fileName));
                 originalFilenames.add(file.getOriginalFilename());
             }
-            Map<String, String> map = new HashMap<>(2);
+            Map<String, String> map = new HashMap<>(4);
             map.put("urls", StringUtils.join(urls, FILE_DELIMETER));
             map.put("fileNames", StringUtils.join(fileNames, FILE_DELIMETER));
             map.put("newFileNames", StringUtils.join(newFileNames, FILE_DELIMETER));
