@@ -18,7 +18,6 @@ function vModel(self, dataObject) {
      */
     const token = getToken();
     dataObject.attrs['headers'] = {"Authorization":"Bearer " + token};
-    dataObject.attrs['action'] = process.env.VUE_APP_BASE_API + '/common/upload'; 
     console.log("dataObject.props.value",dataObject.props.value)
     if(dataObject.props.value!==undefined && dataObject.props.value !==''){
       const filevalue = JSON.parse(dataObject.props.value);
@@ -46,8 +45,16 @@ function vModel(self, dataObject) {
     dataObject.attrs['on-success'] = file=>{
 
         console.log("on-success file",file);
-        var filename=file.data.fileName.substring(file.data.fileName.lastIndexOf('/')+1)  //获取文件名称
-        let fileObj = {name: filename, url: file.data.fileName}
+        var filename,fileObj;
+        if(file.data.hasOwnProperty('ossId') && file.data.ossId != "") {//oss上传
+          filename=file.data.fileName.substring(file.data.fileName.lastIndexOf('/')+1)  //获取文件名称
+          fileObj = {name: filename, url: file.data.url}
+        }
+        else {//本地上传
+          filename=file.data.fileName.substring(file.data.fileName.lastIndexOf('/')+1)  //获取文件名称
+          fileObj = {name: filename, url: file.data.fileName}
+        }
+
         console.log("dataObject=",dataObject);
         console.log("self.conf=",self.conf);
         let oldValue = [];

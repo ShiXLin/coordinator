@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-tabs tab-position="top" :value="processed === true ? 'approval' : 'form'">
+    <el-tabs tab-position="top" v-model="activeName" :value="processed === true ? 'approval' : 'form'" @tab-click="changeTab">
 
       <el-tab-pane label="任务办理" name="approval" v-if="processed === true">
         <el-card class="box-card" shadow="hover" v-if="taskFormOpen">
@@ -68,26 +68,19 @@
 
       <el-tab-pane label="表单信息" name="form">
         <div v-if="formOpen">
-          <!--<el-card class="box-card" shadow="never" v-for="(formInfo, index) in processFormList" :key="index">
-            <div slot="header" class="clearfix">
-              <span>{{ formInfo.title }}</span>
-            </div>
-
-            <el-col :span="20" :offset="2">
-              <parser :form-conf="formInfo"/>
-            </el-col>
-          </el-card>-->
-
           <el-card class="box-card" shadow="never" v-for="(formInfo, index) in formViewData" :key="index">
             <!--<div slot="header" class="clearfix">
               <span>{{ formInfo.title }}</span>
             </div>-->
             <!--流程处理表单模块-->
             <el-col :span="20" :offset="2">
-              <!-- <parser :form-conf="formInfo"/> -->
               <form-viewer ref="formViewer" v-model="formVal[index]" :buildData="formInfo" />
             </el-col>
           </el-card>
+        </div>
+        <div style="margin-left:10%;margin-bottom: 30px">
+           <!--对上传文件进行显示处理，临时方案 add by nbacheng 2022-07-27 -->
+           <el-upload action="#" :on-preview="handleFilePreview" :file-list="fileList" v-if="fileDisplay" />
         </div>
       </el-tab-pane >
 
@@ -327,12 +320,18 @@ export default {
       userMultipleSelection: [],
       userDialogTitle: '',
       userOpen: false,
-      formVal:[], //formdesigner
+      formVal:[], //formdesigner关联值
       formViewData: [], //显示formdesigner的输入后提交的表单数据
+      fileDisplay: false, // formdesigner是否显示上传的文件控件
+      fileList: [], //表单设计器上传的文件列表
+      activeName:'', //获取当然tabname
     };
   },
   created() {
     this.initData();
+  },
+  mounted() {
+
   },
   methods: {
     initData() {
@@ -342,6 +341,20 @@ export default {
       // 流程任务重获取变量表单
       this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId);
       this.loadIndex = this.taskForm.procInsId;
+      if(this.processed) {
+        this.activeName = "approval";
+      }
+      else {
+        this.activeName = "form";
+        // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
+        this.processFormList.forEach((item, i) => {
+          if (item.hasOwnProperty('list')) {
+            this.fillFormData(item.list, item)
+            // 更新表单
+            this.key = +new Date().getTime()
+          }
+        });
+      }
     },
     /** 查询部门下拉树结构 */
     getTreeSelect() {
@@ -363,6 +376,56 @@ export default {
     filterNode(value, data) {
       if (!value) return true;
       return data.label.indexOf(value) !== -1;
+    },
+    changeTab(tab, event) {
+      console.log("changeTab tab=",tab);
+      if(tab.name === 'form') {
+        console.log("changeTab this.processFormList=",this.processFormList);
+        // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
+        this.processFormList.forEach((item, i) => {
+          if (item.hasOwnProperty('list')) {
+            this.fillFormData(item.list, item)
+            // 更新表单
+            this.key = +new Date().getTime()
+          }
+        });
+
+      }
+    },
+    fillFormData(list, formConf) { // for formdesigner
+      console.log("fillFormData list=",list);
+      console.log("fillFormData formConf=",formConf);
+      list.forEach((item, i) => {
+        // 特殊处理el-upload，包括 回显图片
+        if(formConf.formValues[item.id] != '') {
+          const val = formConf.formValues[item.id];
+          if (item.ele === 'el-upload') {
+            console.log('fillFormData val=',val)
+            if(item['list-type'] != 'text') {//图片
+              this.fileList = []    //隐藏加的el-upload文件列表
+              //item['file-list'] = JSON.parse(val)
+              if(val != '') {
+                item['file-list'] = JSON.parse(val)
+              }
+            }
+            else {  //列表
+              console.log("列表fillFormData val",val)
+              this.fileList = JSON.parse(val)
+              item['file-list'] = [] //隐藏加的表单设计器的文件列表
+            }
+            // 回显图片
+            this.fileDisplay = true
+          }
+        }
+
+        if (Array.isArray(item.columns)) {
+          this.fillFormData(item.columns, formConf)
+        }
+      })
+    },
+    //点击文件列表中已上传文件进行下载
+    handleFilePreview(file) {
+      location.href=file.url;
     },
     // 节点单击事件
     handleNodeClick(data) {

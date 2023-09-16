@@ -25,6 +25,11 @@ import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.FileUtils;
 import com.ruoyi.framework.config.ServerConfig;
+import com.ruoyi.system.domain.vo.SysOssVo;
+import com.ruoyi.system.service.ISysOssService;
+import com.ruoyi.system.service.ISysUserService;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 通用请求处理
@@ -32,6 +37,7 @@ import com.ruoyi.framework.config.ServerConfig;
  * @author ruoyi
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/common")
 public class CommonController
 {
@@ -39,6 +45,9 @@ public class CommonController
 
     @Autowired
     private ServerConfig serverConfig;
+    
+    private final ISysUserService userService;
+    private final ISysOssService iSysOssService;
 
     private static final String FILE_DELIMETER = ",";
     
@@ -92,17 +101,28 @@ public class CommonController
     {
         try
         {
-            // 上传文件路径
-            String filePath = RuoYiConfig.getUploadPath();
-            // 上传并返回新文件名称
-            String fileName = FileUploadUtils.upload(filePath, file);
-            String url = serverConfig.getUrl() + fileName;
-            Map<String, String> map = new HashMap<>(4);
-            map.put("url", url);
-            map.put("fileName", fileName);
-            map.put("newFileName", FileUtils.getName(fileName));
-            map.put("originalFilename", file.getOriginalFilename());
-            return R.ok(map);
+        	 if(Constants.UPLOAD_TYPE_LOCAL.equals(uploadtype)) {
+			     // 上传文件路径
+			     String filePath = RuoYiConfig.getUploadPath();
+			     // 上传并返回新文件名称
+			     String fileName = FileUploadUtils.upload(filePath, file);
+			     String url = serverConfig.getUrl() + fileName;
+			     Map<String, String> map = new HashMap<>(4);
+			     map.put("url", url);
+			     map.put("fileName", fileName);
+			     map.put("newFileName", FileUtils.getName(fileName));
+			     map.put("originalFilename", file.getOriginalFilename());
+			     return R.ok(map); 
+        	 }
+        	 else {
+        		 SysOssVo oss = iSysOssService.upload(file);
+    	         Map<String, String> map = new HashMap<>(3);
+    	         map.put("url", oss.getUrl());
+    	         map.put("fileName", oss.getOriginalName());
+    	         map.put("ossId", oss.getOssId().toString());
+    	         return R.ok(map); 
+        	 }
+           
         }
         catch (Exception e)
         {

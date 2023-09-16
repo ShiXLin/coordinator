@@ -15,8 +15,8 @@ function vModel(self, dataObject) {
     /**
      * 此处增加自定义的token,如果不能满足要求，可以重写此处代码
      */
-    const token = '这里为自己的token';
-    dataObject.attrs['headers'] = {"Authorization":"Bearer " + getToken()};
+    const token = getToken();
+    dataObject.attrs['headers'] = {"Authorization":"Bearer " + token};
     const filevalue = JSON.parse(dataObject.props.value);
     dataObject.props['file-list'] = filevalue;
   }
@@ -34,7 +34,7 @@ export default {
     //远程获取数据
     this.getRemoteData();
     const confClone = jsonClone(this.conf);
-    const children = childrenItem(h,confClone);   
+    const children = childrenItem(h,confClone);
     // 如果需要token，可以设置
     confClone['headers'] = {"Authorization":"Bearer " + getToken()};
     Object.keys(confClone).forEach(key => {

@@ -95,7 +95,7 @@ export default {
       this.$refs.formBuilder.validate();
       if(this.formVal !='') {
         this.formViewOpen = true;
-        this.formConfOpen = false;
+        this.formOpen = false;
         const variables=JSON.parse(this.formVal);
         const formData = JSON.parse(this.formCode);
         formData.formValue = JSON.parse(this.formVal);
@@ -113,7 +113,7 @@ export default {
         }
       }
     },
-  
+
   }
 }
 </script>

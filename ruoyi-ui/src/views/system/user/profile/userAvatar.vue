@@ -145,7 +145,6 @@ export default {
           this.open = false;
           this.options.img = process.env.VUE_APP_BASE_API + response.data.imgUrl;
           store.commit('SET_AVATAR', this.options.img);
-	        console.log("uploadImg this.options.img=",this.options.img);
           this.$modal.msgSuccess("修改成功");
           this.visible = false;
         });
