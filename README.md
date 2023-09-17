@@ -1,13 +1,13 @@
-## 平台简介
+## Ruoyi-Nbcio V1.0.0 NBCIO亿事达企业管理平台平台简介
 [![使用STS开发维护](https://img.shields.io/badge/STS-提供支持-blue.svg)](https://spring.io/tools)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7-blue.svg)]()
 [![JDK-8+](https://img.shields.io/badge/JDK-8-green.svg)]()
 [![JDK-11](https://img.shields.io/badge/JDK-11-green.svg)]()
 
-- 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，采用 `Flowable` 扩展工作流应用场景，支持在线表单设计和丰富的工作流程设计能力。
-- 本项目主要针对`Flowable`工作流场景开发，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
+- 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，从nbcio-boot(https://gitee.com/nbacheng/nbcio-boot)项目
+  移植过来相关功能，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
 - 采用`MIT开源协议`，完全免费给个人及企业使用。
-- 项目处于开发移植阶段，准备把nbcio-boot相关功能移植过来，因为还没完成相关工作，工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
+- 项目处于开发移植阶段，因为还没完成相关工作，工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
 
 ## 参考文档
 - 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向原项目文档](http://rfp-doc.konbai.work)
@@ -17,7 +17,7 @@
 - Gitee：<https://gitee.com/nbacheng/ruoyi-nbcio>
 
 ## 在线演示
-演示服务不限制CURD操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。（将不定期清理数据）
+演示服务不限制操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。
 
 [RuoYi-Nbcio 在线演示](http://122.227.135.243:9666/)
 
@@ -32,22 +32,53 @@
 
 QQ交流群: 703572701 
 
+## 友情链接
+- [基于jeec-boo3.0的nbcio-boot项目](https://gitee.com/nbacheng/nbcio-boot)： NBCIO 亿事达企业管理平台。
+
+## 后端技术架构
+- 基础框架：Spring Boot 2.7.11
+
+- 持久层框架：Mybatis-plus 3.5.3.1
+
+- 安全框架：Sa-Token 1.34.0
+
+- 缓存框架：redis
+
+- 日志打印：logback
+
+- 其他：fastjson，poi，Swagger-ui，quartz, lombok（简化代码）等。
+
+## 开发环境
+
+- 语言：Java 8 java 11
+
+- IDE(JAVA)： STS安装lombok插件 或者 IDEA
+
+- 依赖管理：Maven
+
+- 数据库：MySQL5.7+  &  Oracle 11g & SqlServer & postgresql & 国产等更多数据库
+
+- 缓存：Redis
+
+## 增加的主要功能
+
+   1、表单设计修改为formdesigner。
+   2、增加自定义业务表单审批。
+   
+
+## 支持项目
+-  如果项目对你有帮助，请给项目点个Star，同时也可以请作者喝杯咖啡吧！
+![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
+
+
 ## 参与开源
 - 如遇到问题，欢迎提交到 [issues](https://gitee.com/nbacheng/ruoyi-nbcio/issues)（请按模版进行填写信息）。
-- 欢迎提交 [PR](https://gitee.com/nbacheng/ruoyi-nbcio/pulls) ，注意请提交到 `develop` 开发分支 统一测试发版。
+- 欢迎fork项目，同时提交相关功能。
 
 ## 特别鸣谢
 - [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 
 - [bpmn-process-designer](https://gitee.com/MiyueSC/bpmn-process-designer)
 - [formDesigner](https://gitee.com/wurong19870715/formDesigner)
-
-## 支持项目
-如果项目对你有帮助，请给项目点个Star。也可以通过下方二维码请作者喝一杯奶茶！
-![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
-
-## 友情链接
-- [基于jeec-boo3.0的nbcio-boot项目](https://gitee.com/nbacheng/nbcio-boot)：目前内容看项目。
-- [基于若依的Flowable工作流实战](https://space.bilibili.com/400188320/channel/collectiondetail?sid=1002899)：Flowable视频学习专栏，项目基本覆盖了Flowable的方方面面，也拓展了很多为了达到生产级别项目而附加的表结构，工具类等知识点！
 
 ## 演示图例
 <table style="width:100%; text-align:center">
