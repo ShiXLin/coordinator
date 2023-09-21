@@ -88,6 +88,20 @@ export const constantRoutes = [
     ]
   },
   {
+    path: '/system',
+    component: Layout,
+    hidden: true,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: 'notice',
+        component: () => import('@/views/system/notice/index'),
+        name: 'notice',
+        meta: { title: '通知通告', icon: 'message' }
+      }
+    ]
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,

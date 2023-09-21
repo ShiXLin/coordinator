@@ -1,4 +1,4 @@
-## Ruoyi-Nbcio V1.0.0 NBCIO亿事达企业管理平台平台简介
+## Ruoyi-Nbcio V1.0.0 NBCIO亿事达企业管理平台简介
 [![使用STS开发维护](https://img.shields.io/badge/STS-提供支持-blue.svg)](https://spring.io/tools)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7-blue.svg)]()
 [![JDK-8+](https://img.shields.io/badge/JDK-8-green.svg)]()

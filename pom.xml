@@ -20,6 +20,7 @@
         <java.version>1.8</java.version>
         <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <spring-boot.mybatis>2.2.2</spring-boot.mybatis>
+        <fastjson.version>1.2.78</fastjson.version>
         <springdoc.version>1.6.15</springdoc.version>
         <poi.version>5.2.3</poi.version>
         <easyexcel.version>3.2.1</easyexcel.version>
@@ -342,6 +343,13 @@
             <dependency>
                 <groupId>com.ruoyi</groupId>
                 <artifactId>ruoyi-sms</artifactId>
+                <version>${ruoyi-nbcio.version}</version>
+            </dependency>
+            
+            <!-- websocket模块 -->
+            <dependency>
+                <groupId>com.ruoyi</groupId>
+                <artifactId>ruoyi-websocket</artifactId>
                 <version>${ruoyi-nbcio.version}</version>
             </dependency>
 
