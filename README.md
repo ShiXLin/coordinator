@@ -1,4 +1,10 @@
 ## Ruoyi-Nbcio V1.0.0 NBCIO亿事达企业管理平台简介
+
+[![码云Gitee](https://gitee.com/nbacheng/ruoyi-nbcio/badge/star.svg?theme=blue)](https://gitee.com/nbacheng/ruoyi-nbcio)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://gitee.com/nbacheng/ruoyi-nbcio/blob/master/LICENSE)
+[![](https://img.shields.io/badge/Author-宁波阿成-orange.svg)](http://122.227.135.243:9666/)
+[![](https://img.shields.io/badge/Blog-个人博客-blue.svg)](https://nbacheng.blog.csdn.net)
+[![](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)](https://gitee/nbacheng/ruoyi-nbcio)
 [![使用STS开发维护](https://img.shields.io/badge/STS-提供支持-blue.svg)](https://spring.io/tools)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7-blue.svg)]()
 [![JDK-8+](https://img.shields.io/badge/JDK-8-green.svg)]()
@@ -6,7 +12,6 @@
 
 - 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，从nbcio-boot(https://gitee.com/nbacheng/nbcio-boot)项目
   移植过来相关功能，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
-- 采用`MIT开源协议`，完全免费给个人及企业使用。
 - 项目处于开发移植阶段，因为还没完成相关工作，工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
 
 ## 参考文档
@@ -15,6 +20,17 @@
 
 ## 项目地址
 - Gitee：<https://gitee.com/nbacheng/ruoyi-nbcio>
+
+## 增加的主要功能
+
+   1、表单设计修改为formdesigner。
+   2、支持动态角色与用户,全面修改原有的以userid修改成username的方式。
+   3、全新修改了原先启动流程的过程。
+   
+
+## 支持项目
+-  如果项目对你有帮助，请给项目点个Star，同时也可以请作者喝杯咖啡吧！
+![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
 
 ## 在线演示
 演示服务不限制操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。
@@ -60,15 +76,6 @@ QQ交流群: 703572701
 
 - 缓存：Redis
 
-## 增加的主要功能
-
-   1、表单设计修改为formdesigner。
-   2、增加自定义业务表单审批。
-   
-
-## 支持项目
--  如果项目对你有帮助，请给项目点个Star，同时也可以请作者喝杯咖啡吧！
-![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
 
 
 ## 参与开源
