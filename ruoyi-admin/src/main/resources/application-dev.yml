@@ -135,18 +135,6 @@ sa-token:
   # jwt秘钥
   jwt-secret-key: abcdefghijklmnopqrstuvwxyz
 
-#第三方登录
-justauth:
-  enabled: true
-  type:
-    GITEE:
-      client-id: e5f2b925b943e93a9fe270756581b08261f3ded529abb9f0ba430ce78bb2aa71
-      client-secret: c66bb5b3f30b5811ee8748b64140386ba765b82cb478707f1aaf2a8e6d2317ae
-      redirect-uri: http://127.0.0.1:9060/sys/thirdLogin/gitee/callback
-  cache:
-    type: default
-    prefix: 'demo::'
-    timeout: 1h  
 redisson:
   # redis key前缀
   keyPrefix:
