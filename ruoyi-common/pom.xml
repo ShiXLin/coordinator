@@ -16,6 +16,10 @@
     </description>
 
     <dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
 
         <!-- Spring框架基本的核心工具 -->
         <dependency>
@@ -69,6 +73,11 @@
             <artifactId>fastjson</artifactId>
             <version>${fastjson.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>transmittable-thread-local</artifactId>
+        </dependency>
 
         <!-- yml解析器 -->
         <dependency>
@@ -93,6 +102,11 @@
             <artifactId>dynamic-datasource-spring-boot-starter</artifactId>
         </dependency>
 
+        <dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-core</artifactId>
@@ -159,6 +173,13 @@
             <groupId>com.baomidou</groupId>
             <artifactId>lock4j-redisson-spring-boot-starter</artifactId>
         </dependency>
+        
+        <!--加载beanutils-->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version> ${commons-beanutils.version}</version>
+        </dependency>
 
         <!-- 加密包引入 -->
         <dependency>
@@ -171,7 +192,13 @@
             <groupId>org.lionsoul</groupId>
             <artifactId>ip2region</artifactId>
         </dependency>
+        
+        <!-- 第三方登录  -->
+		<dependency>
+			<groupId>com.xkcoding.justauth</groupId>
+			<artifactId>justauth-spring-boot-starter</artifactId>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 </project>

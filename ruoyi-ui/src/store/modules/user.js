@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/login'
+import { login, logout, getInfo, socialLogin, thirdLogin } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const user = {
@@ -45,6 +45,22 @@ const user = {
         })
       })
     },
+    // 第三方平台登录
+    SocialLogin({ commit }, userInfo) {
+      const code = userInfo.code
+      const state = userInfo.state
+      const source = userInfo.source
+      return new Promise((resolve, reject) => {
+        socialLogin(source, code, state).then(res => {
+          console.log("SocialLogin res=",res);
+          setToken(res.data)
+          commit('SET_TOKEN', res.data)
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
 
     // 获取用户信息
     GetInfo({ commit, state }) {
@@ -81,7 +97,26 @@ const user = {
         })
       })
     },
-
+    // 第三方登录
+    ThirdLogin({ commit }, param) {
+      return new Promise((resolve, reject) => {
+        thirdLogin(param.token,param.thirdType).then(response => {
+          if(response.code =='200'){
+            const result = response.data
+            const userInfo = result.userInfo
+            commit('SET_TOKEN', result.token)
+            commit('SET_INFO', userInfo)
+            commit('SET_NAME', userInfo.usernameme)
+            commit('SET_AVATAR', userInfo.avatar)
+            resolve(response)
+          }else{
+            reject(response)
+          }
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
     // 前端 登出
     FedLogOut({ commit }) {
       return new Promise(resolve => {

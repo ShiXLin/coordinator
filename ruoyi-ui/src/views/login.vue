@@ -62,12 +62,16 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 import { getCodeImg } from "@/api/login";
+import { authBinding } from "@/api/system/auth";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from '@/utils/jsencrypt'
 
 export default {
   name: "Login",
+  components: {
+  },
   data() {
     return {
       codeUrl: "",
@@ -150,7 +154,7 @@ export default {
           });
         }
       });
-    }
+    },
   }
 };
 </script>
@@ -215,5 +219,26 @@ export default {
 }
 .login-code-img {
   height: 38px;
+}
+.user-login-other {
+  text-align: left;
+  margin-top: 24px;
+  line-height: 22px;
+
+.item-icon {
+  font-size: 24px;
+  color: rgba(0, 0, 0, .2);
+  margin-left: 16px;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: color .3s;
+
+&  :hover {
+  color: #1890ff;
+  }
+}
+.register {
+  float: right;
+}
 }
 </style>

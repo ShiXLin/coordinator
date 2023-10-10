@@ -10,7 +10,6 @@
         <search id="header-search" class="right-menu-item" />
 
         <el-tooltip content="消息" effect="dark" placement="bottom">
-           <!--<message id="message" class="right-menu-item hover-effect"  /> -->
            <header-notice id="message" class="right-menu-item-message hover-effect" />
         </el-tooltip>
 
@@ -55,7 +54,6 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import TopNav from '@/components/TopNav'
-//import Message from '@/components/Message'
 import HeaderNotice from '@/components/HeaderNotice'
 import Hamburger from '@/components/Hamburger'
 import Screenfull from '@/components/Screenfull'

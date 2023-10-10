@@ -72,6 +72,7 @@ public class SysProfileController extends BaseController {
         ajax.put("user", user);
         ajax.put("roleGroup", userService.selectUserRoleGroup(user.getUserName()));
         ajax.put("postGroup", userService.selectUserPostGroup(user.getUserName()));
+		ajax.put("auths", userService.selectAuthUserListByUserId(user.getUserId()));
         return R.ok(ajax);
     }
 

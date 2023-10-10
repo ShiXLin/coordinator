@@ -51,6 +51,15 @@ export function detailProcess(query) {
   })
 }
 
+//判断流程是否结束了,用在消息点击里判断
+export function processIscompleted(query) {
+  return request({
+    url: '/workflow/process/iscompleted',
+    method: 'get',
+    params: query
+  })
+}
+
 // 我的发起的流程
 export function listOwnProcess(query) {
   return request({

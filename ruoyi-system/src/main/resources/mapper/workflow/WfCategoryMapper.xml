@@ -8,6 +8,7 @@
         <result property="categoryId" column="category_id"/>
         <result property="categoryName" column="category_name"/>
         <result property="code" column="code"/>
+        <result property="appType" column="app_type"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
@@ -15,5 +16,9 @@
         <result property="remark" column="remark"/>
         <result property="delFlag" column="del_flag"/>
     </resultMap>
+    
+    <select id="selectAppTypeByCode" resultType="String">
+        select app_type from wf_category where code = #{code}
+    </select>
 
 </mapper>

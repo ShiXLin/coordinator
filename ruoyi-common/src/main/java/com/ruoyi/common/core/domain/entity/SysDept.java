@@ -47,6 +47,10 @@ public class SysDept extends TreeEntity<SysDept> {
      * 负责人
      */
     private String leader;
+    /**
+     * 负责人Id
+     */
+    private Long leaderId;
 
     /**
      * 联系电话

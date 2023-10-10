@@ -10,9 +10,12 @@ import com.ruoyi.flowable.core.domain.ProcessQuery;
 import com.ruoyi.flowable.utils.ProcessUtils;
 import com.ruoyi.workflow.domain.WfDeployForm;
 import com.ruoyi.workflow.domain.vo.WfDeployVo;
+import com.ruoyi.workflow.mapper.WfCategoryMapper;
 import com.ruoyi.workflow.mapper.WfDeployFormMapper;
 import com.ruoyi.workflow.service.IWfDeployService;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 import org.flowable.common.engine.impl.db.SuspensionState;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.repository.Deployment;
@@ -36,6 +39,7 @@ public class WfDeployServiceImpl implements IWfDeployService {
 
     private final RepositoryService repositoryService;
     private final WfDeployFormMapper deployFormMapper;
+    private final WfCategoryMapper categoryMapper;
 
     @Override
     public TableDataInfo<WfDeployVo> queryPageList(ProcessQuery processQuery, PageQuery pageQuery) {
@@ -55,20 +59,43 @@ public class WfDeployServiceImpl implements IWfDeployService {
 
         List<WfDeployVo> deployVoList = new ArrayList<>(definitionList.size());
         for (ProcessDefinition processDefinition : definitionList) {
-            String deploymentId = processDefinition.getDeploymentId();
-            Deployment deployment = repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
-            WfDeployVo vo = new WfDeployVo();
-            vo.setDefinitionId(processDefinition.getId());
-            vo.setProcessKey(processDefinition.getKey());
-            vo.setProcessName(processDefinition.getName());
-            vo.setVersion(processDefinition.getVersion());
-            vo.setCategory(processDefinition.getCategory());
-            vo.setDeploymentId(processDefinition.getDeploymentId());
-            vo.setSuspended(processDefinition.isSuspended());
-            // 流程部署信息
-            vo.setCategory(deployment.getCategory());
-            vo.setDeploymentTime(deployment.getDeploymentTime());
-            deployVoList.add(vo);
+        	if( StringUtils.isNotBlank(processQuery.getAppType())) {
+        		if ( processQuery.getAppType().equalsIgnoreCase(categoryMapper.selectAppTypeByCode(processDefinition.getCategory()))) {
+	        		String deploymentId = processDefinition.getDeploymentId();
+		            Deployment deployment = repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
+		            WfDeployVo vo = new WfDeployVo();
+		            vo.setDefinitionId(processDefinition.getId());
+		            vo.setProcessKey(processDefinition.getKey());
+		            vo.setProcessName(processDefinition.getName());
+		            vo.setVersion(processDefinition.getVersion());
+		            vo.setCategory(processDefinition.getCategory());
+		            vo.setAppType(categoryMapper.selectAppTypeByCode(processDefinition.getCategory()));
+		            vo.setDeploymentId(processDefinition.getDeploymentId());
+		            vo.setSuspended(processDefinition.isSuspended());
+		            // 流程部署信息
+		            vo.setCategory(deployment.getCategory());
+		            vo.setDeploymentTime(deployment.getDeploymentTime());
+		            deployVoList.add(vo);
+        		}	
+        	}
+        	else {
+	            String deploymentId = processDefinition.getDeploymentId();
+	            Deployment deployment = repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
+	            WfDeployVo vo = new WfDeployVo();
+	            vo.setDefinitionId(processDefinition.getId());
+	            vo.setProcessKey(processDefinition.getKey());
+	            vo.setProcessName(processDefinition.getName());
+	            vo.setVersion(processDefinition.getVersion());
+	            vo.setCategory(processDefinition.getCategory());
+	            vo.setAppType(categoryMapper.selectAppTypeByCode(processDefinition.getCategory()));
+	            vo.setDeploymentId(processDefinition.getDeploymentId());
+	            vo.setSuspended(processDefinition.isSuspended());
+	            // 流程部署信息
+	            vo.setCategory(deployment.getCategory());
+	            vo.setDeploymentTime(deployment.getDeploymentTime());
+	            deployVoList.add(vo);
+        	}
+            
         }
         Page<WfDeployVo> page = new Page<>();
         page.setRecords(deployVoList);

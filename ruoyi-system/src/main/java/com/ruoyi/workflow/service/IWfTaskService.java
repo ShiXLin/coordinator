@@ -1,5 +1,7 @@
 package com.ruoyi.workflow.service;
 
+import com.ruoyi.common.core.domain.R;
+import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.runtime.ProcessInstance;
@@ -114,4 +116,17 @@ public interface IWfTaskService {
      * @param variables 流程参数
      */
     void startFirstTask(ProcessInstance processInstance, Map<String, Object> variables);
+    
+    /**
+     * 获取下一节点
+     * @param WfTaskBo 任务
+     * @return
+     */
+    public R getNextFlowNode(WfTaskBo flowTaskVo);
+    /**
+     * 获取下一节点
+     * @param String taskId, Map<String, Object> values
+     * @return
+     */
+    public FlowNextDto getNextFlowNode(String taskId, Map<String, Object> values);
 }

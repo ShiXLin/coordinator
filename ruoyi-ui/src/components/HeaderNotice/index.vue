@@ -8,55 +8,55 @@
           <a-tabs>
             <a-tab-pane :tab="msg1Title" key="1">
               <a-list>
-                <a-list-item :key="index" v-for="(record, index) in announcement1">
+                <a-list-item :key="index" v-for="(record, index) in notice1">
                   <div style="margin-left: 5%;width: 50%">
-                    <p><a @click="showAnnouncement(record)">{{ record.titile }}</a></p>
+                    <p><a @click="showNotice(record)">{{ record.titile }}</a></p>
                     <p style="color: rgba(0,0,0,.45);margin-bottom: 0px">{{ record.createTime }} 发布</p>
                   </div>
                   <div style="text-align: right">
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
                   </div>
                 </a-list-item>
                 <div style="margin-top: 5px;text-align: center">
-                  <a-button @click="toMyAnnouncement()" type="dashed" block>查看更多</a-button>
+                  <a-button @click="toMyNotice()" type="dashed" block>查看更多</a-button>
                 </div>
               </a-list>
             </a-tab-pane>
             <a-tab-pane :tab="msg2Title" key="2">
               <a-list>
-                <a-list-item :key="index" v-for="(record, index) in announcement2">
+                <a-list-item :key="index" v-for="(record, index) in notice2">
                   <div style="margin-left: 5%;width: 50%">
-                    <p><a @click="showAnnouncement(record)">{{ record.titile }}</a></p>
+                    <p><a @click="showNotice(record)">{{ record.titile }}</a></p>
                     <p style="color: rgba(0,0,0,.45);margin-bottom: 0px">{{ record.createTime }} 发布</p>
                   </div>
                   <div style="text-align: right">
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
                   </div>
                 </a-list-item>
                 <div style="margin-top: 5px;text-align: center">
-                  <a-button @click="toMyAnnouncement()" type="dashed" block>查看更多</a-button>
+                  <a-button @click="toMyNotice()" type="dashed" block>查看更多</a-button>
                 </div>
               </a-list>
             </a-tab-pane>
             <a-tab-pane :tab="msg3Title" key="3">
               <a-list>
-                <a-list-item :key="index" v-for="(record, index) in announcement3">
+                <a-list-item :key="index" v-for="(record, index) in notice3">
                   <div style="margin-left: 5%;width: 50%">
-                    <p><a @click="showAnnouncement(record)">{{ record.titile }}</a></p>
+                    <p><a @click="showNotice(record)">{{ record.titile }}</a></p>
                     <p style="color: rgba(0,0,0,.45);margin-bottom: 0px">{{ record.createTime }} 发布</p>
                   </div>
                   <div style="text-align: right">
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
-                    <a-tag @click="showAnnouncement(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'L'" color="blue">一般消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'M'" color="orange">重要消息</a-tag>
+                    <a-tag @click="showNotice(record)" v-if="record.priority === 'H'" color="red">紧急消息</a-tag>
                   </div>
                 </a-list-item>
                 <div style="margin-top: 5px;text-align: center">
-                  <a-button @click="toMyAnnouncement()" type="dashed" block>查看更多</a-button>
+                  <a-button @click="toMyNotice()" type="dashed" block>查看更多</a-button>
                 </div>
               </a-list>
             </a-tab-pane>
@@ -68,36 +68,31 @@
           <a-icon style="font-size: 16px; padding: 4px" type="bell" />
         </a-badge>
       </span>
-      <show-announcement ref="ShowAnnouncement" @ok="modalFormOk"></show-announcement>
+      <show-notice ref="ShowNotice" @ok="modalFormOk"></show-notice>
       <dynamic-notice ref="showDynamNotice" :path="openPath" :formData="formData" />
     </a-popover>
   </div>
 </template>
 
 <script>
-  import ShowAnnouncement from './ShowAnnouncement'
+  import ShowNotice from './ShowNotice'
   import store from '@/store/'
   import DynamicNotice from './DynamicNotice'
-
+  import { listByUser, updateUserIdAndNotice } from "@/api/system/notice";
 
   export default {
     name: "HeaderNotice",
     components: {
       DynamicNotice,
-      ShowAnnouncement,
+      ShowNotice,
     },
     data() {
       return {
         loadding: false,
-        url: {
-          listCementByUser: "/sys/annountCement/listByUser",
-          editCementSend: "/sys/sysAnnouncementSend/editByAnntIdAndUserId",
-          queryById: "/sys/annountCement/queryById",
-        },
         hovered: false,
-        announcement1: [],
-        announcement2: [],
-        announcement3: [],
+        notice1: [],
+        notice2: [],
+        notice3: [],
         msg1Count: "0",
         msg2Count: "0",
         msg3Count: "0",
@@ -118,7 +113,7 @@
       }
     },
     mounted() {
-      //this.loadData();
+      this.loadData();
       //this.timerFun();
       this.initWebSocket();
       // this.heartCheckFun();
@@ -141,17 +136,18 @@
       loadData() {
         try {
           // 获取系统消息
-          getAction(this.url.listCementByUser).then((res) => {
-            if (res.success) {
-              this.announcement1 = res.result.anntMsgList;
-              this.msg1Count = res.result.anntMsgTotal;
-              this.msg1Title = "通知(" + res.result.anntMsgTotal + ")";
-              this.announcement2 = res.result.sysMsgList;
-              this.msg2Count = res.result.sysMsgTotal;
-              this.msg2Title = "系统消息(" + res.result.sysMsgTotal + ")";
-              this.announcement3 = res.result.todealMsgList;
-              this.msg3Count = res.result.todealMsgTotal;
-              this.msg3Title = "待办消息(" + res.result.todealMsgTotal + ")";
+          listByUser().then((res) => {
+            console.log("listByUser res",res);
+            if (res.code == 200) {
+              this.notice1 = res.data.anntMsgList;
+              this.msg1Count = res.data.anntMsgTotal;
+              this.msg1Title = "通知(" + res.data.anntMsgTotal + ")";
+              this.notice2 = res.data.sysMsgList;
+              this.msg2Count = res.data.sysMsgTotal;
+              this.msg2Title = "系统消息(" + res.data.sysMsgTotal + ")";
+              this.notice3 = res.data.todealMsgList;
+              this.msg3Count = res.data.todealMsgTotal;
+              this.msg3Title = "待办消息(" + res.data.todealMsgTotal + ")";
             }
           }).catch(error => {
             console.log("系统消息通知异常", error); //这行打印permissionName is undefined
@@ -173,11 +169,11 @@
           this.loadding = false
         }, 200)
       },
-      showAnnouncement(record) {
-        putAction(this.url.editCementSend, {
-          anntId: record.id
+      showNotice(record) {
+        updateUserIdAndNotice({
+          noticeId: record.noticeId
         }).then((res) => {
-          if (res.success) {
+          if (res.code == 200) {
             this.loadData();
           }
         });
@@ -189,12 +185,12 @@
           };
           this.$refs.showDynamNotice.detail(record.openPage);
         } else {
-          this.$refs.ShowAnnouncement.detail(record);
+          this.$refs.ShowNotice.detail(record);
         }
       },
-      toMyAnnouncement() {
+      toMyNotice() {
         this.$router.push({
-          path: '/isps/userAnnouncement'
+          path: '/personal/mynotice'
         });
       },
       modalFormOk() {},
@@ -228,7 +224,7 @@
         var data = eval("(" + e.data + ")"); //解析对象
         if (data.cmd == "topic") {
           //系统通知
-          //this.loadData();
+          this.loadData();
           this.$notification.open({ //websocket消息通知弹出
             message: 'websocket消息通知',
             description: data.msgTxt,
@@ -239,7 +235,7 @@
           });
         } else if (data.cmd == "user") {
           //用户消息
-          //this.loadData();
+          this.loadData();
           this.$notification.open({
             message: 'websocket消息通知',
             description: data.msgTxt,
@@ -336,7 +332,7 @@
         }).then((res) => {
           if (res.success) {
             var record = res.result;
-            this.showAnnouncement(record);
+            this.showNotice(record);
           }
         })
 

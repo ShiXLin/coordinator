@@ -1,17 +1,20 @@
 package com.ruoyi.system.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.system.domain.SysNotice;
 
 import java.util.List;
 
+
 /**
  * 公告 服务层
  *
- * @author Lion Li
+ * @author nbacheng
  */
-public interface ISysNoticeService {
+public interface ISysNoticeService extends IService<SysNotice> {
 
 
     TableDataInfo<SysNotice> selectPageNoticeList(SysNotice notice, PageQuery pageQuery);
@@ -63,4 +66,7 @@ public interface ISysNoticeService {
      * @return 结果
      */
     int deleteNoticeByIds(Long[] noticeIds);
+    
+    public Page<SysNotice> querySysNoticePageByUserId(Page<SysNotice> page,Long userId,String msgCategory);
+
 }

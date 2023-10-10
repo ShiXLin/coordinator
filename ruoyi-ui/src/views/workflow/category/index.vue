@@ -76,6 +76,11 @@
       <el-table-column label="分类编号" align="center" prop="categoryId" v-if="true"/>
       <el-table-column label="分类名称" align="center" prop="categoryName" />
       <el-table-column label="分类编码" align="center" prop="code" />
+      <el-table-column label="应用类型" align="center" prop="appType" width="100">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.wf_app_type" :value="scope.row.appType"/>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -114,6 +119,16 @@
         <el-form-item label="分类编码" prop="code">
           <el-input v-model="form.code" placeholder="请输入分类编码" />
         </el-form-item>
+        <el-form-item label="应用类型" prop="appType">
+          <el-select v-model="form.appType" placeholder="请选择应用类型">
+            <el-option
+              v-for="dict in dict.type.wf_app_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -131,6 +146,7 @@ import { listCategory, getCategory, delCategory, addCategory, updateCategory } f
 
 export default {
   name: "Category",
+  dicts: ['wf_app_type'],
   data() {
     return {
       // 按钮loading
@@ -159,6 +175,7 @@ export default {
         pageSize: 10,
         categoryName: undefined,
         code: undefined,
+        appType: undefined,
       },
       // 表单参数
       form: {},
@@ -169,6 +186,9 @@ export default {
         ],
         code: [
           { required: true, message: "分类编码不能为空", trigger: "blur" }
+        ],
+        appType: [
+          { required: true, message: "应用类型不能为空", trigger: "blur" }
         ]
       }
     };
@@ -197,6 +217,7 @@ export default {
         categoryId: undefined,
         categoryName: undefined,
         code: undefined,
+        appType: undefined,
         createBy: undefined,
         createTime: undefined,
         updateBy: undefined,

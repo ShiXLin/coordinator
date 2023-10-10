@@ -208,7 +208,7 @@
 </template>
 
 <script>
-import { detailProcess } from '@/api/workflow/process'
+import { detailProcess, processIscompleted } from '@/api/workflow/process'
 import Parser from '@/utils/generator/parser'
 import { complete, delegate, transfer, rejectTask, returnList, returnTask } from '@/api/workflow/task'
 import { selectUser, deptTreeSelect } from '@/api/system/user'
@@ -338,23 +338,32 @@ export default {
       this.taskForm.procInsId = this.$route.params && this.$route.params.procInsId;
       this.taskForm.taskId  = this.$route.query && this.$route.query.taskId;
       this.processed = this.$route.query && eval(this.$route.query.processed || false);
-      // 流程任务重获取变量表单
-      this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId);
-      this.loadIndex = this.taskForm.procInsId;
-      if(this.processed) {
-        this.activeName = "approval";
-      }
-      else {
-        this.activeName = "form";
-        // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
-        this.processFormList.forEach((item, i) => {
-          if (item.hasOwnProperty('list')) {
-            this.fillFormData(item.list, item)
-            // 更新表单
-            this.key = +new Date().getTime()
-          }
-        });
-      }
+
+      //判断流程是否结束
+      processIscompleted({procInsId: this.taskForm.procInsId}).then(res => {
+        console.log("processIscompleted res=",res);
+        if(res.data) {
+         this.processed = false;
+        }
+        // 流程任务重获取变量表单
+        this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId);
+        this.loadIndex = this.taskForm.procInsId;
+        if(this.processed) {
+          this.activeName = "approval";
+        }
+        else {
+          this.activeName = "form";
+          // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
+          this.processFormList.forEach((item, i) => {
+            if (item.hasOwnProperty('list')) {
+              this.fillFormData(item.list, item)
+              // 更新表单
+              this.key = +new Date().getTime()
+            }
+          });
+        }
+      });
+
     },
     /** 查询部门下拉树结构 */
     getTreeSelect() {

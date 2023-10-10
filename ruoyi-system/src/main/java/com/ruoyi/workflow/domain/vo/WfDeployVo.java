@@ -44,6 +44,12 @@ public class WfDeployVo {
     private String category;
 
     /**
+     * 应用类型
+     */
+    @ExcelProperty(value = "应用类型")
+    private String appType;
+    
+    /**
      * 版本
      */
     private Integer version;

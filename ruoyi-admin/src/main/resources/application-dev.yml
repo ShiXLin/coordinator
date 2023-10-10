@@ -106,7 +106,7 @@ spring:
     # 端口，默认为6379
     port: 6379
     # 数据库索引
-    database: 0
+    database: 1
     # 密码(如没有密码请注释掉)
     password: masterredis
     # 连接超时时间
@@ -114,6 +114,39 @@ spring:
     # 是否开启ssl
     ssl: false
 
+# Sa-Token配置
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: Authorization
+  # token有效期 设为一天 (必定过期) 单位: 秒
+  timeout: 86400
+  # token临时有效期 (指定时间无操作就过期) 单位: 秒
+  activity-timeout: 1800
+  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: false
+  # 是否尝试从header里读取token
+  is-read-header: true
+  # 是否尝试从cookie里读取token
+  is-read-cookie: false
+  # token前缀
+  token-prefix: "Bearer"
+  # jwt秘钥
+  jwt-secret-key: abcdefghijklmnopqrstuvwxyz
+
+#第三方登录
+justauth:
+  enabled: true
+  type:
+    GITEE:
+      client-id: e5f2b925b943e93a9fe270756581b08261f3ded529abb9f0ba430ce78bb2aa71
+      client-secret: c66bb5b3f30b5811ee8748b64140386ba765b82cb478707f1aaf2a8e6d2317ae
+      redirect-uri: http://127.0.0.1:9060/sys/thirdLogin/gitee/callback
+  cache:
+    type: default
+    prefix: 'demo::'
+    timeout: 1h  
 redisson:
   # redis key前缀
   keyPrefix:
@@ -135,6 +168,22 @@ redisson:
     timeout: 3000
     # 发布和订阅连接池大小
     subscriptionConnectionPoolSize: 50
+
+--- # Flowable 配置
+flowable:
+  # 关闭定时任务 job
+  async-executor-activate: false
+  # 库与数据库表结构不一致时，会自动将数据库表结构升级至新版本。
+  database-schema-update: true
+  idm:
+    # 关闭idm引擎 数据库不会创建act_id_*表，流程流转不会使用act_id_*相关的表
+    enabled: false
+  # 关闭流程定义文件自动检查
+  check-process-definitions: false
+  # 关闭历史任务定时任务job
+  async-history-executor-activate: false
+  #消息链接基地址
+  message-base-url: http://localhost:9666/workflow/process/detail/
 
 --- # mail 邮件发送
 mail:

@@ -30,6 +30,7 @@ public class LoginHelper {
 
     public static final String LOGIN_USER_KEY = "loginUser";
     public static final String USER_KEY = "userId";
+    public static final String USER_NAME = "userName";
 
     /**
      * 登录系统
@@ -50,11 +51,14 @@ public class LoginHelper {
         SaStorage storage = SaHolder.getStorage();
         storage.set(LOGIN_USER_KEY, loginUser);
         storage.set(USER_KEY, loginUser.getUserId());
+        storage.set(USER_NAME, loginUser.getUsername());
         SaLoginModel model = new SaLoginModel();
+        model.setExtra(USER_KEY, loginUser.getUserId());
+        model.setExtra(USER_NAME, loginUser.getUsername());
         if (ObjectUtil.isNotNull(deviceType)) {
             model.setDevice(deviceType.getDevice());
         }
-        StpUtil.login(loginUser.getLoginId(), model.setExtra(USER_KEY, loginUser.getUserId()));
+        StpUtil.login(loginUser.getLoginId(), model);
         StpUtil.getTokenSession().set(LOGIN_USER_KEY, loginUser);
     }
 
@@ -93,6 +97,23 @@ public class LoginHelper {
             return null;
         }
         return userId;
+    }
+    
+    /**
+     * 获取用户名
+     */
+    public static String getUserName() {
+        String  userName;
+        try {
+        	userName = Convert.toStr(SaHolder.getStorage().get(USER_NAME));
+            if (ObjectUtil.isNull(userName)) {
+                userName = Convert.toStr(StpUtil.getExtra(USER_NAME));
+                SaHolder.getStorage().set(USER_NAME, userName);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return userName;
     }
 
     /**

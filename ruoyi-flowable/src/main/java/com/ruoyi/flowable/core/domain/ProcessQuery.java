@@ -28,6 +28,11 @@ public class ProcessQuery {
      * 流程分类
      */
     private String category;
+    
+    /**
+     * 流程应用类型
+     */
+    private String appType;
 
     /**
      * 状态

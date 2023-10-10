@@ -22,6 +22,11 @@ public class ProcessConstants {
 
 
     /**
+     * 固定任务接收
+     */
+    public static final String FIXED = "fixed";
+    
+    /**
      * 候选人
      */
     public static final String USER_TYPE_USERS = "candidateUsers";

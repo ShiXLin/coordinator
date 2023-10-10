@@ -2,7 +2,12 @@ package com.ruoyi.flowable.flow;
 
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.Expression;
+import com.greenpineyu.fel.FelEngine;
+import com.greenpineyu.fel.FelEngineImpl;
+import com.greenpineyu.fel.context.FelContext;
+
 import org.flowable.bpmn.model.Process;
+import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.*;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.repository.ProcessDefinition;
@@ -13,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Xuan xuan
- * @date 2021/4/19 20:51
+ * @author nbacheng
+ * @date 2023-09-25
  */
 public class FindNextNodeUtil {
 
@@ -217,5 +222,66 @@ public class FindNextNodeUtil {
         Expression exp = AviatorEvaluator.compile(expression);
         final Object execute = exp.execute(map);
         return Boolean.parseBoolean(String.valueOf(execute));
+    }
+    
+    /**
+     * 校验el表达示例
+     *
+     * @param map
+     * @param expression
+     * @return
+     */
+    public static Object result(Map<String, Object> map, String expression) {
+    	Object result = null; 
+    	try {
+	        FelEngine fel = new FelEngineImpl();
+	        FelContext ctx = fel.getContext();
+	        for (Map.Entry<String, Object> entry : map.entrySet()) {
+	            ctx.set(entry.getKey(), entry.getValue());
+	            System.out.print(entry.getKey() + "-"+ entry.getValue());
+	        }
+	        String exp = "";
+	        if (expression.indexOf("<") >0) {
+	        	exp = expression.substring(0, expression.indexOf("<"));
+	        }
+	        else if (expression.indexOf(">") >0) {
+	        	int index =expression.indexOf(">");
+	        	exp = expression.substring(0, index);
+	        }
+	        else if (expression.indexOf("==") >0) {
+	        	exp = expression.substring(0, expression.indexOf("=="));
+	        }
+	        exp =expression.replace(exp, ctx.get(exp).toString());
+	        result = fel.eval(exp);
+	        //result = fel.eval(expression);
+		} catch (Exception e) {
+			result = null;	
+		}
+    	 return result;
+    }
+    
+    /**
+     * 获取排他网关分支名称、分支表达式是否存在${approved}
+     * @param flowElement
+     * @param 
+     * add by nbacheng
+     */
+    public static boolean GetExclusiveGatewayExpression(FlowElement flowElement) {
+    	// 获取所有网关分支
+        List<SequenceFlow> targetFlows=((ExclusiveGateway)flowElement).getOutgoingFlows();
+        // 循环每个网关分支
+        for(SequenceFlow sequenceFlow : targetFlows){
+            // 获取下一个网关和节点数据
+            FlowElement targetFlowElement=sequenceFlow.getTargetFlowElement();
+            // 网关数据不为空
+            if (StringUtils.isNotBlank(sequenceFlow.getConditionExpression())) {
+                // 获取网关判断条件
+            	String expression = sequenceFlow.getConditionExpression();
+            	if(expression.contains("${approved}")) {
+            		return true;
+            	}
+            }
+        }    
+    	return false;   	
     }
 }

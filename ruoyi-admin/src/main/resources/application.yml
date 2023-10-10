@@ -102,28 +102,7 @@ spring:
     deserialization:
       # 允许对象忽略json中不存在的属性
       fail_on_unknown_properties: false
-
-# Sa-Token配置
-sa-token:
-  # token名称 (同时也是cookie名称)
-  token-name: Authorization
-  # token有效期 设为一天 (必定过期) 单位: 秒
-  timeout: 86400
-  # token临时有效期 (指定时间无操作就过期) 单位: 秒
-  activity-timeout: 1800
-  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
-  is-concurrent: true
-  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
-  is-share: false
-  # 是否尝试从header里读取token
-  is-read-header: true
-  # 是否尝试从cookie里读取token
-  is-read-cookie: false
-  # token前缀
-  token-prefix: "Bearer"
-  # jwt秘钥
-  jwt-secret-key: abcdefghijklmnopqrstuvwxyz
-
+      
 # security配置
 security:
   # 排除路径
@@ -142,6 +121,11 @@ security:
     # actuator 监控配置
     - /actuator
     - /actuator/**
+    #third login
+    - /sys/thirdLogin
+    - /sys/thirdLogin/**
+    - /system/auth
+    - /system/auth/**
 
 # MyBatisPlus配置
 # https://baomidou.com/config/
@@ -277,16 +261,3 @@ management:
     logfile:
       external-file: ./logs/sys-console.log
 
---- # Flowable 配置
-flowable:
-  # 关闭定时任务 job
-  async-executor-activate: false
-  # 库与数据库表结构不一致时，会自动将数据库表结构升级至新版本。
-  database-schema-update: true
-  idm:
-    # 关闭idm引擎 数据库不会创建act_id_*表，流程流转不会使用act_id_*相关的表
-    enabled: false
-  # 关闭流程定义文件自动检查
-  check-process-definitions: false
-  # 关闭历史任务定时任务job
-  async-history-executor-activate: false

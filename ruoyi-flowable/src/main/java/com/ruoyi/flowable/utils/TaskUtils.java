@@ -20,6 +20,10 @@ public class TaskUtils {
         return String.valueOf(LoginHelper.getUserId());
     }
 
+    public static String getUserName() {
+        return LoginHelper.getUserName();
+    }
+    
     /**
      * 获取用户组信息
      *

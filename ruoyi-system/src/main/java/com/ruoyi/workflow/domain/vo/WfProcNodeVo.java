@@ -12,8 +12,8 @@ import java.util.List;
 /**
  * 工作流节点元素视图对象
  *
- * @author KonBAI
- * @createTime 2022/9/11 22:04
+ * @author nbacheng
+ * @createTime 2023-09-26
  */
 @Data
 @ExcelIgnoreUnannotated
@@ -41,7 +41,7 @@ public class WfProcNodeVo implements Serializable {
     /**
      * 执行人Id
      */
-    private Long assigneeId;
+    private String assigneeId;
     /**
      * 执行人名称
      */

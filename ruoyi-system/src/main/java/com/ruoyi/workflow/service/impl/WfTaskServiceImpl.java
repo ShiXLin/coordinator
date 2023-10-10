@@ -4,19 +4,30 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+
+import com.ruoyi.common.constant.Constants;
+import com.ruoyi.common.core.domain.R;
+import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.core.service.UserService;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.helper.LoginHelper;
+import com.ruoyi.common.utils.SpringContextUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.redis.RedisUtils;
 import com.ruoyi.flowable.common.constant.ProcessConstants;
 import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.flowable.common.enums.FlowComment;
 import com.ruoyi.flowable.common.enums.ProcessStatus;
+import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.CustomProcessDiagramGenerator;
+import com.ruoyi.flowable.flow.FindNextNodeUtil;
 import com.ruoyi.flowable.flow.FlowableUtils;
 import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.flowable.utils.TaskUtils;
+import com.ruoyi.flowable.utils.flowExp;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.service.IWfCopyService;
 import com.ruoyi.workflow.service.IWfTaskService;
@@ -55,9 +66,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskService {
 
-    private final UserService sysUserService;
+    private final UserService userService;
 
     private final IWfCopyService copyService;
+    
+    private final CommonService commonService;
+    
+    private final ISysUserService sysUserService;
 
     /**
      * 完成任务
@@ -78,7 +93,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             taskService.resolveTask(taskBo.getTaskId());
         } else {
             taskService.addComment(taskBo.getTaskId(), taskBo.getProcInsId(), FlowComment.NORMAL.getType(), taskBo.getComment());
-            taskService.setAssignee(taskBo.getTaskId(), TaskUtils.getUserId());
+            taskService.setAssignee(taskBo.getTaskId(), TaskUtils.getUserName());
             if (ObjectUtil.isNotEmpty(taskBo.getVariables())) {
                 // 获取模型信息
                 String localScopeValue = ModelUtils.getUserTaskAttributeValue(bpmnModel, task.getTaskDefinitionKey(), ProcessConstants.PROCESS_FORM_LOCAL_SCOPE);
@@ -281,7 +296,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         if (Objects.isNull(task)) {
             throw new ServiceException("任务不存在");
         }
-        taskService.claim(taskBo.getTaskId(), TaskUtils.getUserId());
+        taskService.claim(taskBo.getTaskId(), TaskUtils.getUserName());
     }
 
     /**
@@ -310,7 +325,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         }
         StringBuilder commentBuilder = new StringBuilder(LoginHelper.getNickName())
             .append("->");
-        String nickName = sysUserService.selectNickNameById(Long.parseLong(bo.getUserId()));
+        String nickName = userService.selectNickNameById(Long.parseLong(bo.getUserId()));
         if (StringUtils.isNotBlank(nickName)) {
             commentBuilder.append(nickName);
         } else {
@@ -322,7 +337,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 添加审批意见
         taskService.addComment(bo.getTaskId(), task.getProcessInstanceId(), FlowComment.DELEGATE.getType(), commentBuilder.toString());
         // 设置办理人为当前登录人
-        taskService.setOwner(bo.getTaskId(), TaskUtils.getUserId());
+        taskService.setOwner(bo.getTaskId(), TaskUtils.getUserName());
         // 执行委派
         taskService.delegateTask(bo.getTaskId(), bo.getUserId());
         // 设置任务节点名称
@@ -349,7 +364,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         }
         StringBuilder commentBuilder = new StringBuilder(LoginHelper.getNickName())
             .append("->");
-        String nickName = sysUserService.selectNickNameById(Long.parseLong(bo.getUserId()));
+        String nickName = userService.selectNickNameById(Long.parseLong(bo.getUserId()));
         if (StringUtils.isNotBlank(nickName)) {
             commentBuilder.append(nickName);
         } else {
@@ -361,7 +376,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 添加审批意见
         taskService.addComment(bo.getTaskId(), task.getProcessInstanceId(), FlowComment.TRANSFER.getType(), commentBuilder.toString());
         // 设置拥有者为当前登录人
-        taskService.setOwner(bo.getTaskId(), TaskUtils.getUserId());
+        taskService.setOwner(bo.getTaskId(), TaskUtils.getUserName());
         // 转办任务
         taskService.setAssignee(bo.getTaskId(), bo.getUserId());
         // 设置任务节点名称
@@ -392,7 +407,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             Process process = bpmnModel.getMainProcess();
             List<EndEvent> endNodes = process.findFlowElementsOfType(EndEvent.class, false);
             if (CollectionUtils.isNotEmpty(endNodes)) {
-                Authentication.setAuthenticatedUserId(TaskUtils.getUserId());
+                Authentication.setAuthenticatedUserId(TaskUtils.getUserName());
 //                taskService.addComment(task.getId(), processInstance.getProcessInstanceId(), FlowComment.STOP.getType(),
 //                        StringUtils.isBlank(flowTaskVo.getComment()) ? "取消申请" : flowTaskVo.getComment());
                 // 获取当前流程最后一个节点
@@ -429,7 +444,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 获取待撤回任务实例
         HistoricTaskInstance currTaskIns = historyService.createHistoricTaskInstanceQuery()
             .taskId(taskId)
-            .taskAssignee(TaskUtils.getUserId())
+            .taskAssignee(TaskUtils.getUserName())
             .singleResult();
         if (ObjectUtil.isNull(currTaskIns)) {
             throw new RuntimeException("当前任务不存在，无法执行撤回操作");
@@ -460,7 +475,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             // 检查激活的任务节点是否存在下一级中，如果存在，则加入到需要撤回的节点
             if (CollUtil.contains(nextUserTaskKeys, task.getTaskDefinitionKey())) {
                 // 添加撤回审批信息
-                taskService.setAssignee(task.getId(), TaskUtils.getUserId());
+                taskService.setAssignee(task.getId(), TaskUtils.getUserName());
                 taskService.addComment(task.getId(), task.getProcessInstanceId(), FlowComment.REVOKE.getType(), LoginHelper.getNickName() + "撤回流程审批");
                 revokeExecutionIds.add(task.getExecutionId());
             }
@@ -610,6 +625,295 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                     runtimeService.addMultiInstanceExecution(list.get(0).getTaskDefinitionKey(), list.get(0).getProcessInstanceId(), assignVariables);
                 }
             }
+        }
+    }
+    
+    /**
+     * 获取下一节点
+     *
+     * @param flowTaskVo 任务
+     * @return
+     */
+    @Override
+    public R getNextFlowNode(WfTaskBo flowTaskVo) {
+        // todo 目前只支持部分功能
+        FlowNextDto flowNextDto = this.getNextFlowNode(flowTaskVo.getTaskId(), flowTaskVo.getVariables());
+        if (flowNextDto==null) {
+            return R.ok(null);
+        }
+        return R.ok(flowNextDto);
+
+    }
+    
+    /**  modify by nbacheng
+     * 获取下一个节点信息,流程定义上的节点信息
+     * @param taskId 当前节点id
+     * @param values 流程变量
+     * @return 如果返回null，表示没有下一个节点，流程结束
+     */
+
+    public FlowNextDto getNextFlowNode(String taskId, Map<String, Object> values) {
+    	//当前节点
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        FlowNextDto flowNextDto = new FlowNextDto();
+
+    	if (Objects.nonNull(task)) {
+        	// 下个任务节点
+    		if (DelegationState.PENDING.equals(task.getDelegationState())) { //对于委派的处理
+	        	List<UserTask> nextUserTask = FindNextNodeUtil.getNextUserTasks(repositoryService, task, values);
+	            if (CollectionUtils.isNotEmpty(nextUserTask)) {
+	            	flowNextDto.setType(ProcessConstants.FIXED);//委派是按原来流程执行，所以直接赋值返回
+	            	return flowNextDto;
+	            }
+	            else {
+	            	return null;
+	            }
+
+             }
+            List<UserTask> nextUserTask = FindNextNodeUtil.getNextUserTasks(repositoryService, task, values);
+            List<SysUser> list = new ArrayList<SysUser>();
+            if (CollectionUtils.isNotEmpty(nextUserTask)) {
+                for (UserTask userTask : nextUserTask) {
+                    MultiInstanceLoopCharacteristics multiInstance = userTask.getLoopCharacteristics();
+                    // 会签节点
+                    if (Objects.nonNull(multiInstance)) {
+                    	List<String> rolelist = new ArrayList<>();
+                        rolelist = userTask.getCandidateGroups();
+                    	List<String> userlist = new ArrayList<>();
+                        userlist = userTask.getCandidateUsers();
+                        UserTask newUserTask = userTask;
+                        if(rolelist.size() != 0 && StringUtils.contains(rolelist.get(0), "${flowExp.getDynamic")) {//对表达式多个动态角色做特殊处理
+                        	String methodname = StringUtils.substringBetween(rolelist.get(0), ".", "(");
+                        	Object[] argsPara=new Object[]{};
+                        	setMultiFlowExp(flowNextDto,newUserTask,multiInstance,methodname,argsPara);
+                        }
+                        else if(userlist.size() != 0 && StringUtils.contains(userlist.get(0), "${flowExp.getDynamic")) {//对表达式多个动态用户做特殊处理
+                        	String methodname = StringUtils.substringBetween(userlist.get(0), ".", "(");
+                        	Object[] argsPara=new Object[]{};
+                        	setMultiFlowExp(flowNextDto,newUserTask,multiInstance,methodname,argsPara);
+                        }
+                        else if(userlist.size() != 0 && StringUtils.contains(userlist.get(0), "DepManagerHandler")) {//对部门经理做特殊处理
+                        	String methodname = "getInitiatorDepManagers";
+                        	// 获取流程发起人
+	                   		ProcessInstance processInstance = runtimeService
+	                                   .createProcessInstanceQuery()
+	                                   .processInstanceId(task.getProcessInstanceId())
+	                                   .singleResult();
+	                        String startUserId = processInstance.getStartUserId();
+	                        Object[] argsPara=new Object[]{};
+	                        argsPara=new Object[]{startUserId};
+                        	setMultiFlowExp(flowNextDto,newUserTask,multiInstance,methodname,argsPara);
+                        }
+                        else if(rolelist.size() > 0) {
+							for(String roleId : rolelist ){
+                        	  List<SysUser> templist = commonService.getUserListByRoleId(roleId);
+                        	  for(SysUser sysuser : templist) {
+                          		SysUser sysUserTemp = sysUserService.selectUserById(sysuser.getUserId());
+                          		list.add(sysUserTemp);
+                          	  }
+                        	}
+							setMultiFlowNetDto(flowNextDto,list,userTask,multiInstance);
+                        }
+                        else if(userlist.size() > 0) {
+                        	for(String username : userlist) {
+                        		SysUser sysUser =  sysUserService.selectUserByUserName(username);
+                        		list.add(sysUser);
+                        	}
+                        	setMultiFlowNetDto(flowNextDto,list,userTask,multiInstance);
+                        }
+                        else {
+                        	flowNextDto.setType(ProcessConstants.FIXED);
+                        }
+                  
+                    } else {
+
+                        // 读取自定义节点属性 判断是否是否需要动态指定任务接收人员、组,目前只支持用户角色或多用户，还不支持子流程和变量
+                        //String dataType = userTask.getAttributeValue(ProcessConstants.NAMASPASE, ProcessConstants.PROCESS_CUSTOM_DATA_TYPE);
+                        //String userType = userTask.getAttributeValue(ProcessConstants.NAMASPASE, ProcessConstants.PROCESS_CUSTOM_USER_TYPE);
+
+                        List<String> rolelist = new ArrayList<>();
+                        rolelist = userTask.getCandidateGroups();
+                        List<String> userlist = new ArrayList<>();
+                        userlist = userTask.getCandidateUsers();
+                        String assignee = userTask.getAssignee();
+                        // 处理加载动态指定下一节点接收人员信息
+                        if(assignee !=null) {
+                        	if(StringUtils.equalsAnyIgnoreCase(assignee, "${INITIATOR}")) {//对发起人做特殊处理
+                        		SysUser sysUser = new SysUser();
+                        		sysUser.setUserName("${INITIATOR}");
+                        		list.add(sysUser);
+                        		setAssigneeFlowNetDto(flowNextDto,list,userTask);
+                        	}          
+                        	else if(StringUtils.contains(assignee, "${flowExp.getDynamicAssignee")) {//对表达式单个动态用户做特殊处理
+                        		String methodname = StringUtils.substringBetween(assignee, ".", "(");
+                        		SysUser sysUser = new SysUser();
+                        		flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
+                        		Object[] argsPara=new Object[]{};
+                        		String username = null;
+                        		try {
+									username = (String) flowexp.invokeMethod(flowexp, methodname,argsPara);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+                        		sysUser.setUserName(username);
+                        		list.add(sysUser);
+                        		setAssigneeFlowNetDto(flowNextDto,list,userTask);
+                        	}
+                        	else if(StringUtils.contains(assignee, "${flowExp.getDynamicList")) {//对表达式多个动态用户做特殊处理
+                        		String methodname = StringUtils.substringBetween(assignee, ".", "(");
+                        		flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
+                        		Object[] argsPara=new Object[]{};
+                        		try {
+                        			list = (List<SysUser>) flowexp.invokeMethod(flowexp, methodname,argsPara);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+                        		setUsersFlowNetDto(flowNextDto,list,userTask);
+                        	   
+                        	}
+                        	else if(StringUtils.contains(assignee, "${DepManagerHandler")) {//对部门经理多用户做特殊处理
+                        		String methodname = "getInitiatorDepManagers";
+                        		// 获取流程发起人
+    	                   		ProcessInstance processInstance = runtimeService
+    	                                   .createProcessInstanceQuery()
+    	                                   .processInstanceId(task.getProcessInstanceId())
+    	                                   .singleResult();
+    	                        String startUserId = processInstance.getStartUserId();
+                        		flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
+                        		Object[] argsPara=new Object[]{};
+                        		argsPara[0] = startUserId;
+                        		try {
+                        			list = (List<SysUser>) flowexp.invokeMethod(flowexp, methodname,argsPara);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+                        		setUsersFlowNetDto(flowNextDto,list,userTask);
+                        	   
+                        	}
+                        	else {
+                        	    SysUser sysUser =  sysUserService.selectUserByUserName(assignee);
+                    		    
+                    		    list.add(sysUser);
+                    		    setAssigneeFlowNetDto(flowNextDto,list,userTask);
+                        	}
+                        	
+                        }
+                        else if(userlist.size()>0 && StringUtils.equalsAnyIgnoreCase(userlist.get(0), "${DepManagerHandler.getUsers(execution)}")) {//对部门经理做特殊处理
+	                   		// 获取流程发起人
+	                   		ProcessInstance processInstance = runtimeService
+	                                   .createProcessInstanceQuery()
+	                                   .processInstanceId(task.getProcessInstanceId())
+	                                   .singleResult();
+	                           String startUserId = processInstance.getStartUserId();
+	                        flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
+	                   		String manager =  flowexp.getDynamicManager(startUserId);
+	                   		SysUser sysUser =  sysUserService.selectUserByUserName(manager);
+	                   		list.add(sysUser);
+	                   		setUsersFlowNetDto(flowNextDto,list,userTask);
+                        }
+                        else if(userlist.size() > 0) {
+                        	for(String username : userlist) {
+                        		SysUser sysUser =  sysUserService.selectUserByUserName(username);
+                        		
+                        		list.add(sysUser);
+                        	}
+                        	setUsersFlowNetDto(flowNextDto,list,userTask);
+                        	setMultiFinishFlag(task,flowNextDto,list);
+                        	
+                        }
+                        else if(rolelist.size() > 0) {
+							for(String roleId : rolelist ){
+                        	  List<SysUser> templist =  commonService.getUserListByRoleId(roleId);
+                        	  for(SysUser sysuser : templist) {
+                          		SysUser sysUserTemp = sysUserService.selectUserByUserName(sysuser.getUserName());
+                          		list.add(sysUserTemp);
+                          	  }
+                        	}
+							setUsersFlowNetDto(flowNextDto,list,userTask);
+							setMultiFinishFlag(task,flowNextDto,list);
+                        }
+                        else {
+                        	flowNextDto.setType(ProcessConstants.FIXED);
+                        }
+                    }
+                }
+                return flowNextDto;
+            } else {
+                return null;
+          }
+       }
+       return null;
+
+    }
+    
+    //设置单用户下一节点流程数据
+    private void setAssigneeFlowNetDto(FlowNextDto flowNextDto,List<SysUser> list,UserTask userTask) {
+    	flowNextDto.setVars(ProcessConstants.PROCESS_APPROVAL);
+	    flowNextDto.setType(ProcessConstants.USER_TYPE_ASSIGNEE);
+	    flowNextDto.setUserList(list);
+	    flowNextDto.setUserTask(userTask);
+    }
+    
+    //设置多用户下一节点流程数据
+    private void setUsersFlowNetDto(FlowNextDto flowNextDto,List<SysUser> list,UserTask userTask) {
+    	flowNextDto.setVars(ProcessConstants.PROCESS_APPROVAL);
+        flowNextDto.setType(ProcessConstants.USER_TYPE_USERS);
+        flowNextDto.setUserList(list);
+        flowNextDto.setUserTask(userTask);
+    }
+    
+    //设置多实例结束标志
+    private void setMultiFinishFlag(Task task,FlowNextDto flowNextDto,List<SysUser> list) {
+    	String definitionld = runtimeService.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult().getProcessDefinitionId();        //获取bpm（模型）对象
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(definitionld);
+        //通过节点定义key获取当前节点
+        FlowNode flowNode = (FlowNode) bpmnModel.getFlowElement(task.getTaskDefinitionKey());
+        if(flowNode instanceof UserTask ){
+        	UserTask curuserTask = (UserTask) flowNode;
+        	MultiInstanceLoopCharacteristics curmultiInstance = curuserTask.getLoopCharacteristics();
+        	if (Objects.nonNull(curmultiInstance)) {
+        		if(list.size()>1) {//多人选择的时候,从redis获取之前监听器写入的会签结束信息
+        		   String smutinstance_next_finish = Constants.MUTIINSTANCE_NEXT_FINISH + task.getProcessInstanceId(); 	
+        	       if(Objects.nonNull(RedisUtils.getCacheObject(smutinstance_next_finish))) {
+        		      flowNextDto.setBmutiInstanceFinish(true);
+        	       }
+                }
+        	}
+        }
+    }
+    
+    //设置多实例流程表达式
+    private void setMultiFlowExp(FlowNextDto flowNextDto,UserTask newUserTask,MultiInstanceLoopCharacteristics multiInstance,String methodname,Object[] argsPara) {
+    	List<SysUser> list = new ArrayList<SysUser>();
+		flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
+		//Object[] argsPara=new Object[]{};
+		List<String> templist = new ArrayList<String>();
+		try {
+			templist = (List<String>) flowexp.invokeMethod(flowexp, methodname,argsPara);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(String sysuser : templist) {
+      		SysUser sysUserTemp = sysUserService.selectUserByUserName(sysuser);
+      		list.add(sysUserTemp);
+      	}
+		newUserTask.setAssignee("${assignee}");
+		newUserTask.setCandidateUsers(templist);
+		setMultiFlowNetDto(flowNextDto,list,newUserTask,multiInstance);
+    }
+    
+    //设置多实例流程数据
+    private void setMultiFlowNetDto(FlowNextDto flowNextDto,List<SysUser> list,UserTask userTask,MultiInstanceLoopCharacteristics multiInstance) {
+    	flowNextDto.setVars(ProcessConstants.PROCESS_MULTI_INSTANCE_USER);
+        flowNextDto.setType(ProcessConstants.PROCESS_MULTI_INSTANCE);
+        flowNextDto.setUserList(list);
+        flowNextDto.setUserTask(userTask);
+        if(multiInstance.isSequential()) {
+        	flowNextDto.setBisSequential(true);
+        }
+        else {
+        	flowNextDto.setBisSequential(false);
         }
     }
 }

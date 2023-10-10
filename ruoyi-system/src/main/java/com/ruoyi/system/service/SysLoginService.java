@@ -153,7 +153,7 @@ public class SysLoginService {
      * @param status   状态
      * @param message  消息内容
      */
-    private void recordLogininfor(String username, String status, String message) {
+    public void recordLogininfor(String username, String status, String message) {
         LogininforEvent logininforEvent = new LogininforEvent();
         logininforEvent.setUsername(username);
         logininforEvent.setStatus(status);
@@ -266,7 +266,7 @@ public class SysLoginService {
     /**
      * 构建登录用户
      */
-    private LoginUser buildLoginUser(SysUser user) {
+    public LoginUser buildLoginUser(SysUser user) {
         LoginUser loginUser = new LoginUser();
         loginUser.setUserId(user.getUserId());
         loginUser.setDeptId(user.getDeptId());

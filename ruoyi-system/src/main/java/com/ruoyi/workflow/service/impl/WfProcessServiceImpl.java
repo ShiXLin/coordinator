@@ -8,12 +8,15 @@ import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.common.core.domain.PageQuery;
+import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.core.domain.entity.SysRole;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.core.service.UserService;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
@@ -21,10 +24,13 @@ import com.ruoyi.common.utils.JsonUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.flowable.common.constant.ProcessConstants;
 import com.ruoyi.flowable.common.constant.TaskConstants;
+import com.ruoyi.flowable.common.enums.FlowComment;
 import com.ruoyi.flowable.common.enums.ProcessStatus;
 import com.ruoyi.flowable.core.FormConf;
 import com.ruoyi.flowable.core.domain.ProcessQuery;
+import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
+import com.ruoyi.flowable.flow.FindNextNodeUtil;
 import com.ruoyi.flowable.flow.FlowableUtils;
 import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.flowable.utils.ProcessFormUtils;
@@ -32,6 +38,7 @@ import com.ruoyi.flowable.utils.ProcessUtils;
 import com.ruoyi.flowable.utils.TaskUtils;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.workflow.domain.WfDeployForm;
 import com.ruoyi.workflow.domain.vo.*;
 import com.ruoyi.workflow.mapper.WfDeployFormMapper;
@@ -39,6 +46,7 @@ import com.ruoyi.workflow.service.IWfProcessService;
 import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.Process;
@@ -63,12 +71,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import com.ruoyi.common.core.domain.entity.SysUser;
 
 /**
- * @author KonBAI
- * @createTime 2022/3/24 18:57
+ * @author nbacheng
+ * @createTime 2023-09-25
  */
 @RequiredArgsConstructor
 @Service
@@ -79,6 +87,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     private final ISysRoleService roleService;
     private final ISysDeptService deptService;
     private final WfDeployFormMapper deployFormMapper;
+    private final CommonService commonService;
+    private final ISysUserService sysUserService;
 
     /**
      * 流程定义列表
@@ -161,7 +171,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     public TableDataInfo<WfTaskVo> selectPageOwnProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
         Page<WfTaskVo> page = new Page<>();
         HistoricProcessInstanceQuery historicProcessInstanceQuery = historyService.createHistoricProcessInstanceQuery()
-            .startedBy(TaskUtils.getUserId())
+            .startedBy(TaskUtils.getUserName())
             .orderByProcessInstanceStartTime()
             .desc();
         // 构建搜索条件
@@ -219,7 +229,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     @Override
     public List<WfTaskVo> selectOwnProcessList(ProcessQuery processQuery) {
         HistoricProcessInstanceQuery historicProcessInstanceQuery = historyService.createHistoricProcessInstanceQuery()
-                .startedBy(TaskUtils.getUserId())
+                .startedBy(TaskUtils.getUserName())
                 .orderByProcessInstanceStartTime()
                 .desc();
         // 构建搜索条件
@@ -258,11 +268,11 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 
     @Override
     public TableDataInfo<WfTaskVo> selectPageTodoProcessList(ProcessQuery processQuery, PageQuery pageQuery) {
-        Page<WfTaskVo> page = new Page<>();
+    	Page<WfTaskVo> page = new Page<>();
         TaskQuery taskQuery = taskService.createTaskQuery()
             .active()
             .includeProcessVariables()
-            .taskCandidateOrAssigned(TaskUtils.getUserId())
+            .taskCandidateOrAssigned(TaskUtils.getUserName())
             .taskCandidateGroupIn(TaskUtils.getCandidateGroup())
             .orderByTaskCreateTime().desc();
         // 构建搜索条件
@@ -292,8 +302,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                 .processInstanceId(task.getProcessInstanceId())
                 .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
 
@@ -311,7 +321,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         TaskQuery taskQuery = taskService.createTaskQuery()
                 .active()
                 .includeProcessVariables()
-                .taskCandidateOrAssigned(TaskUtils.getUserId())
+                .taskCandidateOrAssigned(TaskUtils.getUserName())
                 .taskCandidateGroupIn(TaskUtils.getCandidateGroup())
                 .orderByTaskCreateTime().desc();
         // 构建搜索条件
@@ -339,8 +349,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                     .processInstanceId(task.getProcessInstanceId())
                     .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             taskVo.setStartUserId(userId);
             taskVo.setStartUserName(nickName);
 
@@ -355,7 +365,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         TaskQuery taskQuery = taskService.createTaskQuery()
             .active()
             .includeProcessVariables()
-            .taskCandidateUser(TaskUtils.getUserId())
+            .taskCandidateUser(TaskUtils.getUserName())
             .taskCandidateGroupIn(TaskUtils.getCandidateGroup())
             .orderByTaskCreateTime().desc();
         // 构建搜索条件
@@ -385,8 +395,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                 .processInstanceId(task.getProcessInstanceId())
                 .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
 
@@ -401,7 +411,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         TaskQuery taskQuery = taskService.createTaskQuery()
                 .active()
                 .includeProcessVariables()
-                .taskCandidateUser(TaskUtils.getUserId())
+                .taskCandidateUser(TaskUtils.getUserName())
                 .taskCandidateGroupIn(TaskUtils.getCandidateGroup())
                 .orderByTaskCreateTime().desc();
         // 构建搜索条件
@@ -429,8 +439,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                     .processInstanceId(task.getProcessInstanceId())
                     .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
 
@@ -445,7 +455,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         HistoricTaskInstanceQuery taskInstanceQuery = historyService.createHistoricTaskInstanceQuery()
             .includeProcessVariables()
             .finished()
-            .taskAssignee(TaskUtils.getUserId())
+            .taskAssignee(TaskUtils.getUserName())
             .orderByHistoricTaskInstanceEndTime()
             .desc();
         // 构建搜索条件
@@ -479,8 +489,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                 .processInstanceId(histTask.getProcessInstanceId())
                 .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
 
@@ -502,7 +512,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         HistoricTaskInstanceQuery taskInstanceQuery = historyService.createHistoricTaskInstanceQuery()
                 .includeProcessVariables()
                 .finished()
-                .taskAssignee(TaskUtils.getUserId())
+                .taskAssignee(TaskUtils.getUserName())
                 .orderByHistoricTaskInstanceEndTime()
                 .desc();
         // 构建搜索条件
@@ -535,8 +545,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             HistoricProcessInstance historicProcessInstance = historyService.createHistoricProcessInstanceQuery()
                     .processInstanceId(histTask.getProcessInstanceId())
                     .singleResult();
-            Long userId = Long.parseLong(historicProcessInstance.getStartUserId());
-            String nickName = userService.selectNickNameById(userId);
+            String userId = historicProcessInstance.getStartUserId();
+            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
             flowTask.setStartUserId(userId);
             flowTask.setStartUserName(nickName);
 
@@ -682,22 +692,327 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     /**
      * 启动流程实例
      */
-    private void startProcess(ProcessDefinition procDef, Map<String, Object> variables) {
+    private R startProcess(ProcessDefinition procDef, Map<String, Object> variables) {
         if (ObjectUtil.isNotNull(procDef) && procDef.isSuspended()) {
             throw new ServiceException("流程已被挂起，请先激活流程");
+        }   
+        // 设置流程发起人Id到流程中,包括变量
+        String userStr = TaskUtils.getUserName();
+        SysUser sysUsr = sysUserService.selectUserByUserName(userStr);
+ 		setFlowVariables(sysUsr,variables);	
+ 		
+ 		Map<String, Object> variablesnew = variables;
+ 		Map<String, Object> usermap = new HashMap<String, Object>();
+        List<String> userlist = new ArrayList<String>();
+        boolean bparallelGateway = false;
+        boolean bapprovedEG = false;
+        //获取下个节点信息
+        getNextFlowInfo(procDef, variablesnew, usermap, variables, userlist);
+        //取出两个特殊的变量
+        if(variablesnew.containsKey("bparallelGateway")) {//并行网关
+        	bparallelGateway = (boolean) variablesnew.get("bparallelGateway");
+        	variablesnew.remove("bparallelGateway");
         }
-        // 设置流程发起人Id到流程中
-        String userIdStr = TaskUtils.getUserId();
-        identityService.setAuthenticatedUserId(userIdStr);
-        variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, userIdStr);
-        // 设置流程状态为进行中
-        variables.put(ProcessConstants.PROCESS_STATUS_KEY, ProcessStatus.RUNNING.getStatus());
+        if(variablesnew.containsKey("bapprovedEG")) {//通用拒绝同意排它网关
+        	bapprovedEG = (boolean) variablesnew.get("bapprovedEG");
+        	variablesnew.remove("bapprovedEG");
+        }
         // 发起流程实例
         ProcessInstance processInstance = runtimeService.startProcessInstanceById(procDef.getId(), variables);
         // 第一个用户任务为发起人，则自动完成任务
         wfTaskService.startFirstTask(processInstance, variables);
+        return setNextAssignee(processInstance, usermap, userlist, sysUsr, variables, bparallelGateway, bapprovedEG);	
     }
+    
+    /**
+	 * 设置下个节点信息处理人员
+	 *  add by nbacheng
+	 *           
+	 * @param variablesnew, usermap,
+	 *		  userlist, sysUser, variables,  bparallelGateway
+	 *            
+	 * @return
+	 */
+	private R setNextAssignee(ProcessInstance processInstance, Map<String, Object> usermap,
+			                       List<String> userlist, SysUser sysUser, Map<String, Object> variables,
+			                       boolean bparallelGateway, boolean bapprovedEG) {
+		// 给第一步申请人节点设置任务执行人和意见
+		if((usermap.containsKey("isSequential")) && !(boolean)usermap.get("isSequential")) {//并发会签会出现2个以上需要特殊处理
+			List<Task> nexttasklist = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active().list();
+			  int i=0;
+			  for (Task nexttask : nexttasklist) {
+				   String assignee = userlist.get(i).toString();	
+				   taskService.addComment(nexttask.getId(), processInstance.getProcessInstanceId(),
+							FlowComment.NORMAL.getType(), sysUser.getNickName() + "发起流程申请");
+			       taskService.setAssignee(nexttask.getId(), assignee);
+			       i++;
+			  }
+			  return R.ok("多实例会签流程启动成功.");
+ 	    }
+		else {// 给第一步申请人节点设置任务执行人和意见
+			Task task = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active()
+				.singleResult();
+			if (Objects.nonNull(task)) {
+				taskService.addComment(task.getId(), processInstance.getProcessInstanceId(),
+						FlowComment.NORMAL.getType(), sysUser.getNickName() + "发起流程申请");
+				taskService.setAssignee(task.getId(), sysUser.getUserName());
+			}
 
+			// 获取下一个节点数据及设置数据
+
+			FlowNextDto	nextFlowNode = wfTaskService.getNextFlowNode(task.getId(), variables);
+			if(Objects.nonNull(nextFlowNode)) {
+				if (Objects.nonNull(task)) {
+					Map<String, Object> nVariablesMap = taskService.getVariables(task.getId());
+					if(nVariablesMap.containsKey("SetAssigneeTaskListener")) {//是否通过动态设置审批人的任务监听器
+					  taskService.complete(task.getId(), variables);
+					  Task nexttask = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active().singleResult();
+					  taskService.setAssignee(nexttask.getId(), nVariablesMap.get("SetAssigneeTaskListener").toString());
+					  return R.ok("通过动态设置审批人的任务监听器流程启动成功.");
+				    }
+					if(nVariablesMap.containsKey("SetDeptHeadTaskListener")) {//是否通过动态设置发起人部门负责人的任务监听器
+						  taskService.complete(task.getId(), variables);
+						  Task nexttask = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active().singleResult();
+						  if(Objects.nonNull(nexttask)) {
+							  if(Objects.nonNull((List<String>) nVariablesMap.get("SetDeptHeadTaskListener"))) {
+								  if(((List<String>) nVariablesMap.get("SetDeptHeadTaskListener")).size() == 1) {//是否就一个人
+									  taskService.setAssignee(nexttask.getId(), ((List<String>)nVariablesMap.get("SetDeptHeadTaskListener")).get(0).toString());
+							          return R.ok("设置发起人部门负责人的任务监听器流程启动成功.");
+								  }
+								  else {
+									  for (String username : ((List<String>) nVariablesMap.get("SetDeptHeadTaskListener"))) {
+	        							  taskService.addCandidateUser(nexttask.getId(), username);
+	        						  }
+						             return R.ok("设置多个发起人部门负责人的任务监听器流程启动成功,目前用户可通过签收方式完成审批."); 
+								  }
+								  
+							  }
+							
+						  }
+						  
+					}
+				}
+				if(Objects.nonNull(nextFlowNode.getUserList())) {
+					if( nextFlowNode.getUserList().size() == 1 ) {
+						if (nextFlowNode.getUserList().get(0) != null) {
+							if(StringUtils.equalsAnyIgnoreCase(nextFlowNode.getUserList().get(0).getUserName(), "${INITIATOR}")) {//对发起人做特殊处理
+								taskService.complete(task.getId(), variables);
+								return R.ok("流程启动成功给发起人.");
+							}
+							else if(nextFlowNode.getUserTask().getCandidateUsers().size()>0 && StringUtils.equalsAnyIgnoreCase(nextFlowNode.getUserTask().getCandidateUsers().get(0), "${DepManagerHandler.getUsers(execution)}")) {//对部门经理做特殊处理								
+								//taskService.complete(task.getId(), variables);
+								return R.ok("流程启动成功给部门经理,请到我的待办里进行流程的提交流转.");
+							}
+							else {
+								taskService.complete(task.getId(), variables);
+							    return R.ok("流程启动成功.");
+							}
+						}
+						else {
+							return R.fail("审批人不存在，流程启动失败!");
+						}
+						
+					}
+					else if(nextFlowNode.getType() == ProcessConstants.PROCESS_MULTI_INSTANCE ) {//对多实例会签做特殊处理或者以后在流程设计进行修改也可以
+		                Map<String, Object> approvalmap = new HashMap<>();
+		                List<String> sysuserlist = nextFlowNode.getUserList().stream().map(obj-> (String) obj.getUserName()).collect(Collectors.toList());
+						approvalmap.put("approval", sysuserlist);
+						taskService.complete(task.getId(), approvalmap);
+						if(!nextFlowNode.isBisSequential()){//对并发会签进行assignee单独赋值
+		  				  List<Task> nexttasklist = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active().list();
+		  				  int i=0;
+		  				  for (Task nexttask : nexttasklist) {
+		  					   String assignee = sysuserlist.get(i).toString();	
+		      			       taskService.setAssignee(nexttask.getId(), assignee);
+		      			       i++;
+		  				  }
+		  				 
+		  				}
+						return R.ok("多实例会签流程启动成功.");
+					}
+					else if(nextFlowNode.getUserList().size() > 1) {
+						if (bparallelGateway) {//后一个节点是并行网关的话
+							taskService.complete(task.getId(), variables);
+							return R.ok("流程启动成功.");
+						}
+						else {
+							return R.ok("流程启动成功,请到我的待办里进行流程的提交流转.");
+						}
+					}
+					else {
+						return R.ok("流程启动失败,请检查流程设置人员！");
+					}
+				}
+				else {//对跳过流程做特殊处理
+					List<UserTask> nextUserTask = FindNextNodeUtil.getNextUserTasks(repositoryService, task, variables);
+		            if (CollectionUtils.isNotEmpty(nextUserTask)) {
+		            	List<FlowableListener> listlistener = nextUserTask.get(0).getTaskListeners();
+		            	if(CollectionUtils.isNotEmpty(listlistener)) {
+		            		String tasklistener =  listlistener.get(0).getImplementation();
+		            		if(StringUtils.contains(tasklistener, "AutoSkipTaskListener")) {
+			            		taskService.complete(task.getId(), variables);
+			    				return R.ok("流程启动成功.");
+			            	}else {
+				            	return R.ok("流程启动失败,请检查流程设置人员！");
+				            }
+		            	}else {
+			            	return R.ok("流程启动失败,请检查流程设置人员！");
+			            }
+		            	
+		            }
+		            else {
+		            	return R.ok("流程启动失败,请检查流程设置人员！");
+		            }
+				}
+			}
+			else {
+				if(bapprovedEG) {
+					return R.ok("通用拒绝同意流程启动成功,请到我的待办里进行流程的提交流转.");
+				}
+				taskService.complete(task.getId(), variables);
+				return R.ok("流程启动成功.");
+			}
+		}
+	}
+
+	/**
+	 * 设置发起人变量
+	 *  add by nbacheng
+	 *           
+	 * @param variables
+	 *            流程变量
+	 * @return
+	 */
+	private void setFlowVariables(SysUser sysUser,Map<String, Object> variables) {
+		 // 设置流程发起人Id到流程中
+        identityService.setAuthenticatedUserId(sysUser.getUserName());
+        variables.put(BpmnXMLConstants.ATTRIBUTE_EVENT_START_INITIATOR, sysUser.getUserName());
+        // 设置流程状态为进行中
+        variables.put(ProcessConstants.PROCESS_STATUS_KEY, ProcessStatus.RUNNING.getStatus());
+     // 设置流程状态为进行中
+        variables.put(ProcessConstants.PROCESS_STATUS_KEY, ProcessStatus.RUNNING.getStatus());
+	}
+    
+    /**
+	 * 获取下个节点信息,对并行与排它网关做处理
+	 *  add by nbacheng
+	 *           
+	 * @param processDefinition, variablesnew, usermap,
+			   variables, userlist, bparallelGateway
+	 *           
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private void getNextFlowInfo(ProcessDefinition processDefinition, Map<String, Object> variablesnew, Map<String, Object> usermap,
+			                     Map<String, Object> variables, List<String> userlist) {
+		String definitionld = processDefinition.getId();        //获取bpm（模型）对象
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(definitionld);
+        //传节点定义key获取当前节点
+        List<org.flowable.bpmn.model.Process> processes =  bpmnModel.getProcesses();
+        //只处理发起人后面排它网关再后面是会签的情况，其它目前不考虑
+        //List<UserTask> userTasks = process.findFlowElementsOfType(UserTask.class);
+        List<FlowNode> flowNodes = processes.get(0).findFlowElementsOfType(FlowNode.class);
+        List<SequenceFlow> outgoingFlows = flowNodes.get(1).getOutgoingFlows();
+        //遍历返回下一个节点信息
+        for (SequenceFlow outgoingFlow : outgoingFlows) {
+            //类型自己判断（获取下个节点是网关还是节点）
+            FlowElement targetFlowElement = outgoingFlow.getTargetFlowElement();
+            //下个是节点
+           if(targetFlowElement instanceof ExclusiveGateway){// 下个出口是排它网关的话,后一个用户任务又是会签的情况下需要approval的赋值处理，否则报错
+        	   usermap =  GetExclusiveGatewayUser(targetFlowElement,variables);//还是需要返回用户与是否并发，因为并发要做特殊处理
+        	   if(usermap != null) {
+        		 userlist = (ArrayList<String>) usermap.get("approval");
+        	     variablesnew.put("approval", userlist);
+        	   }
+        	   if(FindNextNodeUtil.GetExclusiveGatewayExpression(targetFlowElement)) {//下个出口是通用拒绝同意排它网关
+        		   variablesnew.put("bapprovedEG",true);
+        	   }
+        	   break;
+            }
+           if(targetFlowElement instanceof ParallelGateway){// 下个出口是并行网关的话,直接需要进行complete，否则报错
+        	   variablesnew.put("bparallelGateway",true);
+           }
+        }
+	}
+
+	/**
+     * 获取排他网关分支名称、分支表达式、下一级任务节点
+     * @param flowElement
+     * @param data
+     * add by nbacheng
+     */
+    private Map<String, Object> GetExclusiveGatewayUser(FlowElement flowElement,Map<String, Object> variables){
+    	// 获取所有网关分支
+        List<SequenceFlow> targetFlows=((ExclusiveGateway)flowElement).getOutgoingFlows();
+        // 循环每个网关分支
+        for(SequenceFlow sequenceFlow : targetFlows){
+            // 获取下一个网关和节点数据
+            FlowElement targetFlowElement=sequenceFlow.getTargetFlowElement();
+            // 网关数据不为空
+            if (StringUtils.isNotBlank(sequenceFlow.getConditionExpression())) {
+                // 获取网关判断条件
+            	String expression = sequenceFlow.getConditionExpression();
+                if (expression == null ||Boolean.parseBoolean(
+                                String.valueOf(
+                                		FindNextNodeUtil.result(variables, expression.substring(expression.lastIndexOf("{") + 1, expression.lastIndexOf("}")))))) {
+                	// 网关出线的下个节点是用户节点
+                    if(targetFlowElement instanceof UserTask){
+                        // 判断是否是会签
+                        UserTask userTask = (UserTask) targetFlowElement;
+                        MultiInstanceLoopCharacteristics multiInstance = userTask.getLoopCharacteristics();
+                    	if (Objects.nonNull(multiInstance)) {//下个节点是会签节点
+                    		Map<String, Object> approvalmap = new HashMap<>();
+                    		List<String> getuserlist =  getmultiInstanceUsers(multiInstance,userTask);
+                    		approvalmap.put("approval", getuserlist);
+                    		if(multiInstance.isSequential()) {
+                    			approvalmap.put("isSequential", true);
+                    		}
+                    		else {
+                    			approvalmap.put("isSequential", false);
+                    		}
+                    		return approvalmap;
+                    	}
+                    }
+                }
+            }
+        }
+		return null;
+    }
+    
+    /**
+     * 获取多实例会签用户信息
+     * @param userTask
+     * @param multiInstance
+     *
+     **/
+    List<String> getmultiInstanceUsers(MultiInstanceLoopCharacteristics multiInstance,UserTask userTask) {
+    	List<String> sysuserlist = new ArrayList<>();
+    	List<String> rolelist = new ArrayList<>();
+        rolelist = userTask.getCandidateGroups();
+    	List<String> userlist = new ArrayList<>();
+        userlist = userTask.getCandidateUsers();
+        if(rolelist.size() > 0) {
+        	List<SysUser> list = new ArrayList<SysUser>();
+			for(String roleId : rolelist ){
+        	  List<SysUser> templist = commonService.getUserListByRoleId(roleId);
+        	  for(SysUser sysuser : templist) {
+          		SysUser sysUserTemp = sysUserService.selectUserById(sysuser.getUserId());
+          		list.add(sysUserTemp);
+          	  }
+        	}
+			sysuserlist = list.stream().map(obj-> (String) obj.getUserName()).collect(Collectors.toList());
+           
+        }
+        else if(userlist.size() > 0) {
+        	List<SysUser> list = new ArrayList<SysUser>();
+        	for(String username : userlist) {
+        		SysUser sysUser =  sysUserService.selectUserByUserName(username);
+        		list.add(sysUser);
+        	}
+        	sysuserlist = list.stream().map(obj-> (String) obj.getUserName()).collect(Collectors.toList());
+        }    
+    	return sysuserlist;
+    }
 
     /**
      * 获取流程变量
@@ -896,8 +1211,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 
             if (BpmnXMLConstants.ELEMENT_EVENT_START.equals(activityInstance.getActivityType())) {
                 if (ObjectUtil.isNotNull(historicProcIns)) {
-                    Long userId = Long.parseLong(historicProcIns.getStartUserId());
-                    String nickName = userService.selectNickNameById(userId);
+                    String userId = historicProcIns.getStartUserId();
+                    String nickName = sysUserService.selectUserByUserName(userId).getNickName();
                     if (nickName != null) {
                         elementVo.setAssigneeId(userId);
                         elementVo.setAssigneeName(nickName);
@@ -905,8 +1220,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                 }
             } else if (BpmnXMLConstants.ELEMENT_TASK_USER.equals(activityInstance.getActivityType())) {
                 if (StringUtils.isNotBlank(activityInstance.getAssignee())) {
-                    Long userId = Long.parseLong(activityInstance.getAssignee());
-                    String nickName = userService.selectNickNameById(userId);
+                	String userId = activityInstance.getAssignee();
+                    String nickName = sysUserService.selectUserByUserName(userId).getNickName();
                     elementVo.setAssigneeId(userId);
                     elementVo.setAssigneeName(nickName);
                 }
@@ -916,8 +1231,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                 for (HistoricIdentityLink identityLink : linksForTask) {
                     if ("candidate".equals(identityLink.getType())) {
                         if (StringUtils.isNotBlank(identityLink.getUserId())) {
-                            Long userId = Long.parseLong(identityLink.getUserId());
-                            String nickName = userService.selectNickNameById(userId);
+                            String userId = identityLink.getUserId();
+                            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
                             stringBuilder.append(nickName).append(",");
                         }
                         if (StringUtils.isNotBlank(identityLink.getGroupId())) {
@@ -990,4 +1305,30 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         Set<String> rejectedSet = FlowableUtils.dfsFindRejects(bpmnModel, unfinishedTaskSet, finishedSequenceFlowSet, finishedTaskSet);
         return new WfViewerVo(finishedTaskSet, finishedSequenceFlowSet, unfinishedTaskSet, rejectedSet);
     }
+
+    /**
+	 * 获取流程是否结束
+	 *  add by nbacheng          
+	 * @param String procInsId       
+	 * @return
+	 */
+	@Override
+	public boolean processIscompleted(String procInsId) {
+		
+		// 获取流程状态
+        HistoricVariableInstance processStatusVariable = historyService.createHistoricVariableInstanceQuery()
+            .processInstanceId(procInsId)
+            .variableName(ProcessConstants.PROCESS_STATUS_KEY)
+            .singleResult();
+        if (ObjectUtil.isNotNull(processStatusVariable)) {
+        	String processStatus = null;
+            if (ObjectUtil.isNotNull(processStatusVariable)) {
+                processStatus = Convert.toStr(processStatusVariable.getValue());
+                if(StringUtils.equalsIgnoreCase(processStatus, "completed")) {
+                	return true;
+                }
+            }
+        }    
+		return false;
+	}
 }

@@ -2,25 +2,25 @@
   <el-row :gutter="40" class="panel-group">
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('newVisitis')">
-        <div class="card-panel-icon-wrapper icon-people">
-          <svg-icon icon-class="peoples" class-name="card-panel-icon" />
-        </div>
-        <div class="card-panel-description">
-          <div class="card-panel-text">
-            访客
-          </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
+        <div class = "card-text">
+          <a target="_blank" href="https://gitee.com/nbacheng/ruoyi-nbcio"><span class="profile-name">前 后 端 代 码</span></a><br/>
+            <a target="_blank" href="http://122.227.135.243:9666"><span class="profile-name">在 线 演示</span></a><br/>
+            <a target="_blank" href="https://nbacheng.blog.csdn.net/"><span class="profile-name">博 客 地 址</span></a><br/>
+            <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=Bp1GIZpC-Mb8800AkISGbNhzeoxDp0hW&jump_from=webapi&authKey=s/XM/Vp5gYsxVmJFcnjGL68VU9qxDO5uiGYRWxHnWT/GKI7R8hegMmEf7O4djxv1"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="RUOYI-NBCIO 亿事达企业管理系统" title="RUOYI-NBCIO 亿事达企业管理系统"></a>
+          <!--<template slot="footer">
+             <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=NH67tV_dqCGQaFhzxsl2B_fdXxWvkBs6&jump_from=webapi&authKey=nf2iLush7UnIOgdVfEl+qqPZdLiUnH1LG+3nEHlwtAAWAJX4UuH1IEOj3APFZDmR"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="NBCIO 亿事达企业管理平" title="NBCIO 亿事达企业管理平"></a>
+          </template>-->
         </div>
       </div>
     </el-col>
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('messages')">
         <div class="card-panel-icon-wrapper icon-message">
-          <svg-icon icon-class="message" class-name="card-panel-icon" />
+          <svg-icon icon-class="job" class-name="card-panel-icon" />
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            消息
+            任务总数
           </div>
           <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
         </div>
@@ -29,18 +29,29 @@
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
       <div class="card-panel" @click="handleSetLineChartData('purchases')">
         <div class="card-panel-icon-wrapper icon-money">
-          <svg-icon icon-class="money" class-name="card-panel-icon" />
+          <svg-icon icon-class="star" class-name="card-panel-icon" />
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            金额
+            流程总数
           </div>
           <count-to :start-val="0" :end-val="9280" :duration="3200" class="card-panel-num" />
         </div>
       </div>
     </el-col>
     <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
-      <div class="card-panel" @click="handleSetLineChartData('shoppings')">
+      <div class="card-panel" @click="handleSetLineChartData('newVisitis')">
+        <div class="card-panel-icon-wrapper icon-people">
+          <svg-icon icon-class="peoples" class-name="card-panel-icon" />
+        </div>
+        <div class="card-panel-description">
+          <div class="card-panel-text">
+            总访问量
+          </div>
+          <count-to :start-val="0" :end-val="102800" :duration="2600" class="card-panel-num" />
+        </div>
+      </div>
+      <!--<div class="card-panel" @click="handleSetLineChartData('shoppings')">
         <div class="card-panel-icon-wrapper icon-shopping">
           <svg-icon icon-class="shopping" class-name="card-panel-icon" />
         </div>
@@ -50,7 +61,7 @@
           </div>
           <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
         </div>
-      </div>
+      </div>-->
     </el-col>
   </el-row>
 </template>
@@ -76,6 +87,13 @@ export default {
 
   .card-panel-col {
     margin-bottom: 32px;
+  }
+
+  .card-text {
+    font-size: 14px;
+    ::v-deep a {
+      color: #1890ff;
+    }
   }
 
   .card-panel {

@@ -3,7 +3,7 @@ package com.ruoyi.common.constant;
 /**
  * 通用常量信息
  *
- * @author ruoyi
+ * @author nbacheng
  */
 public interface Constants {
 
@@ -84,5 +84,48 @@ public interface Constants {
     public static final String UPLOAD_TYPE_MINIO = "minio";
     public static final String UPLOAD_TYPE_OSS = "alioss";
     
+    /**
+	 * 关闭标志 正常
+	 */
+	public static final Integer CLOSE_FLAG_1 = 1;
+	public static final Integer CLOSE_FLAG_0 = 0;
+    
+	/**
+	 * 删除标志
+	 */
+	public static final Integer DEL_FLAG_1 = 1;
+
+	/**
+	 * 未删除
+	 */
+	public static final Integer DEL_FLAG_0 = 0;
+	
+    /**
+     * 消息类型1:通知公告2:系统消息3:待办
+     */
+    public static final String MSG_CATEGORY_1 = "1";
+    public static final String MSG_CATEGORY_2 = "2";
+    public static final String MSG_CATEGORY_3 = "3";
+    
+    /**通告对象类型（USER:指定用户，ALL:全体用户）*/
+    public static final String MSG_TYPE_UESR  = "USER";
+    public static final String MSG_TYPE_ALL  = "ALL";
+    
+    /**发布状态（0未发布，1已发布，2已撤销）*/
+    public static final String NO_SEND  = "0";
+    public static final String HAS_SEND  = "1";
+    public static final String HAS_CANCLE  = "2";
+    
+    /**阅读状态（0未读，1已读）*/
+    public static final String HAS_READ_FLAG  = "1";
+    public static final String NO_READ_FLAG  = "0";
+    
+    /**优先级（L低，M中，H高）*/
+    public static final String PRIORITY_L  = "L";
+    public static final String PRIORITY_M  = "M";
+    public static final String PRIORITY_H  = "H";
+    
+    //多实例会签下一个节点结束信息   add by nbacheng
+    String MUTIINSTANCE_NEXT_FINISH = "mutiinstance_next_finish";
 }
 

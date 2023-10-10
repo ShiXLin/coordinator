@@ -4,8 +4,8 @@
       <div slot="header" class="clearfix">
         <span>发起流程</span>
       </div>
-      <el-col :span="18" :offset="3">
-        <form-builder ref="formBuilder" v-if="formOpen" v-model="formVal" :buildData="formCode" />
+      <el-col :span="18" :offset="3" v-if="formOpen">
+        <form-builder ref="formBuilder" v-model="formVal" :buildData="formCode" />
         <div style="margin-bottom:15px;text-align:center">
             <el-button type="primary" class="button" @click="submitForm">提交</el-button>
         </div>

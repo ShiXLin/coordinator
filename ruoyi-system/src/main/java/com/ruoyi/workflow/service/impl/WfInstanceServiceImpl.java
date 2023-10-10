@@ -15,6 +15,7 @@ import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
+import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.domain.vo.WfFormVo;
 import com.ruoyi.workflow.domain.vo.WfTaskVo;
@@ -47,6 +48,7 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
     private final UserService userService;
     private final ISysRoleService roleService;
     private final ISysDeptService deptService;
+    private final ISysUserService sysUserService;
 
     /**
      * 结束流程实例
@@ -142,8 +144,8 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
                 taskVo.setCreateTime(taskInstance.getStartTime());
                 taskVo.setFinishTime(taskInstance.getEndTime());
                 if (StringUtils.isNotBlank(taskInstance.getAssignee())) {
-                    Long userId = Long.parseLong(taskInstance.getAssignee());
-                    String nickName = userService.selectNickNameById(userId);
+                    String userId = taskInstance.getAssignee();
+                    String nickName = sysUserService.selectUserByUserName(userId).getNickName();
                     taskVo.setAssigneeId(userId);
                     taskVo.setAssigneeName(nickName);
                 }
@@ -153,8 +155,8 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
                 for (HistoricIdentityLink identityLink : linksForTask) {
                     if ("candidate".equals(identityLink.getType())) {
                         if (StringUtils.isNotBlank(identityLink.getUserId())) {
-                            Long userId = Long.parseLong(identityLink.getUserId());
-                            String nickName = userService.selectNickNameById(userId);
+                            String userId = identityLink.getUserId();
+                            String nickName = sysUserService.selectUserByUserName(userId).getNickName();
                             stringBuilder.append(nickName).append(",");
                         }
                         if (StringUtils.isNotBlank(identityLink.getGroupId())) {

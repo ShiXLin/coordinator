@@ -7,6 +7,8 @@ import com.ruoyi.common.xss.Xss;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Date;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -14,7 +16,8 @@ import javax.validation.constraints.Size;
 /**
  * 通知公告表 sys_notice
  *
- * @author Lion Li
+ * @author nbacheng
+ * @date 2023-09-21
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -36,7 +39,7 @@ public class SysNotice extends BaseEntity {
     private String noticeTitle;
 
     /**
-     * 公告类型（1通知 2公告）
+     * 公告类型（1通知 2公告 3待办）
      */
     private String noticeType;
 
@@ -49,7 +52,30 @@ public class SysNotice extends BaseEntity {
      * 公告状态（0正常 1关闭）
      */
     private String status;
-
+    /**
+     * 发布人
+     */
+    private Long sender;
+    /**
+     * 优先级（L低，M中，H高）
+     */
+    private String priority;
+    /**
+     * 通告对象类型（USER:指定用户，ALL:全体用户）
+     */
+    private String msgType;
+    /**
+     * 发布状态（0未发布，1已发布，2已撤销）
+     */
+    private String sendStatus;
+    /**
+     * 发布时间
+     */
+    private Date sendTime;
+    /**
+     * 撤销时间
+     */
+    private Date cancelTime;
     /**
      * 备注
      */

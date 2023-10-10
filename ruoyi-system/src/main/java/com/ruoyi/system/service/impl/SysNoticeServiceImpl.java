@@ -2,30 +2,37 @@ package com.ruoyi.system.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.websocket.WebSocketServer;
+import com.ruoyi.system.domain.SysNoticeSend;
 import com.ruoyi.system.domain.SysNotice;
 import com.ruoyi.system.mapper.SysNoticeMapper;
+import com.ruoyi.system.mapper.SysNoticeSendMapper;
+import com.ruoyi.system.mapper.SysUserMapper;
 import com.ruoyi.system.service.ISysNoticeService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.Resource;
 
 /**
  * 公告 服务层实现
  *
- * @author Lion Li
+ *  @author nbacheng
+ *  @date 2023-09-20
  */
 @RequiredArgsConstructor
 @Service
-public class SysNoticeServiceImpl implements ISysNoticeService {
+public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice> implements ISysNoticeService {
 
     private final SysNoticeMapper baseMapper;
 
@@ -107,4 +114,14 @@ public class SysNoticeServiceImpl implements ISysNoticeService {
     public int deleteNoticeByIds(Long[] noticeIds) {
         return baseMapper.deleteBatchIds(Arrays.asList(noticeIds));
     }
+
+	@Override
+	public Page<SysNotice> querySysNoticePageByUserId(Page<SysNotice> page, Long userId, String msgCategory) {
+		if (page.getSize() == -1) {
+			return page.setRecords(baseMapper.querySysNoticeListByUserId(null, userId.toString(), msgCategory));
+		} else {
+			return page.setRecords(baseMapper.querySysNoticeListByUserId(page, userId.toString(), msgCategory));
+		}
+	}
+
 }

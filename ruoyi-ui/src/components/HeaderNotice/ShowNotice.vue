@@ -13,20 +13,20 @@
     </template>
     <a-card class="daily-article" :loading="loading">
       <a-card-meta
-        :title="record.titile"
+        :title="record.noticeTitle"
         :description="'发布人：'+record.sender + ' 发布时间： ' + record.sendTime">
       </a-card-meta>
       <a-divider />
-      <span v-html="record.msgContent" class="article-content"></span>
+      <span v-html="record.noticeContent" class="article-content"></span>
     </a-card>
   </n-modal>
 </template>
 
 <script>
-  
+
   import NModal from './NModal'
   export default {
-    name: "SysAnnouncementModal",
+    name: "SysNoticeModal",
     components: {
       NModal
     },
@@ -136,6 +136,9 @@
         white-space: normal;
         font-size: .9rem !important;
         margin-bottom: .8rem;
+      }
+      /deep/ a {
+        color: #1890ff;
       }
     }
   }

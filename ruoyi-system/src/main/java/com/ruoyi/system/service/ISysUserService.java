@@ -3,7 +3,7 @@ package com.ruoyi.system.service;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.page.TableDataInfo;
-
+import com.ruoyi.system.domain.SysAuthUser;
 import java.util.List;
 
 /**
@@ -208,4 +208,11 @@ public interface ISysUserService {
      */
     int deleteUserByIds(Long[] userIds);
 
+  /**
+     * 根据用户编号查询授权列表
+     * 
+     * @param userId 用户编号
+     * @return 授权列表
+     */
+    public List<SysAuthUser> selectAuthUserListByUserId(Long userId);
 }

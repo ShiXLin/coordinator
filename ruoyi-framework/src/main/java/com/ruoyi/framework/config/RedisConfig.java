@@ -1,11 +1,17 @@
 package com.ruoyi.framework.config;
 
 import cn.hutool.core.util.ObjectUtil;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruoyi.common.constant.GlobalConstants;
+import com.ruoyi.common.redis.RedisReceiver;
 import com.ruoyi.framework.config.properties.RedissonProperties;
 import com.ruoyi.framework.handler.KeyPrefixHandler;
 import com.ruoyi.framework.manager.PlusSpringCacheManager;
 import lombok.extern.slf4j.Slf4j;
+
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +20,17 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 /**
  * redis配置
  *
- * @author Lion Li
+ *  @author nbacheng
+ *  @date 2023-09-20
  */
 @Slf4j
 @Configuration
@@ -79,6 +91,38 @@ public class RedisConfig {
     public CacheManager cacheManager() {
         return new PlusSpringCacheManager();
     }
+    
+    /**
+	 * redis 监听配置
+	 *
+	 * @param redisConnectionFactory redis 配置
+	 * @return
+	 */
+	@Bean
+	public RedisMessageListenerContainer redisContainer(RedisConnectionFactory redisConnectionFactory, RedisReceiver redisReceiver, MessageListenerAdapter commonListenerAdapter) {
+		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(redisConnectionFactory);
+		container.addMessageListener(commonListenerAdapter, new ChannelTopic(GlobalConstants.REDIS_TOPIC_NAME));
+		return container;
+	}
+
+
+	@Bean
+	MessageListenerAdapter commonListenerAdapter(RedisReceiver redisReceiver) {
+		MessageListenerAdapter messageListenerAdapter = new MessageListenerAdapter(redisReceiver, "onMessage");
+		messageListenerAdapter.setSerializer(jacksonSerializer());
+		return messageListenerAdapter;
+	}
+	
+	private Jackson2JsonRedisSerializer jacksonSerializer() {
+		Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+		objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+		jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+		return jackson2JsonRedisSerializer;
+	}
+
 
     /**
      * redis集群配置 yml

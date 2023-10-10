@@ -35,6 +35,12 @@ public class WfCategoryVo {
      */
     @ExcelProperty(value = "分类编码")
     private String code;
+    
+    /**
+     * 应用类型
+     */
+    @ExcelProperty(value = "应用类型")
+    private String appType;
 
     /**
      * 备注

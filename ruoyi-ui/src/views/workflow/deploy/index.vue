@@ -172,7 +172,6 @@
         @pagination="getPublishList"
       />
     </el-dialog>
-
   </div>
 </template>
 

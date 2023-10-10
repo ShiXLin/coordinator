@@ -34,7 +34,7 @@ public class WfTaskVo implements Serializable {
     /**
      * 任务执行人Id
      */
-    private Long assigneeId;
+    private String assigneeId;
     /**
      * 部门名称
      */
@@ -50,9 +50,9 @@ public class WfTaskVo implements Serializable {
      */
     private String assigneeName;
     /**
-     * 流程发起人Id
+     * 流程发起人
      */
-    private Long startUserId;
+    private String startUserId;
     /**
      * 流程发起人名称
      */

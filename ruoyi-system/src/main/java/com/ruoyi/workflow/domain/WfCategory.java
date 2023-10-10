@@ -37,6 +37,12 @@ public class WfCategory extends BaseEntity {
      */
     @NotBlank(message = "分类编码不能为空")
     private String code;
+    
+    /**
+     * 应用类型
+     */
+    @NotBlank(message = "应用类型不能为空")
+    private String appType;
     /**
      * 备注
      */

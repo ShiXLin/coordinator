@@ -236,4 +236,15 @@ public class WfProcessController extends BaseController {
     public R detail(String procInsId, String taskId) {
         return R.ok(processService.queryProcessDetail(procInsId, taskId));
     }
+    
+    /**
+     * 查询流程是否结束
+     *
+     * @param procInsId
+     * @param 
+     */
+    @GetMapping("/iscompleted")
+    public R processIscompleted(String procInsId) {
+        return R.ok(processService.processIscompleted(procInsId));
+    }
 }

@@ -17,8 +17,12 @@ function vModel(self, dataObject) {
      */
     const token = getToken();
     dataObject.attrs['headers'] = {"Authorization":"Bearer " + token};
-    const filevalue = JSON.parse(dataObject.props.value);
-    dataObject.props['file-list'] = filevalue;
+    console.log("vModel dataObject",dataObject);
+    if( dataObject.props.value != "") {
+      const filevalue = JSON.parse(dataObject.props.value);
+      dataObject.props['file-list'] = filevalue;
+    }
+    
   }
 }
 
