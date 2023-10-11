@@ -335,7 +335,7 @@ export default {
       this.selectedUser.text = this.selectedUserDate.map(k => k.nickName) || [];
       if (this.selectedUserDate.length === 1) {
         let data = this.selectedUserDate[0];
-        userTaskForm.assignee = data.userId;
+        userTaskForm.assignee = data.userName;
         userTaskForm.text = data.nickName;
         userTaskForm.candidateUsers = null;
         this.showMultiFlog = false;

@@ -1211,18 +1211,18 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 
             if (BpmnXMLConstants.ELEMENT_EVENT_START.equals(activityInstance.getActivityType())) {
                 if (ObjectUtil.isNotNull(historicProcIns)) {
-                    String userId = historicProcIns.getStartUserId();
-                    String nickName = sysUserService.selectUserByUserName(userId).getNickName();
+                    String userName = historicProcIns.getStartUserId();
+                    String nickName = sysUserService.selectUserByUserName(userName).getNickName();
                     if (nickName != null) {
-                        elementVo.setAssigneeId(userId);
+                        elementVo.setAssigneeId(userName);
                         elementVo.setAssigneeName(nickName);
                     }
                 }
             } else if (BpmnXMLConstants.ELEMENT_TASK_USER.equals(activityInstance.getActivityType())) {
                 if (StringUtils.isNotBlank(activityInstance.getAssignee())) {
-                	String userId = activityInstance.getAssignee();
-                    String nickName = sysUserService.selectUserByUserName(userId).getNickName();
-                    elementVo.setAssigneeId(userId);
+                	String userName = activityInstance.getAssignee();
+                    String nickName = sysUserService.selectUserByUserName(userName).getNickName();
+                    elementVo.setAssigneeId(userName);
                     elementVo.setAssigneeName(nickName);
                 }
                 // 展示审批人员
