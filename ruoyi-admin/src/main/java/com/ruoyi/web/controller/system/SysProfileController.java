@@ -5,24 +5,21 @@ import cn.hutool.core.io.FileUtil;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.constant.Constants;
-import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.enums.BusinessType;
-import com.ruoyi.common.exception.file.FileNameLengthLimitExceededException;
-import com.ruoyi.common.exception.file.FileSizeLimitExceededException;
-import com.ruoyi.common.exception.file.InvalidExtensionException;
 import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.file.FileUploadUtils;
 import com.ruoyi.common.utils.file.MimeTypeUtils;
 import com.ruoyi.framework.config.ServerConfig;
-import com.ruoyi.system.domain.SysOss;
 import com.ruoyi.system.domain.vo.SysOssVo;
 import com.ruoyi.system.service.ISysOssService;
 import com.ruoyi.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
+import com.ruoyi.common.core.domain.model.LoginUser;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,12 +46,16 @@ public class SysProfileController extends BaseController {
 
 	@Autowired
     private ServerConfig serverConfig;
+	@Autowired CommonService commonService; 
 	
     private final ISysUserService userService;
     private final ISysOssService iSysOssService;
     
     @Value(value = "${ruoyi.profile}")
     private String uploadpath;
+    
+    @Value(value = "${nbcio.localfilehttp}")
+    private String localfilehttp;
 
     /**
      * 本地：local minio：minio 阿里：alioss
@@ -144,7 +145,7 @@ public class SysProfileController extends BaseController {
                 // 上传并返回新文件名称
                 String fileName = null;
 				try {
-					fileName = FileUploadUtils.upload(filePath, avatarfile);
+					fileName = localfilehttp + FileUploadUtils.upload(filePath, avatarfile);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -152,6 +153,10 @@ public class SysProfileController extends BaseController {
 				
                 if (userService.updateUserAvatar(getUsername(), fileName)) {
 	                ajax.put("imgUrl", fileName);
+					// 更新缓存用户头像
+	                LoginUser loginUser = commonService.getLoginUser();
+	                SysUser sysuser = commonService.getSysUserByUserName(loginUser.getUsername());
+	                sysuser.setAvatar(fileName);
 	                return R.ok(ajax);
 	            }
             }

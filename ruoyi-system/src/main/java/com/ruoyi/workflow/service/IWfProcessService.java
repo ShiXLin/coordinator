@@ -1,6 +1,7 @@
 package com.ruoyi.workflow.service;
 
 import com.ruoyi.common.core.domain.PageQuery;
+import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.flowable.core.FormConf;
 import com.ruoyi.flowable.core.domain.ProcessQuery;
@@ -85,14 +86,14 @@ public interface IWfProcessService {
      * @param procDefId 流程定义ID
      * @param variables 扩展参数
      */
-    void startProcessByDefId(String procDefId, Map<String, Object> variables);
+    R<Void> startProcessByDefId(String procDefId, Map<String, Object> variables);
 
     /**
      * 通过DefinitionKey启动流程
      * @param procDefKey 流程定义Key
      * @param variables 扩展参数
      */
-    void startProcessByDefKey(String procDefKey, Map<String, Object> variables);
+    R<Void> startProcessByDefKey(String procDefKey, Map<String, Object> variables);
 
     /**
      * 删除流程实例
@@ -120,4 +121,6 @@ public interface IWfProcessService {
      * 
      */
 	boolean processIscompleted(String procInsId);
+
+	R<Void> startProcessByDataId(String dataId, String serviceName, Map<String, Object> variables);
 }

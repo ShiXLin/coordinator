@@ -1,6 +1,7 @@
 package com.ruoyi.workflow.mapper;
 
 import com.ruoyi.common.core.mapper.BaseMapperPlus;
+import com.ruoyi.workflow.domain.WfCustomForm;
 import com.ruoyi.workflow.domain.WfDeployForm;
 import com.ruoyi.workflow.domain.vo.WfDeployFormVo;
 
@@ -11,5 +12,7 @@ import com.ruoyi.workflow.domain.vo.WfDeployFormVo;
  * @createTime 2022/3/7 22:07
  */
 public interface WfDeployFormMapper extends BaseMapperPlus<WfDeployFormMapper, WfDeployForm, WfDeployFormVo> {
+
+	WfDeployForm selectSysDeployFormByFormId(String id);
 
 }

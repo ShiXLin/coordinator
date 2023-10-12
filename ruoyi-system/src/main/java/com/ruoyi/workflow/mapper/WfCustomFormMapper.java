@@ -16,4 +16,6 @@ import com.ruoyi.common.core.mapper.BaseMapperPlus;
  */
 public interface WfCustomFormMapper extends BaseMapperPlus<WfCustomFormMapper, WfCustomForm, WfCustomFormVo> {
 	void updateCustom(@Param("customFormVo") CustomFormVo customFormVo);
+	WfCustomForm selectSysCustomFormById(String formId);
+	WfCustomForm selectSysCustomFormByServiceName(String serviceName);
 }

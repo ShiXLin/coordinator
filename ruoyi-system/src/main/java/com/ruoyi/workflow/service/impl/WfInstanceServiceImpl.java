@@ -5,33 +5,49 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.BetweenFormatter;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ruoyi.common.core.domain.entity.SysDept;
 import com.ruoyi.common.core.domain.entity.SysRole;
+import com.ruoyi.common.core.domain.model.LoginUser;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.core.service.UserService;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.JsonUtils;
+import com.ruoyi.common.utils.SpringContextUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.flowable.common.constant.TaskConstants;
+import com.ruoyi.flowable.core.domain.ActStatus;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.workflow.domain.WfMyBusiness;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.domain.vo.WfFormVo;
 import com.ruoyi.workflow.domain.vo.WfTaskVo;
 import com.ruoyi.workflow.service.IWfDeployFormService;
 import com.ruoyi.workflow.service.IWfInstanceService;
+import com.ruoyi.workflow.service.WfCallBackServiceI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.flowable.common.engine.api.FlowableObjectNotFoundException;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.task.Comment;
 import org.flowable.identitylink.api.history.HistoricIdentityLink;
+import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import javax.annotation.Resource;
 
 /**
  * 工作流流程实例管理
@@ -49,6 +65,9 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
     private final ISysRoleService roleService;
     private final ISysDeptService deptService;
     private final ISysUserService sysUserService;
+    private final  WfMyBusinessServiceImpl wfMyBusinessService;
+    @Resource
+    private CommonService commonService;
 
     /**
      * 结束流程实例
@@ -100,6 +119,97 @@ public class WfInstanceServiceImpl extends FlowServiceFactory implements IWfInst
         runtimeService.deleteProcessInstance(instanceId, deleteReason);
         // 删除历史流程实例
         historyService.deleteHistoricProcessInstance(instanceId);
+    }
+    
+    /**
+     * 删除流程实例ID
+     *
+     * @param instanceId   流程实例ID
+     * @param deleteReason 删除原因
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(String instanceId, String deleteReason, String dataId ) {
+       if( !dataId.toString().equals("null")){
+    	   LambdaQueryWrapper<WfMyBusiness> flowMyBusinessLambdaQueryWrapper = new LambdaQueryWrapper<>();
+           flowMyBusinessLambdaQueryWrapper.eq(WfMyBusiness::getDataId, dataId)
+           ;
+           //如果保存数据前未调用必调的FlowCommonService.initActBusiness方法，就会有问题
+           WfMyBusiness business = wfMyBusinessService.getOne(flowMyBusinessLambdaQueryWrapper);
+           this.deleteForDataId(business.getProcessInstanceId(),deleteReason);
+       }
+       else {
+    	   List<Task> task = taskService.createTaskQuery().processInstanceId(instanceId).list();
+           if (CollectionUtils.isEmpty(task)) {//真要想删除，可以考虑去掉这部分代码
+               throw new ServiceException("流程未启动或已执行完成，删除申请失败");
+           }
+	        // 查询历史数据
+	        HistoricProcessInstance historicProcessInstance = getHistoricProcessInstanceById(instanceId);
+	        if (historicProcessInstance.getEndTime() != null) {
+	            historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
+	            return;
+	        }
+	        // 删除流程实例
+	        runtimeService.deleteProcessInstance(instanceId, deleteReason);
+	        // 删除历史流程实例
+	        historyService.deleteHistoricProcessInstance(instanceId);
+       }
+    }
+
+    /**
+     * 删除流程实例ID
+     *
+     * @param instanceId   流程实例ID，涉及业务DataId
+     * @param deleteReason 删除原因
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteForDataId(String instanceId, String deleteReason) {
+        List<Task> task = taskService.createTaskQuery().processInstanceId(instanceId).list();
+        if (CollectionUtils.isEmpty(task)) {
+            throw new ServiceException("流程未启动或已执行完成，删除申请失败");
+        }
+        // 查询历史数据
+        HistoricProcessInstance historicProcessInstance = getHistoricProcessInstanceById(instanceId);
+        if (historicProcessInstance.getEndTime() != null) {
+            historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
+            return;
+        }
+        // 删除流程实例
+        runtimeService.deleteProcessInstance(instanceId, deleteReason);
+        // 删除历史流程实例
+        historyService.deleteHistoricProcessInstance(instanceId);
+        /*======================撤回删除 回调以及关键数据保存======================*/
+        LambdaQueryWrapper<WfMyBusiness> flowMyBusinessLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        flowMyBusinessLambdaQueryWrapper.eq(WfMyBusiness::getProcessInstanceId,instanceId)
+        ;
+        //如果保存数据前未调用必调的FlowCommonService.initActBusiness方法，就会有问题
+        WfMyBusiness business = wfMyBusinessService.getOne(flowMyBusinessLambdaQueryWrapper);
+        //设置数据
+        String doneUsers = business.getDoneUsers();
+        //SysUser sysUser = iFlowThirdService.getLoginUser();
+        LoginUser loginUser = commonService.getLoginUser();
+        // 处理过流程的人
+        JSONArray doneUserList = new JSONArray();
+        if (StrUtil.isNotBlank(doneUsers)){
+            doneUserList = JSON.parseArray(doneUsers);
+        }
+        if (!doneUserList.contains(loginUser.getUsername())){
+            doneUserList.add(loginUser.getUsername());
+        }
+        business.setActStatus(ActStatus.recall);
+        business.setTaskId("");
+        business.setTaskName("已撤回");
+        business.setPriority("");
+        business.setDoneUsers(doneUserList.toJSONString());
+        business.setTodoUsers("");
+        wfMyBusinessService.updateById(business);
+        //spring容器类名
+        String serviceImplName = business.getServiceImplName();
+        WfCallBackServiceI flowCallBackService = (WfCallBackServiceI) SpringContextUtils.getBean(serviceImplName);
+        // 流程处理完后，进行回调业务层
+        if (flowCallBackService!=null)flowCallBackService.afterFlowHandle(business);
+
     }
 
     /**

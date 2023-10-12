@@ -49,4 +49,20 @@ public interface IWfInstanceService {
      * @param deployId 流程部署ID
      */
     Map<String, Object> queryDetailProcess(String procInsId, String deployId);
+    
+    /**
+     * 删除流程实例ID
+     *
+     * @param instanceId   流程实例ID
+     * @param deleteReason 删除原因
+     * @param dataId       业务数据dataID
+     */
+    void delete(String instanceId, String deleteReason, String dataId);
+    /**
+     * 删除流程实例ID
+     *
+     * @param instanceId   流程实例ID，涉及业务DataId
+     * @param deleteReason 删除原因
+     */
+	void deleteForDataId(String instanceId, String deleteReason);
 }

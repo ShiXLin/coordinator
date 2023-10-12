@@ -1,5 +1,7 @@
 package com.ruoyi.framework.config;
 
+import com.ruoyi.common.config.RuoYiConfig;
+import com.ruoyi.common.constant.Constants;
 import com.ruoyi.framework.interceptor.PlusWebInvokeTimeInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * 通用配置
  *
- * @author Lion Li
+ * @author Lion Li, nbacheng
  */
 @Configuration
 public class ResourcesConfig implements WebMvcConfigurer {
@@ -26,6 +28,9 @@ public class ResourcesConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+         /** 本地文件上传路径 */
+        registry.addResourceHandler(Constants.RESOURCE_PREFIX + "/**")
+                .addResourceLocations("file:" + RuoYiConfig.getProfile() + "/");
     }
 
     /**

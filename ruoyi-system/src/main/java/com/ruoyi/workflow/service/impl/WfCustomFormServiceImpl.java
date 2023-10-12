@@ -117,4 +117,9 @@ public class WfCustomFormServiceImpl implements IWfCustomFormService {
 	public void updateCustom(CustomFormVo customFormVo) {
 		baseMapper.updateCustom(customFormVo);
 	}
+
+	@Override
+	public WfCustomForm selectSysCustomFormByServiceName(String serviceName) {
+		return baseMapper.selectSysCustomFormByServiceName(serviceName);
+	}
 }

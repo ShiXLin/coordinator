@@ -2,6 +2,7 @@ package com.ruoyi.workflow.service;
 
 import com.ruoyi.workflow.domain.vo.CustomFormVo;
 import com.ruoyi.workflow.domain.vo.WfCustomFormVo;
+import com.ruoyi.workflow.domain.WfCustomForm;
 import com.ruoyi.workflow.domain.bo.WfCustomFormBo;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.domain.PageQuery;
@@ -48,4 +49,6 @@ public interface IWfCustomFormService {
     Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
 
     void updateCustom(CustomFormVo customFormVo);
+
+	WfCustomForm selectSysCustomFormByServiceName(String serviceName);
 }

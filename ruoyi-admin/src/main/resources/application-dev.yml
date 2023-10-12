@@ -206,3 +206,5 @@ sms:
   signName: 测试
   # 腾讯专用
   sdkAppId:
+nbcio:  
+  localfilehttp: http://localhost:9060 #上传图片的http基地址

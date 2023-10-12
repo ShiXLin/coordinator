@@ -3,6 +3,7 @@ package com.ruoyi.web.controller.workflow;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.PageQuery;
@@ -203,6 +204,22 @@ public class WfProcessController extends BaseController {
     public R<Void> start(@PathVariable(value = "processDefId") String processDefId, @RequestBody Map<String, Object> variables) {
         processService.startProcessByDefId(processDefId, variables);
         return R.ok("流程启动成功");
+
+    }
+    
+    /**
+     * 根据业务数据Id和服务名启动流程实例
+     *
+     * @param dataId, serviceName
+     * @param variables 变量集合,json对象
+     */
+    @SaCheckPermission("workflow:process:start")
+    @PostMapping("/startByDataId/{dataId}/{serviceName}")
+    public R<Void> startByDataId(@PathVariable(value = "dataId") String dataId,
+                                 @PathVariable(value = "serviceName") String serviceName,
+                                 @RequestBody Map<String, Object> variables) {
+    	variables.put("dataId",dataId);
+        return processService.startProcessByDataId(dataId, serviceName, variables);
 
     }
 

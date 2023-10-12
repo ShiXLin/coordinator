@@ -39,11 +39,17 @@ import com.ruoyi.flowable.utils.TaskUtils;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.workflow.domain.WfCustomForm;
 import com.ruoyi.workflow.domain.WfDeployForm;
+import com.ruoyi.workflow.domain.WfMyBusiness;
 import com.ruoyi.workflow.domain.vo.*;
 import com.ruoyi.workflow.mapper.WfDeployFormMapper;
+import com.ruoyi.workflow.service.IWfCustomFormService;
+import com.ruoyi.workflow.service.IWfMyBusinessService;
 import com.ruoyi.workflow.service.IWfProcessService;
 import com.ruoyi.workflow.service.IWfTaskService;
+import com.ruoyi.workflow.service.WfCommonService;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -89,6 +95,9 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     private final WfDeployFormMapper deployFormMapper;
     private final CommonService commonService;
     private final ISysUserService sysUserService;
+    private final IWfCustomFormService wfCustomFormService;
+    private final IWfMyBusinessService wfMyBusinessService;
+    private final WfCommonService wfCommonService;
 
     /**
      * 流程定义列表
@@ -594,14 +603,14 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void startProcessByDefId(String procDefId, Map<String, Object> variables) {
+    public R<Void> startProcessByDefId(String procDefId, Map<String, Object> variables) {
         try {
             ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
                 .processDefinitionId(procDefId).singleResult();
-            startProcess(processDefinition, variables);
+            return startProcess(processDefinition, variables);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ServiceException("流程启动错误");
+            return R.fail("流程启动错误");
         }
     }
 
@@ -612,14 +621,14 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void startProcessByDefKey(String procDefKey, Map<String, Object> variables) {
+    public R<Void> startProcessByDefKey(String procDefKey, Map<String, Object> variables) {
         try {
             ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
                 .processDefinitionKey(procDefKey).latestVersion().singleResult();
-            startProcess(processDefinition, variables);
+            return startProcess(processDefinition, variables);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ServiceException("流程启动错误");
+            return R.fail("流程启动错误");
         }
     }
 
@@ -733,7 +742,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 	 *            
 	 * @return
 	 */
-	private R setNextAssignee(ProcessInstance processInstance, Map<String, Object> usermap,
+	private R<Void> setNextAssignee(ProcessInstance processInstance, Map<String, Object> usermap,
 			                       List<String> userlist, SysUser sysUser, Map<String, Object> variables,
 			                       boolean bparallelGateway, boolean bapprovedEG) {
 		// 给第一步申请人节点设置任务执行人和意见
@@ -1330,5 +1339,66 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             }
         }    
 		return false;
+	}
+
+	/**
+	 * 根据流程dataId,serviceName启动流程实例，主要是自定义业务表单发起流程使用
+	 *  add by nbacheng
+	 * @param dataId,serviceName
+	 *           
+	 * @param variables
+	 *            流程变量
+	 * @return
+	 */
+	@Override
+	public R<Void> startProcessByDataId(String dataId, String serviceName, Map<String, Object> variables) {
+//提交审批的时候进行流程实例关联初始化
+    	
+        if (serviceName==null){
+             return R.fail("未找到serviceName："+serviceName);
+        }
+        WfCustomForm wfCustomForm = wfCustomFormService.selectSysCustomFormByServiceName(serviceName);
+        if(wfCustomForm ==null){
+        	 return R.fail("未找到sysCustomForm："+serviceName);
+        }
+        //优先考虑自定义业务表是否关联流程，再看通用的表单流程关联表
+        ProcessDefinition processDefinition;
+        String deployId = wfCustomForm.getDeployId();
+        if(StringUtils.isEmpty(deployId)) {
+        	WfDeployForm sysDeployForm  = deployFormMapper.selectSysDeployFormByFormId("key_"+String.valueOf(wfCustomForm.getId()));
+            if(sysDeployForm ==null){          	
+       	       return R.fail("自定义表单也没关联流程定义表,流程没定义关联自定义表单"+wfCustomForm.getId());
+            }
+            processDefinition = repositoryService.createProcessDefinitionQuery()
+        		.parentDeploymentId(sysDeployForm.getDeployId()).latestVersion().singleResult();
+        }
+        else {
+        	processDefinition = repositoryService.createProcessDefinitionQuery()
+            		.parentDeploymentId(deployId).latestVersion().singleResult();
+        }
+        
+        LambdaQueryWrapper<WfMyBusiness> wfMyBusinessLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        wfMyBusinessLambdaQueryWrapper.eq(WfMyBusiness::getDataId, dataId);
+        WfMyBusiness business = wfMyBusinessService.getOne(wfMyBusinessLambdaQueryWrapper);
+        if (business==null){
+        	if(processDefinition==null) {
+        		return R.fail("自定义表单也没关联流程定义表,流程没定义关联自定义表单"+wfCustomForm.getId());
+        	}
+        	boolean binit = wfCommonService.initActBusiness(wfCustomForm.getBusinessName(), dataId, serviceName, 
+        	processDefinition.getKey(), processDefinition.getId(), wfCustomForm.getRouteName());
+        	if(!binit) {
+        		return R.fail("自定义表单也没关联流程定义表,流程没定义关联自定义表单"+wfCustomForm.getId());
+        	}
+        	WfMyBusiness businessnew = wfMyBusinessService.getOne(wfMyBusinessLambdaQueryWrapper);
+           //流程实例关联初始化结束
+            if (StrUtil.isNotBlank(businessnew.getProcessDefinitionId())){
+              return this.startProcessByDefId(businessnew.getProcessDefinitionId(),variables);
+            }
+            return this.startProcessByDefKey(businessnew.getProcessDefinitionKey(),variables);
+        }
+        else {
+        	 return R.fail("已经存在这个dataid实例，不要重复申请："+dataId);
+        }
+        
 	}
 }
