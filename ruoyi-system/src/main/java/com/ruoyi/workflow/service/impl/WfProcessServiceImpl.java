@@ -729,7 +729,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         // 发起流程实例
         ProcessInstance processInstance = runtimeService.startProcessInstanceById(procDef.getId(), variables);
         // 第一个用户任务为发起人，则自动完成任务
-        wfTaskService.startFirstTask(processInstance, variables);
+        //wfTaskService.startFirstTask(processInstance, variables);
         return setNextAssignee(processInstance, usermap, userlist, sysUsr, variables, bparallelGateway, bapprovedEG);	
     }
     
