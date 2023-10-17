@@ -15,7 +15,7 @@
 - 项目处于开发移植阶段，目前初步完成流程相关工作，当然工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
 
 ## 参考文档
-- 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向原项目文档](http://rfp-doc.konbai.work)
+- 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向nbcio-boot项目文档 见演示系统里的在线帮助]
 - 脚手架文档：[RuoYi-Vue-Plus文档](https://gitee.com/dromara/RuoYi-Vue-Plus/wikis/pages)
 
 ## 项目地址
