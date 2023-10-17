@@ -99,75 +99,89 @@ QQ交流群: 703572701
 ## 演示图例
 <table style="width:100%; text-align:center">
 <tbody>
-<tr>
-  <td>
-    <span>登录页面</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/164043_74b57010_5096840.png" alt="登录页面"/>
-  </td>
-  <td>
-    <span>用户管理</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/164236_2de3b8da_5096840.png" alt="用户管理"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>流程分类</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/164839_ca79b066_5096840.png" alt="流程分类"/>
-  </td>
-  <td>
-    <span>流程表单</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/165118_688209fd_5096840.png" alt="流程表单"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>流程定义</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/165916_825a85c8_5096840.png" alt="流程定义"/>
-  </td>
-  <td>
-    <span>流程发起</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/171409_ffb0faf3_5096840.png" alt="流程发起"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>表单设计</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/172933_7222c0f2_5096840.png" alt="表单设计"/>
-  </td>
-  <td>
-    <span>流程设计</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/165827_44fa412b_5096840.png" alt="流程设计"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>发起流程</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/171651_4639254b_5096840.png" alt="发起流程"/>
-  </td>
-  <td>
-    <span>待办任务</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/171916_7ba22063_5096840.png" alt="代办任务"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>任务办理</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/172204_04753399_5096840.png" alt="任务办理"/>
-  </td>
-  <td>
-    <span>流转记录</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/172350_179e8341_5096840.png" alt="流转记录"/>
-  </td>
-</tr>
-<tr>
-  <td>
-    <span>流程跟踪</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/172547_fe7414d4_5096840.png" alt="流程跟踪"/>
-  </td>
-  <td>
-    <span>流程完结</span>
-    <img src="https://images.gitee.com/uploads/images/2022/0424/173159_8cc57e74_5096840.png" alt="流程完结"/>
-  </td>
-</tr>
+
+登录界面
+
+![](https://oscimg.oschina.net/oscnet/up-0a892b45665e14a21a171620847ef33536a.png)
+
+流程分类
+
+![](https://oscimg.oschina.net/oscnet/up-8cec03ba0a44455add3bb4ffac0740d78ca.png)
+
+流程表单
+
+![](https://oscimg.oschina.net/oscnet/up-64febc26bd3f1ba24b8a4066afad42e1f07.png)
+
+流程模型定义
+
+![](https://oscimg.oschina.net/oscnet/up-e21b2262a7e00045eac525bd9d34f314ec6.png)
+
+流程布置管理
+
+![](https://oscimg.oschina.net/oscnet/up-ff34b7eb779ea31fb93c84c6bb3a5ac3b49.png)
+
+自定义业务表单关联创建
+
+![](https://oscimg.oschina.net/oscnet/up-cdd3ec9e312d03389bf9b5b8b975ddfbf85.png)
+
+新建普通的OA流程
+
+![](https://oscimg.oschina.net/oscnet/up-0fc1b0886801a1af4d7fb0d8c4a20d9054a.png)
+
+基于formdesigner的表单设计
+
+![](https://oscimg.oschina.net/oscnet/up-abd87b4f6b5b1552d0e433d8a42dc5cd95c.png)
+
+流程设计
+
+![](https://oscimg.oschina.net/oscnet/up-7a058da9b79a0fcd13bc05bf686cb0e4a97.png)
+
+普通OA流程的发起
+
+![](https://oscimg.oschina.net/oscnet/up-0b8438d0f1d2288f92ab76cc502ecce2386.png)
+
+自定义业务流程的发起，单表案例
+
+![](https://oscimg.oschina.net/oscnet/up-58d242ecc0ffa7c1f8daac1733c26583a94.png)
+
+普通OA流程的审批
+
+![](https://oscimg.oschina.net/oscnet/up-9c55d3b622100acbbf553df1a100ef4e9cb.png)
+
+普通OA流程的任务办理
+
+![](https://oscimg.oschina.net/oscnet/up-6ff18bb82a8e3fee3ad3f5bea0c04162d46.png)
+
+普通OA流程的表单信息
+
+![](https://oscimg.oschina.net/oscnet/up-923af5ee1685d88f53b62314b1a1c53f0bb.png)
+
+普通OA流程的流转记录
+
+![](https://oscimg.oschina.net/oscnet/up-3fb048caafa240aa97acc68d734148a1948.png)
+
+普通OA流程的流程跟踪
+
+![](https://oscimg.oschina.net/oscnet/up-4d93951e9af906cd5bdea044c372a288f6b.png)
+
+自定义业务表单流程的表单信息，其它跟OA流程一样
+
+![](https://oscimg.oschina.net/oscnet/up-b78b5a5145c80745cf3d9591b65ceecaef9.png)
+
+流程结束
+
+![](https://oscimg.oschina.net/oscnet/up-ce19517b7a15664032128d491c7dd1eb780.png)
+
+已办任务
+
+![](https://oscimg.oschina.net/oscnet/up-57ab589dcca8a39d80998039da348f8e2c2.png)
+
+抄送我的
+
+![](https://oscimg.oschina.net/oscnet/up-888868ebeeb36b3dae2a422fb0e0a496733.png)
+
+自定义业务流程相关信息
+
+![](https://oscimg.oschina.net/oscnet/up-b99f34fa23f1056ca8d70baca93ada49558.png)
 </tbody>
 </table>
