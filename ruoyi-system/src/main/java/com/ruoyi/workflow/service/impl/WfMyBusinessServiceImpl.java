@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.Collection;
 
 /**
- * 流程业务扩展Service业务层处理
- *
- * @author nbacheng
- * @date 2023-10-11
+ * @Description: 流程业务扩展表
+ * @Author: nbacheng
+ * @Date:   2021-11-25
+ * @Version: V1.0
  */
 @RequiredArgsConstructor
 @Service
@@ -32,6 +32,15 @@ public class WfMyBusinessServiceImpl extends ServiceImpl<WfMyBusinessMapper, WfM
 
     private final WfMyBusinessMapper baseMapper;
 
+    public WfMyBusiness getByDataId(String dataId) {
+        LambdaQueryWrapper<WfMyBusiness> flowMyBusinessLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        flowMyBusinessLambdaQueryWrapper.eq(WfMyBusiness::getDataId,dataId)
+        ;
+        //如果保存数据前未调用必调的FlowCommonService.initActBusiness方法，就会有问题
+        WfMyBusiness business = this.getOne(flowMyBusinessLambdaQueryWrapper);
+        return business;
+    }
+    
     /**
      * 查询流程业务扩展
      */

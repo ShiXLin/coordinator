@@ -19,6 +19,7 @@ import com.ruoyi.flowable.common.constant.ProcessConstants;
 import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.flowable.common.enums.FlowComment;
 import com.ruoyi.flowable.common.enums.ProcessStatus;
+import com.ruoyi.flowable.core.domain.ActStatus;
 import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.CustomProcessDiagramGenerator;
@@ -28,7 +29,9 @@ import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.flowable.utils.TaskUtils;
 import com.ruoyi.flowable.utils.flowExp;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.workflow.domain.WfMyBusiness;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
+import com.ruoyi.workflow.mapper.FlowTaskMapper;
 import com.ruoyi.workflow.service.IWfCopyService;
 import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +47,7 @@ import org.flowable.engine.ProcessEngineConfiguration;
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.runtime.ActivityInstance;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
@@ -73,6 +77,10 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
     private final CommonService commonService;
     
     private final ISysUserService sysUserService;
+    
+    private final WfMyBusinessServiceImpl wfMyBusinessService;
+    
+    private final FlowTaskMapper flowTaskMapper;
 
     /**
      * 完成任务
@@ -738,9 +746,9 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                         String assignee = userTask.getAssignee();
                         // 处理加载动态指定下一节点接收人员信息
                         if(assignee !=null) {
-                        	if(StringUtils.equalsAnyIgnoreCase(assignee, "${INITIATOR}")) {//对发起人做特殊处理
+                        	if(StringUtils.equalsAnyIgnoreCase(assignee, "${initiator}")) {//对发起人做特殊处理
                         		SysUser sysUser = new SysUser();
-                        		sysUser.setUserName("${INITIATOR}");
+                        		sysUser.setUserName("${initiator}");
                         		list.add(sysUser);
                         		setAssigneeFlowNetDto(flowNextDto,list,userTask);
                         	}          
@@ -914,6 +922,89 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         }
         else {
         	flowNextDto.setBisSequential(false);
+        }
+    }
+
+	@Override
+	public boolean isFirstInitiator(String processInstanceId, String actStatusType) {
+		if(StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.reject) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.recall) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ) {
+ 		if(StringUtils.isNotEmpty(processInstanceId)) {
+ 		    //  获取当前任务
+             Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+	    		BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
+		        //  获取当前活动节点
+		        FlowNode currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(task.getTaskDefinitionKey());
+		        // 输入连线
+		        List<SequenceFlow> inFlows = currentFlowNode.getIncomingFlows();
+		        for (SequenceFlow sequenceFlow : inFlows) {
+		        	FlowElement sourceFlowElement = sequenceFlow.getSourceFlowElement();
+		        	// 如果上个节点为开始节点
+		            if (sourceFlowElement instanceof StartEvent) {
+		            	log.info("当前节点为发起人节点,上个节点为开始节点：id=" + sourceFlowElement.getId() + ",name=" + sourceFlowElement.getName());
+		                return true;
+		            }
+		        }
+ 		}
+ 	}
+		return false;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean deleteActivityAndJoin(String dataId, String processInstanceId, String actStatusType) {
+		if (dataId==null) return false;
+        WfMyBusiness business = wfMyBusinessService.getByDataId(dataId);
+        if(StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.reject) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.recall) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ) {
+            //  重新查询当前任务
+            Task currentTask = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
+            //删除自定义业务任务关联表与流程历史表，以便可以重新发起流程。
+            if (business != null) {
+            	wfMyBusinessService.removeById(business);
+            	// 对自定义业务，删除运行和历史的节点信息 
+                this.deleteActivity(currentTask.getTaskDefinitionKey(), currentTask.getProcessInstanceId(), dataId);
+                return true;
+            }
+        }
+		return false;
+	}
+	
+	/**
+     * 删除跳转的历史节点信息
+     *
+     * @param disActivityId     跳转的节点id
+     * @param processInstanceId 流程实例id
+     * @param dataId   自定义业务id
+     */
+    protected void deleteActivity(String disActivityId, String processInstanceId, String dataId) {
+        List<ActivityInstance> disActivities = flowTaskMapper
+                .queryActivityInstance(disActivityId, processInstanceId, null);
+
+        //删除运行时和历史节点信息
+        if (CollectionUtils.isNotEmpty(disActivities)) {
+            ActivityInstance activityInstance = disActivities.get(0);
+            List<ActivityInstance> datas = flowTaskMapper
+                    .queryActivityInstance(disActivityId, processInstanceId, activityInstance.getEndTime());
+
+            //datas.remove(0); //保留流程发起节点信息
+            List<String> runActivityIds = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(datas)) {
+                datas.forEach(ai -> runActivityIds.add(ai.getId()));
+                flowTaskMapper.deleteRunActinstsByIds(runActivityIds);
+                flowTaskMapper.deleteHisActinstsByIds(runActivityIds);
+            }
+            if(dataId != null) {//对于自定义业务, 删除所有相关流程信息
+            	//flowTaskMapper.deleteAllHisAndRun(processInstanceId);
+                //根据流程实例id 删除去ACT_RU_*与ACT_HI_*流程实例数据
+                ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId).singleResult();
+                if (null != processInstance) {
+                    runtimeService.deleteProcessInstance(processInstanceId, "流程实例删除");
+                    historyService.deleteHistoricProcessInstance(processInstanceId);
+                }
+            }
         }
     }
 }

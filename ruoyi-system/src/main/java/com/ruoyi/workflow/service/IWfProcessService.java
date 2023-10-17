@@ -112,8 +112,9 @@ public interface IWfProcessService {
      * 查询流程任务详情信息
      * @param procInsId 流程实例ID
      * @param taskId 任务ID
+     * @param dataId 因为表单ID
      */
-    WfDetailVo queryProcessDetail(String procInsId, String taskId);
+    WfDetailVo queryProcessDetail(String procInsId, String taskId, String dataId);
 
     /**
      * 查询流程是否结束
@@ -123,4 +124,12 @@ public interface IWfProcessService {
 	boolean processIscompleted(String procInsId);
 
 	R<Void> startProcessByDataId(String dataId, String serviceName, Map<String, Object> variables);
+
+	/**
+	 * 流程详情信息
+	 *
+	 * @param dataId 业务数据ID
+	 * @return
+	 */
+	WfDetailVo queryProcessDetailByDataId(String dataId);
 }

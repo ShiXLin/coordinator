@@ -267,9 +267,11 @@ export default {
     },
     /** 流程流转记录 */
     handleFlowRecord(row) {
+      console.log("handleFlowRecord row",row);
       this.$router.push({
         path: '/workflow/process/detail/' + row.procInsId,
         query: {
+          taskId: row.taskId,
           processed: false
         }
       })

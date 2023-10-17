@@ -26,6 +26,14 @@ export function getCategory(categoryId) {
   })
 }
 
+// 查询流程分类编码的appType应用类型
+export function getAppType(code) {
+  return request({
+    url: '/workflow/category/appType/' + code,
+    method: 'get'
+  })
+}
+
 // 新增流程分类
 export function addCategory(data) {
   return request({

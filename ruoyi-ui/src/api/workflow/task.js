@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+// 获取流程变量
+export function getProcessVariables(taskId) {
+  return request({
+    url: '/workflow/task/processVariables/' + taskId,
+    method: 'get'
+  })
+}
+
 // 完成任务
 export function complete(data) {
   return request({

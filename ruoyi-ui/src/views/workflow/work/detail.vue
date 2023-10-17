@@ -67,7 +67,13 @@
       </el-tab-pane>
 
       <el-tab-pane label="表单信息" name="form">
-        <div v-if="formOpen">
+        <div v-if="customForm.visible"> <!-- 自定义表单 -->
+            <!--<component ref="refCustomForm" :disabled="customForm.disabled" v-bind:is="customForm.formComponent" :model="customForm.model"
+                        :customFormData="customForm.customFormData" :isNew = "customForm.isNew"></component> -->
+            <component ref="refCustomForm" :disabled="customForm.disabled" v-bind:is="customForm.formComponent" :model="customForm.model"
+                        :customFormData="customForm.customFormData" :isNew = "customForm.isNew"></component>
+        </div>
+        <div v-if="formOpen"> <!-- formdesigner表单 -->
           <el-card class="box-card" shadow="never" v-for="(formInfo, index) in formViewData" :key="index">
             <!--<div slot="header" class="clearfix">
               <span>{{ formInfo.title }}</span>
@@ -208,7 +214,9 @@
 </template>
 
 <script>
+import Vue from 'vue'
 import { detailProcess, processIscompleted } from '@/api/workflow/process'
+import { getProcessVariables } from '@/api/workflow/task'
 import Parser from '@/utils/generator/parser'
 import { complete, delegate, transfer, rejectTask, returnList, returnTask } from '@/api/workflow/task'
 import { selectUser, deptTreeSelect } from '@/api/system/user'
@@ -216,9 +224,14 @@ import ProcessViewer from '@/components/ProcessViewer'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import Treeselect from '@riophae/vue-treeselect'
 import formViewer from '@/components/formdesigner/components/formViewer'
+import { getCustomForm} from '@/api/workflow/customForm'
+import {
+    flowableMixin
+  } from '@/views/workflow/mixins/flowableMixin'
 
 export default {
   name: "WorkDetail",
+  mixins: [flowableMixin],
   components: {
     ProcessViewer,
     Parser,
@@ -304,6 +317,20 @@ export default {
       taskFormData: {}, // 流程变量数据
       processFormList: [], // 流程变量数据
       formOpen: false, // 是否加载流程变量数据
+      customForm: { //自定义业务表单
+        formId: '',
+        title: '',
+        disabled: false,
+        visible: false,
+        formComponent: null,
+        model: {},
+        /*流程数据*/
+        customFormData: {},
+        isNew: false,
+        disableSubmit: true
+      },
+      variables: [], // 流程变量数据
+      variablesData: {}, // 流程变量数据
       returnTaskList: [],  // 回退列表数据
       processed: false,
       returnTitle: null,
@@ -345,7 +372,9 @@ export default {
         if(res.data) {
          this.processed = false;
         }
-        // 流程任务重获取变量表单
+        // 获取流程变量
+        this.processVariables(this.taskForm.taskId);
+        /*// 流程任务重获取变量表单
         this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId);
         this.loadIndex = this.taskForm.procInsId;
         if(this.processed) {
@@ -361,7 +390,7 @@ export default {
               this.key = +new Date().getTime()
             }
           });
-        }
+        }*/
       });
 
     },
@@ -390,15 +419,27 @@ export default {
       console.log("changeTab tab=",tab);
       if(tab.name === 'form') {
         console.log("changeTab this.processFormList=",this.processFormList);
-        // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
-        this.processFormList.forEach((item, i) => {
-          if (item.hasOwnProperty('list')) {
-            this.fillFormData(item.list, item)
-            // 更新表单
-            this.key = +new Date().getTime()
-          }
-        });
-
+        if(this.customForm.formId === "") {
+          // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
+          this.processFormList.forEach((item, i) => {
+            if (item.hasOwnProperty('list')) {
+              this.fillFormData(item.list, item)
+              // 更新表单
+              this.key = +new Date().getTime()
+            }
+          });
+        }
+        /*else {
+           if(this.processFormList.length == 1 &&
+              this.processFormList[0].formValues.hasOwnProperty('routeName')) {
+              this.customForm.disabled = true;
+              this.customForm.visible = true;
+              this.customForm.formComponent = this.getFormComponent(this.processFormList[0].formValues.routeName).component;
+              this.customForm.model = this.processFormList[0].formValues.formData;
+              this.customForm.customFormData = this.processFormList[0].formValues.formData;
+              console.log("detailProcess customForm",this.customForm);
+           }
+        }*/
       }
     },
     fillFormData(list, formConf) { // for formdesigner
@@ -509,24 +550,77 @@ export default {
         }
       }
     },
-    getProcessDetails(procInsId, taskId) {
-      const params = {procInsId: procInsId, taskId: taskId}
+    /** 获取流程变量内容 */
+    processVariables(taskId) {
+      console.log("processVariables taskId",taskId);
+      if (taskId) {
+        getProcessVariables(taskId).then(res => {
+          console.log("getProcessVariables res=",res);
+          if(res.code == 200) {
+            if(res.data.hasOwnProperty('dataId') && res.data.dataId) {
+              this.customForm.formId = res.data.dataId;
+              // 流程任务重获取变量表单
+              this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId, res.data.dataId);
+              this.loadIndex = this.taskForm.procInsId;
+              if(this.processed) {
+                this.activeName = "approval";
+              }
+              else {
+                this.activeName = "form";
+              }
+            }
+            else {
+              // 流程任务重获取变量表单
+              this.getProcessDetails(this.taskForm.procInsId, this.taskForm.taskId, "");
+              this.loadIndex = this.taskForm.procInsId;
+              if(this.processed) {
+                this.activeName = "approval";
+              }
+              else {
+                this.activeName = "form";
+                // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
+                this.processFormList.forEach((item, i) => {
+                  if (item.hasOwnProperty('list')) {
+                    this.fillFormData(item.list, item)
+                    // 更新表单
+                    this.key = +new Date().getTime()
+                  }
+                });
+              }
+            }
+          }
+        });
+      }
+    },
+    getProcessDetails(procInsId, taskId, dataId) {
+      const params = {procInsId: procInsId, taskId: taskId, dataId: dataId}
       detailProcess(params).then(res => {
         console.log("detailProcess res=",res);
         const data = res.data;
         this.xmlData = data.bpmnXml;
         this.processFormList = data.processFormList;
-        this.processFormList.forEach((item, index) => {
-          this.formVal[index] = JSON.stringify(item.formValues);
-          this.formViewData[index] = JSON.stringify(item);
-        });
-        this.taskFormOpen = data.existTaskForm;
-        if (this.taskFormOpen) {
-          this.taskFormData = data.taskFormData;
+        if(this.processFormList.length == 1 &&
+           this.processFormList[0].formValues.hasOwnProperty('routeName')) {
+           this.customForm.disabled = true;
+           this.customForm.visible = true;
+           this.customForm.formComponent = this.getFormComponent(this.processFormList[0].formValues.routeName).component;
+           this.customForm.model = this.processFormList[0].formValues.formData;
+           this.customForm.customFormData = this.processFormList[0].formValues.formData;
+           console.log("detailProcess customForm",this.customForm);
+        }
+        else {
+          this.processFormList.forEach((item, index) => {
+            this.formVal[index] = JSON.stringify(item.formValues);
+            this.formViewData[index] = JSON.stringify(item);
+          });
+          this.taskFormOpen = data.existTaskForm;
+          if (this.taskFormOpen) {
+            this.taskFormData = data.taskFormData;
+          }
+          this.formOpen = true
         }
         this.historyProcNodeList = data.historyProcNodeList;
         this.finishedInfo = data.flowViewer;
-        this.formOpen = true
       })
     },
     onSelectCopyUsers() {

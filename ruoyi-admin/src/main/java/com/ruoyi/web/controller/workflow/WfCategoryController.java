@@ -11,6 +11,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.workflow.domain.WfCategory;
+import com.ruoyi.workflow.domain.vo.WfAppTypeVo;
 import com.ruoyi.workflow.domain.vo.WfCategoryVo;
 import com.ruoyi.workflow.service.IWfCategoryService;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,15 @@ public class WfCategoryController extends BaseController {
     @GetMapping("/{categoryId}")
     public R<WfCategoryVo> getInfo(@NotNull(message = "主键不能为空") @PathVariable("categoryId") Long categoryId) {
         return R.ok(categoryService.queryById(categoryId));
+    }
+    
+    /**
+     * 获取流程分类详细信息
+     * @param code 分类编码
+     */
+    @GetMapping("/appType/{code}")
+    public R<List<WfAppTypeVo>> getInfoByCode(@NotNull(message = "主键不能为空") @PathVariable("code") String code) {
+        return R.ok(categoryService.queryInfoByCode(code));
     }
 
     /**

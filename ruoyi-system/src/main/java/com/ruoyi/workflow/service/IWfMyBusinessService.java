@@ -47,4 +47,5 @@ public interface IWfMyBusinessService extends IService<WfMyBusiness> {
      * 校验并批量删除流程业务扩展信息
      */
     Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
+
 }

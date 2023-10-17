@@ -27,6 +27,36 @@ export function startProcess(processDefId, data) {
   })
 }
 
+// 部署自定义业务流程实例
+export function startByDataId(dataId,serviceName, data) {
+  return request({
+    url: '/workflow/process/startByDataId/' + dataId + '/' + serviceName,
+    method: 'post',
+    data: data
+  })
+}
+
+// 查询当前节点是否是属于退回或驳回的第一个发起人节点,业务数据dataid
+
+export function isFirstInitiator(dataId,data) {
+  return request({
+    url: '/workflow/task/isFirstInitiator/' + dataId,
+    method: 'post',
+    data: data
+  })
+}
+
+// 删除自定义业务任务关联表与流程历史表
+//以便可以重新发起流程,业务数据dataid
+
+export function deleteActivityAndJoin(dataId,data) {
+  return request({
+    url: '/workflow/task/deleteActivityAndJoin/' + dataId,
+    method: 'post',
+    data: data
+  })
+}
+
 // 删除流程实例
 export function delProcess(ids) {
   return request({
@@ -46,6 +76,14 @@ export function getBpmnXml(processDefId) {
 export function detailProcess(query) {
   return request({
     url: '/workflow/process/detail',
+    method: 'get',
+    params: query
+  })
+}
+
+export function detailProcessByDataId(query) {
+  return request({
+    url: '/workflow/process/detailbydataid',
     method: 'get',
     params: query
   })

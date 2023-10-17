@@ -288,7 +288,7 @@
 
 <script>
 import { getBpmnXml, listModel, historyModel, latestModel, addModel, updateModel, saveModel, delModel, deployModel } from "@/api/workflow/model";
-import { listCategory } from '@/api/workflow/category'
+import { listCategory, getAppType } from '@/api/workflow/category'
 import ProcessDesigner from '@/components/ProcessDesigner';
 import ProcessViewer from '@/components/ProcessViewer'
 import { getToken } from "@/utils/auth";
@@ -337,6 +337,7 @@ export default {
         bpmnXml: '',
         modelId: null,
         form: {
+          appType: [],
           processName: null,
           processKey: null
         }
@@ -535,20 +536,24 @@ export default {
     },
     /** 设计按钮操作 */
     handleDesigner(row) {
-      this.designerData.title = "流程设计 - " + row.modelName;
-      this.designerData.modelId = row.modelId;
-      this.designerData.form = {
-        processName: row.modelName,
-        processKey: row.modelKey
-      }
-      if (row.modelId) {
-        this.designerData.loading = true;
-        getBpmnXml(row.modelId).then(response => {
-          this.designerData.bpmnXml = response.data || '';
-          this.designerData.loading = false;
-          this.designerOpen = true;
-        })
-      }
+      console.log("handleDesigner row",row);
+      getAppType(row.category).then(res => {
+        this.designerData.title = "流程设计 - " + row.modelName;
+        this.designerData.modelId = row.modelId;
+        this.designerData.form = {
+          appType: res.data || [],
+          processName: row.modelName,
+          processKey: row.modelKey
+        }
+        if (row.modelId) {
+          this.designerData.loading = true;
+          getBpmnXml(row.modelId).then(response => {
+            this.designerData.bpmnXml = response.data || '';
+            this.designerData.loading = false;
+            this.designerOpen = true;
+          })
+        }
+      });
     },
     onSaveDesigner(bpmnXml) {
       this.bpmnXml = bpmnXml;

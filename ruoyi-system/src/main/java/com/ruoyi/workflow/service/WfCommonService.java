@@ -1,6 +1,5 @@
 package com.ruoyi.workflow.service;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ruoyi.workflow.service.impl.WfInstanceServiceImpl;
@@ -47,9 +46,7 @@ public class WfCommonService {
         WfMyBusiness business = wfMyBusinessService.getOne(flowMyBusinessLambdaQueryWrapper);
         if (business!=null){
         	wfMyBusiness = business;
-        } else {
-        	wfMyBusiness.setId(IdUtil.getDataCenterId(100L));
-        }
+        } 
         if (processDefinitionId==null){
             // 以便更新流程
             processDefinitionId = "";

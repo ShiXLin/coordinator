@@ -2,11 +2,13 @@ package com.ruoyi.web.controller.workflow;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.ObjectUtil;
+
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
 import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
@@ -15,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 /**
  * 工作流任务管理
@@ -155,6 +158,35 @@ public class WfTaskController {
         return R.ok();
     }
 
+    /**
+     * 自定义业务使用
+     * 判断是否是第一个发起人节点，目前只针对退回，驳回情况进行处理
+     * @param dataId 流程业务数据id, variables 变量集合,json对象
+     * @return
+     */
+    @PostMapping(value = "/isFirstInitiator/{dataId}")
+    public R isFirstInitiator(@PathVariable(value = "dataId") String dataId,
+            @RequestBody Map<String, Object> variables) {
+        
+    	String sRevokeOrReject = (String) variables.get("actStatus");
+    	String processInstanceId = (String) variables.get("processInstanceId");
+    	return R.ok(flowTaskService.isFirstInitiator(processInstanceId, sRevokeOrReject));
+    }	
+    
+    /**
+     * 自定义业务使用
+     *  删除自定义业务任务关联表与流程历史表，以便可以重新发起流程。
+     * @param dataId 流程业务数据id, variables 变量集合,json对象
+     * @return
+     */
+    @PostMapping(value = "/deleteActivityAndJoin/{dataId}")
+    public R del(@PathVariable(value = "dataId") String dataId,
+            @RequestBody Map<String, Object> variables) {
+    	String sRevokeOrReject = (String) variables.get("actStatus");
+    	String processInstanceId = (String) variables.get("processInstanceId");
+    	return R.ok(flowTaskService.deleteActivityAndJoin(dataId, processInstanceId, sRevokeOrReject));
+    }	
+    
     /**
      * 生成流程图
      *

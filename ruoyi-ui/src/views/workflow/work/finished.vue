@@ -217,6 +217,7 @@ export default {
       this.$router.push({
         path: '/workflow/process/detail/' + row.procInsId,
         query: {
+          taskId: row.taskId,
           processed: false
         }
       })

@@ -3,7 +3,7 @@
     <el-collapse v-model="activeTab">
       <el-collapse-item name="base">
         <div slot="title" class="panel-tab__title"><i class="el-icon-info"></i>常规</div>
-        <element-base-info :id-edit-disabled="idEditDisabled" :business-object="elementBusinessObject" :type="elementType" />
+        <element-base-info :id-edit-disabled="idEditDisabled" :business-object="elementBusinessObject" :appType="appType" :type="elementType" />
       </el-collapse-item>
       <el-collapse-item name="condition" v-if="elementType === 'Process'" key="message">
         <div slot="title" class="panel-tab__title"><i class="el-icon-s-comment"></i>消息与信号</div>
@@ -57,7 +57,7 @@ import ElementForm from "./form/ElementForm";
 import UserTaskListeners from "./listeners/UserTaskListeners";
 /**
  * 侧边栏
- * @Author MiyueFE
+ * @Author MiyueFE  nbacheng
  * @Home https://github.com/miyuesc
  * @Date 2021年3月31日18:57:51
  */
@@ -80,8 +80,13 @@ export default {
     bpmnModeler: Object,
     prefix: {
       type: String,
-      default: "camunda"
+      default: "flowable"
     },
+    appType: {
+      type: Array,
+      default: () => []
+    },
+    
     width: {
       type: Number,
       default: 480

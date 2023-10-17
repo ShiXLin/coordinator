@@ -21,12 +21,14 @@ import com.ruoyi.common.core.service.UserService;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.JsonUtils;
+import com.ruoyi.common.utils.SpringContextUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.flowable.common.constant.ProcessConstants;
 import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.flowable.common.enums.FlowComment;
 import com.ruoyi.flowable.common.enums.ProcessStatus;
 import com.ruoyi.flowable.core.FormConf;
+import com.ruoyi.flowable.core.domain.ActStatus;
 import com.ruoyi.flowable.core.domain.ProcessQuery;
 import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
@@ -43,17 +45,21 @@ import com.ruoyi.workflow.domain.WfCustomForm;
 import com.ruoyi.workflow.domain.WfDeployForm;
 import com.ruoyi.workflow.domain.WfMyBusiness;
 import com.ruoyi.workflow.domain.vo.*;
+import com.ruoyi.workflow.mapper.WfCategoryMapper;
 import com.ruoyi.workflow.mapper.WfDeployFormMapper;
 import com.ruoyi.workflow.service.IWfCustomFormService;
 import com.ruoyi.workflow.service.IWfMyBusinessService;
 import com.ruoyi.workflow.service.IWfProcessService;
 import com.ruoyi.workflow.service.IWfTaskService;
 import com.ruoyi.workflow.service.WfCommonService;
+import com.ruoyi.workflow.service.WfCallBackServiceI;
+import com.ruoyi.common.core.domain.model.LoginUser;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.ObjectUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -72,6 +78,7 @@ import org.flowable.task.api.TaskQuery;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.task.api.history.HistoricTaskInstanceQuery;
 import org.flowable.variable.api.history.HistoricVariableInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,6 +105,8 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     private final IWfCustomFormService wfCustomFormService;
     private final IWfMyBusinessService wfMyBusinessService;
     private final WfCommonService wfCommonService;
+    private final WfCategoryMapper categoryMapper;
+    private final WfMyBusinessServiceImpl wfMyBusinessServiceImpl;
 
     /**
      * 流程定义列表
@@ -127,17 +136,26 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         for (ProcessDefinition processDefinition : definitionList) {
             String deploymentId = processDefinition.getDeploymentId();
             Deployment deployment = repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
-            WfDefinitionVo vo = new WfDefinitionVo();
-            vo.setDefinitionId(processDefinition.getId());
-            vo.setProcessKey(processDefinition.getKey());
-            vo.setProcessName(processDefinition.getName());
-            vo.setVersion(processDefinition.getVersion());
-            vo.setDeploymentId(processDefinition.getDeploymentId());
-            vo.setSuspended(processDefinition.isSuspended());
-            // 流程定义时间
-            vo.setCategory(deployment.getCategory());
-            vo.setDeploymentTime(deployment.getDeploymentTime());
-            definitionVoList.add(vo);
+           // 检查流程是否是OA流程
+            WfAppTypeVo appTypeVo = categoryMapper.selectAppTypeVoByCode(deployment.getCategory());
+            String appType = "";
+            if(ObjectUtil.isNotEmpty(appTypeVo)) {
+            	appType =  appTypeVo.getId();
+            }
+            if(StrUtil.equalsAnyIgnoreCase(appType, "OA")) {//OA流程取出，其它流程到其它相应地方发起流程
+	            WfDefinitionVo vo = new WfDefinitionVo();
+	            vo.setDefinitionId(processDefinition.getId());
+	            vo.setProcessKey(processDefinition.getKey());
+	            vo.setProcessName(processDefinition.getName());
+	            vo.setVersion(processDefinition.getVersion());
+	            vo.setDeploymentId(processDefinition.getDeploymentId());
+	            vo.setSuspended(processDefinition.isSuspended());
+	            // 流程定义时间
+	            vo.setCategory(deployment.getCategory());
+	            vo.setDeploymentTime(deployment.getDeploymentTime());
+	            definitionVoList.add(vo);
+            }
+            
         }
         page.setRecords(definitionVoList);
         page.setTotal(pageTotal);
@@ -226,8 +244,13 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             taskVo.setCategory(deployment.getCategory());
             // 当前所处流程
             List<Task> taskList = taskService.createTaskQuery().processInstanceId(hisIns.getId()).includeIdentityLinks().list();
+            // 任务列表
             if (CollUtil.isNotEmpty(taskList)) {
-                taskVo.setTaskName(taskList.stream().map(Task::getName).filter(StringUtils::isNotEmpty).collect(Collectors.joining(",")));
+            	taskVo.setTaskName(taskList.stream().map(Task::getName).filter(StringUtils::isNotEmpty).collect(Collectors.joining(",")));
+            	taskVo.setTaskId(taskList.get(0).getId());
+            } else {
+                List<HistoricTaskInstance> historicTaskInstance = historyService.createHistoricTaskInstanceQuery().processInstanceId(hisIns.getId()).orderByHistoricTaskInstanceEndTime().desc().list();
+                taskVo.setTaskId(historicTaskInstance.get(0).getId());
             }
             taskVoList.add(taskVo);
         }
@@ -668,7 +691,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
      * @return
      */
     @Override
-    public WfDetailVo queryProcessDetail(String procInsId, String taskId) {
+    public WfDetailVo queryProcessDetail(String procInsId, String taskId, String dataId ) {
         WfDetailVo detailVo = new WfDetailVo();
         // 获取流程实例
         HistoricProcessInstance historicProcIns = historyService.createHistoricProcessInstanceQuery()
@@ -693,7 +716,34 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXmlStr);
         detailVo.setBpmnXml(bpmnXmlStr);
         detailVo.setHistoryProcNodeList(historyProcNodeList(historicProcIns));
-        detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns));
+        detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns, dataId));
+        detailVo.setFlowViewer(getFlowViewer(bpmnModel, procInsId));
+        return detailVo;
+    }
+    
+    /**
+     * 流程详情信息
+     *
+     * @param dataId 业务数据ID
+     * @return
+     */
+    @Override
+    public WfDetailVo queryProcessDetailByDataId(String dataId ) {
+        WfDetailVo detailVo = new WfDetailVo();
+        WfMyBusiness business = wfMyBusinessServiceImpl.getByDataId(dataId);
+        String procInsId = business.getProcessInstanceId();
+        // 获取流程实例
+        HistoricProcessInstance historicProcIns = historyService.createHistoricProcessInstanceQuery()
+            .processInstanceId(procInsId)
+            .includeProcessVariables()
+            .singleResult();
+        // 获取Bpmn模型信息
+        InputStream inputStream = repositoryService.getProcessModel(historicProcIns.getProcessDefinitionId());
+        String bpmnXmlStr = StrUtil.utf8Str(IoUtil.readBytes(inputStream, false));
+        BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXmlStr);
+        detailVo.setBpmnXml(bpmnXmlStr);
+        detailVo.setHistoryProcNodeList(historyProcNodeList(historicProcIns));
+        detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns, dataId));
         detailVo.setFlowViewer(getFlowViewer(bpmnModel, procInsId));
         return detailVo;
     }
@@ -715,8 +765,27 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         List<String> userlist = new ArrayList<String>();
         boolean bparallelGateway = false;
         boolean bapprovedEG = false;
+        
+        //业务数据id
+        Object objdataId = variables.get("dataId");
+        String dataId = "";
+        if(ObjectUtils.isNotEmpty(objdataId)) {
+        	dataId = objdataId.toString();
+        }
+        if(StringUtils.isNotEmpty(dataId)) {//自定义业务表单
+        	//设置自定义表单dataid的数据 
+            WfMyBusiness flowmybusiness = wfMyBusinessServiceImpl.getByDataId(variables.get("dataId").toString());
+            String serviceImplName = flowmybusiness.getServiceImplName();
+            WfCallBackServiceI flowCallBackService = (WfCallBackServiceI) SpringContextUtils.getBean(serviceImplName);
+            if (flowCallBackService!=null){
+              Object businessDataById = flowCallBackService.getBusinessDataById(variables.get("dataId").toString());
+              variables.put("formData",businessDataById);
+            }
+        }
+        
         //获取下个节点信息
         getNextFlowInfo(procDef, variablesnew, usermap, variables, userlist);
+        
         //取出两个特殊的变量
         if(variablesnew.containsKey("bparallelGateway")) {//并行网关
         	bparallelGateway = (boolean) variablesnew.get("bparallelGateway");
@@ -726,11 +795,80 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         	bapprovedEG = (boolean) variablesnew.get("bapprovedEG");
         	variablesnew.remove("bapprovedEG");
         }
+      
         // 发起流程实例
         ProcessInstance processInstance = runtimeService.startProcessInstanceById(procDef.getId(), variables);
         // 第一个用户任务为发起人，则自动完成任务
         //wfTaskService.startFirstTask(processInstance, variables);
-        return setNextAssignee(processInstance, usermap, userlist, sysUsr, variables, bparallelGateway, bapprovedEG);	
+        R<Void> result = setNextAssignee(processInstance, usermap, userlist, sysUsr, variables, bparallelGateway, bapprovedEG);	
+        if(StringUtils.isNotEmpty(dataId)) {//自定义业务表单
+        	// 流程发起后的自定义业务更新-需要考虑两种情况，第一个发起人审批或跳过
+            List<Task> tasks = taskService.createTaskQuery().processInstanceId(processInstance.getProcessInstanceId()).active().list();
+            /*======================todo 启动之后  回调以及关键数据保存======================*/
+            //如果保存数据前未调用必调的FlowCommonService.initActBusiness方法，就会有问题
+            LoginUser sysUser = commonService.getLoginUser();
+            if(tasks!=null) {
+            	SysUser sysTaskUser = new SysUser();
+            	List <String> listUser = new ArrayList<String>();
+            	List <String> listId = new ArrayList<String>();
+            	List <String> listName = new ArrayList<String>();
+            	String taskUser = "";
+            	String taskid = "";
+            	String taskName = "";
+            	int taskPriority = 0;
+            	for(Task task : tasks) {
+            		if(task.getAssignee() != null) {
+                		sysTaskUser = commonService.getSysUserByUserName(task.getAssignee());
+                		listUser.add(sysTaskUser.getNickName());
+                	}
+            		listId.add(task.getId());
+            		listName.add(task.getName());
+            	    taskPriority = task.getPriority();
+            	}
+            	taskUser = listUser.stream().map(String::valueOf).collect(Collectors.joining(","));
+            	taskid = listId.stream().map(String::valueOf).collect(Collectors.joining(","));
+            	taskName = listName.stream().map(String::valueOf).collect(Collectors.joining(","));
+            	
+            	WfMyBusiness business = wfMyBusinessServiceImpl.getByDataId(dataId);
+    	        business.setProcessDefinitionId(procDef.getId());
+    	        business.setProcessInstanceId(processInstance.getProcessInstanceId());
+    	        business.setActStatus(ActStatus.doing);
+    	        business.setProposer(sysUser.getUsername());
+    	        business.setTaskId(taskid);
+    	        business.setTaskName(taskName);
+    	        business.setTaskNameId(taskid);
+    	        business.setPriority(String.valueOf(taskPriority));
+    	        business.setDoneUsers("");
+    	        business.setTodoUsers(taskUser);
+    	        wfMyBusinessService.updateById(business);
+    	        //spring容器类名
+    	        String serviceImplNameafter = business.getServiceImplName();
+    	        WfCallBackServiceI flowCallBackServiceafter = (WfCallBackServiceI) SpringContextUtils.getBean(serviceImplNameafter);
+    	        // 流程处理完后，进行回调业务层
+    	        business.setValues(variables);
+    	        if (flowCallBackServiceafter!=null)flowCallBackServiceafter.afterFlowHandle(business);
+            }
+            else {
+            	WfMyBusiness business = wfMyBusinessServiceImpl.getByDataId(dataId);
+    	        business.setProcessDefinitionId(procDef.getId());
+    	        business.setProcessInstanceId(processInstance.getProcessInstanceId());
+    	        business.setActStatus(ActStatus.pass);
+    	        business.setProposer(sysUser.getUsername());
+    	        business.setTaskId("");
+    	        business.setTaskName("");
+    	        business.setTaskNameId("");
+    	        business.setDoneUsers("");
+    	        business.setTodoUsers("");
+    	        wfMyBusinessService.updateById(business);
+    	        //spring容器类名
+    	        String serviceImplNameafter = business.getServiceImplName();
+    	        WfCallBackServiceI flowCallBackServiceafter = (WfCallBackServiceI) SpringContextUtils.getBean(serviceImplNameafter);
+    	        // 流程处理完后，进行回调业务层
+    	        business.setValues(variables);
+    	        if (flowCallBackServiceafter!=null)flowCallBackServiceafter.afterFlowHandle(business);
+            }
+        }
+        return result;	
     }
     
     /**
@@ -804,7 +942,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
 				if(Objects.nonNull(nextFlowNode.getUserList())) {
 					if( nextFlowNode.getUserList().size() == 1 ) {
 						if (nextFlowNode.getUserList().get(0) != null) {
-							if(StringUtils.equalsAnyIgnoreCase(nextFlowNode.getUserList().get(0).getUserName(), "${INITIATOR}")) {//对发起人做特殊处理
+							if(StringUtils.equalsAnyIgnoreCase(nextFlowNode.getUserList().get(0).getUserName(), "${initiator}")) {//对发起人做特殊处理
 								taskService.complete(task.getId(), variables);
 								return R.ok("流程启动成功给发起人.");
 							}
@@ -1063,7 +1201,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     /**
      * 获取历史流程表单信息
      */
-    private List<FormConf> processFormList(BpmnModel bpmnModel, HistoricProcessInstance historicProcIns) {
+    private List<FormConf> processFormList(BpmnModel bpmnModel, HistoricProcessInstance historicProcIns, String dataId) {
         List<FormConf> procFormList = new ArrayList<>();
 
         List<HistoricActivityInstance> activityInstanceList = historyService.createHistoricActivityInstanceQuery()
@@ -1124,6 +1262,21 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
                 	formConf.setFormValues(formvariables);
                     procFormList.add(formConf);
                 }
+            }
+        }
+        if(StringUtils.isNoneEmpty(dataId)) {
+        	WfMyBusiness business = wfMyBusinessServiceImpl.getByDataId(dataId);
+            String serviceImplName = business.getServiceImplName();
+            WfCallBackServiceI flowCallBackService = (WfCallBackServiceI) SpringContextUtils.getBean(serviceImplName);
+            // 流程处理完后，进行回调业务层
+            if (flowCallBackService!=null){
+            	Map<String, Object> customMap = new HashMap<String, Object>();
+	            FormConf formConf = new FormConf();
+	            Object businessDataById = flowCallBackService.getBusinessDataById(dataId);
+	            customMap.put("formData",businessDataById);
+	            customMap.put("routeName", business.getRouteName());
+	            formConf.setFormValues(customMap);
+	            procFormList.add(formConf);
             }
         }
         return procFormList;

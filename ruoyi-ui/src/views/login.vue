@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">RuoYi-Nbcio后台管理系统</h3>
+      <h3 class="title">RuoYi-Nbcio亿事达企业管理平台</h3>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -165,7 +165,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
+  background-image: url("../assets/images/login-background.png");
   background-size: cover;
 }
 .title {

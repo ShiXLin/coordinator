@@ -14,6 +14,16 @@
       </el-form-item>
       <!--流程的基础属性-->
       <template v-if="elementBaseInfo.$type === 'bpmn:Process'">
+        <el-form-item label="应用类型">
+         <el-select v-model="elementBaseInfo.processAppType">
+            <el-option
+               v-for="item in appType"
+               :key="item.id"
+               :label="item.name"
+               :value="item.id">
+             </el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="版本标签">
           <el-input v-model="elementBaseInfo.versionTag" clearable @change="updateBaseInfo('versionTag')" />
         </el-form-item>
@@ -26,10 +36,16 @@
 </template>
 <script>
 
+import { commonParse } from '../parseElement'
+
 export default {
   name: "ElementBaseInfo",
   props: {
     businessObject: Object,
+    appType: {
+      type: Array,
+      default: () => []
+    },
     type: String,
     idEditDisabled: {
       type: Boolean,
@@ -53,8 +69,10 @@ export default {
   },
   methods: {
     resetBaseInfo() {
-      this.bpmnElement = window?.bpmnInstances?.bpmnElement;
+      this.bpmnElement = window?.bpmnInstances?.bpmnElement || {};
+      const tempelement =commonParse(this.bpmnElement);//获取流程分类信息
       this.elementBaseInfo = JSON.parse(JSON.stringify(this.bpmnElement.businessObject));
+      this.elementBaseInfo.processAppType = this.appType[0];//显示流程应用类型
     },
     updateBaseInfo(key) {
       const attrObj = Object.create(null);

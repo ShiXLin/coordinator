@@ -16,7 +16,7 @@
       @event="handlerEvent"
       @save="onSaveProcess"
     />
-    <bmpn-process-penal :bpmn-modeler="modeler" :prefix="controlForm.prefix" class="process-panel" />
+    <bmpn-process-penal :bpmn-modeler="modeler" :prefix="controlForm.prefix" :appType="controlForm.appType" class="process-panel" />
   </div>
 </template>
 
@@ -54,6 +54,7 @@ export default {
       xmlString: this.bpmnXml,
       modeler: null,
       controlForm: {
+        appType: this.designerForm.appType,
         processId: this.designerForm.processKey || '',
         processName: this.designerForm.processName || '',
         simulation: false,

@@ -15,15 +15,20 @@ import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.workflow.domain.bo.WfModelBo;
 import com.ruoyi.workflow.domain.dto.WfMetaInfoDto;
+import com.ruoyi.workflow.domain.vo.WfAppTypeVo;
 import com.ruoyi.workflow.domain.vo.WfFormVo;
 import com.ruoyi.workflow.domain.vo.WfModelVo;
+import com.ruoyi.workflow.mapper.WfCategoryMapper;
 import com.ruoyi.workflow.service.IWfDeployFormService;
 import com.ruoyi.workflow.service.IWfFormService;
 import com.ruoyi.workflow.service.IWfModelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.bpmn.model.FlowElement;
+import org.flowable.bpmn.model.SequenceFlow;
 import org.flowable.bpmn.model.StartEvent;
+import org.flowable.bpmn.model.UserTask;
 import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.Model;
 import org.flowable.engine.repository.ModelQuery;
@@ -35,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author KonBAI
@@ -47,6 +53,7 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
 
     private final IWfFormService formService;
     private final IWfDeployFormService deployFormService;
+    private final WfCategoryMapper categoryMapper;
 
     @Override
     public TableDataInfo<WfModelVo> list(WfModelBo modelBo, PageQuery pageQuery) {
@@ -244,9 +251,35 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         if (ObjectUtil.isNull(startEvent)) {
             throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！");
         }
+        WfAppTypeVo appTypeVo = categoryMapper.selectAppTypeVoByCode(model.getCategory());
+        String appType = "";
+        if(ObjectUtil.isNotEmpty(appTypeVo)) {
+        	appType =  appTypeVo.getId();
+        }
         // 获取开始节点配置的表单Key
-        if (StrUtil.isBlank(startEvent.getFormKey())) {
-            throw new RuntimeException("请配置流程表单");
+        if (StrUtil.equalsAnyIgnoreCase(appType, "OA") && StrUtil.isBlank(startEvent.getFormKey())) {
+            throw new RuntimeException("应用类型为OA必须配置流程表单");
+        }
+      //查看开始节点的后一个任务节点出口
+        List<SequenceFlow> outgoingFlows = startEvent.getOutgoingFlows();
+		if(Objects.isNull(outgoingFlows)) {
+			throw new RuntimeException("导入失败，流程配置错误！");
+        }
+        //遍历返回下一个节点信息
+        for (SequenceFlow outgoingFlow : outgoingFlows) {
+            //类型自己判断（获取下个节点是任务节点）
+            FlowElement targetFlowElement = outgoingFlow.getTargetFlowElement();
+            //下个是节点
+           if(targetFlowElement instanceof UserTask){// 下个出口是用户任务，而且是要发起人节点才让保存
+        	   
+        	   if(StringUtils.equals(((UserTask) targetFlowElement).getAssignee(), "${initiator}"))
+        	   {
+        		   break;
+        	    }
+        	   else {
+        		   throw new RuntimeException("导入失败，流程第一个用户任务节点必须是发起人节点");
+        	   }
+            }
         }
         Model newModel;
         if (Boolean.TRUE.equals(modelBo.getNewVersion())) {
@@ -339,7 +372,17 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         // 修改流程定义的分类，便于搜索流程
         repositoryService.setProcessDefinitionCategory(procDef.getId(), model.getCategory());
         // 保存部署表单
-        return deployFormService.saveInternalDeployForm(deployment.getId(), bpmnModel);
+        WfAppTypeVo appTypeVo = categoryMapper.selectAppTypeVoByCode(model.getCategory());
+        String appType = "";
+        if(ObjectUtil.isNotEmpty(appTypeVo)) {
+        	appType =  appTypeVo.getId();
+        }
+        if(StrUtil.equalsAnyIgnoreCase(appType, "OA")) {
+        	return deployFormService.saveInternalDeployForm(deployment.getId(), bpmnModel);
+        }
+        else {//对于其它流程应用类型，可以不挂接表单，通过其它方式挂接
+        	return true;
+        }
     }
 
     /**

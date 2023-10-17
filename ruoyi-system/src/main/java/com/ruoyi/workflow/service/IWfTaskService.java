@@ -129,4 +129,20 @@ public interface IWfTaskService {
      * @return
      */
     public FlowNextDto getNextFlowNode(String taskId, Map<String, Object> values);
+
+    /**
+     * 自定义业务使用
+     * 判断是否是第一个发起人节点，目前只针对退回，驳回情况进行处理
+     * @param dataId 流程业务数据id, variables 变量集合,json对象
+     * @return
+     */
+	boolean isFirstInitiator(String processInstanceId, String actStatusType);
+
+	/**
+     * 自定义业务使用
+     *  删除自定义业务任务关联表与流程历史表，以便可以重新发起流程。
+     * @param dataId 流程业务数据id, variables 变量集合,json对象
+     * @return
+     */
+	boolean deleteActivityAndJoin(String dataId, String processInstanceId, String actStatusType);
 }

@@ -20,5 +20,12 @@
     <select id="selectAppTypeByCode" resultType="String">
         select app_type from wf_category where code = #{code}
     </select>
+    
+    <select id="selectAppTypeVoByCode" resultType="com.ruoyi.workflow.domain.vo.WfAppTypeVo">
+       select a.app_type id, c.dict_label name from wf_category a  
+         LEFT JOIN sys_dict_data c on a.app_type = c.dict_value
+         LEFT JOIN sys_dict_type b on b.dict_type = c.dict_type
+       where a.`code` = #{code}
+    </select>
 
 </mapper>

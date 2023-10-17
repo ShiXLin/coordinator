@@ -3,10 +3,13 @@ package com.ruoyi.workflow.service;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.workflow.domain.WfCategory;
+import com.ruoyi.workflow.domain.vo.WfAppTypeVo;
 import com.ruoyi.workflow.domain.vo.WfCategoryVo;
 
 import java.util.Collection;
 import java.util.List;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 流程分类Service接口
@@ -61,4 +64,6 @@ public interface IWfCategoryService {
      * @return 结果
      */
     boolean checkCategoryCodeUnique(WfCategory category);
+
+    List<WfAppTypeVo> queryInfoByCode(@NotNull(message = "主键不能为空") String code);
 }

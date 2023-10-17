@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 import java.math.BigDecimal;
 
 import com.ruoyi.common.core.domain.BaseEntity;
@@ -87,6 +88,11 @@ public class WfMyBusiness extends BaseEntity {
      * 前端页面显示的路由地址
      */
     private String routeName;
+    
+    /**流程变量*/
+	@TableField(exist = false)
+    private Map<String,Object> values;
+	
     /**
      * 流程实例主键
      */

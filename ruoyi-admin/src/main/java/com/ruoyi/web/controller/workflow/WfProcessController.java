@@ -5,6 +5,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 
 import com.ruoyi.common.annotation.Log;
+import com.ruoyi.common.annotation.RepeatSubmit;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
@@ -202,8 +203,7 @@ public class WfProcessController extends BaseController {
     @SaCheckPermission("workflow:process:start")
     @PostMapping("/start/{processDefId}")
     public R<Void> start(@PathVariable(value = "processDefId") String processDefId, @RequestBody Map<String, Object> variables) {
-        processService.startProcessByDefId(processDefId, variables);
-        return R.ok("流程启动成功");
+    	return processService.startProcessByDefId(processDefId, variables);
 
     }
     
@@ -214,6 +214,7 @@ public class WfProcessController extends BaseController {
      * @param variables 变量集合,json对象
      */
     @SaCheckPermission("workflow:process:start")
+    @RepeatSubmit()
     @PostMapping("/startByDataId/{dataId}/{serviceName}")
     public R<Void> startByDataId(@PathVariable(value = "dataId") String dataId,
                                  @PathVariable(value = "serviceName") String serviceName,
@@ -248,10 +249,21 @@ public class WfProcessController extends BaseController {
      *
      * @param procInsId 流程实例ID
      * @param taskId 任务ID
+     * @param dataId 业务数据ID
      */
     @GetMapping("/detail")
-    public R detail(String procInsId, String taskId) {
-        return R.ok(processService.queryProcessDetail(procInsId, taskId));
+    public R detail(String procInsId, String taskId, String dataId) {
+        return R.ok(processService.queryProcessDetail(procInsId, taskId, dataId));
+    }
+    
+    /**
+     * 查询流程详情信息
+     *
+     * @param dataId 任务ID
+     */
+    @GetMapping("/detailbydataid")
+    public R detail(String dataId) {
+        return R.ok(processService.queryProcessDetailByDataId(dataId));
     }
     
     /**

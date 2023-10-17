@@ -52,7 +52,7 @@ function vModel(self, dataObject) {
         }
         else {//本地上传
           filename=file.data.fileName.substring(file.data.fileName.lastIndexOf('/')+1)  //获取文件名称
-          fileObj = {name: filename, url: file.data.fileName}
+          fileObj = {name: filename, url: process.env.VUE_APP_BASE_API + file.data.fileName}
         }
 
         console.log("dataObject=",dataObject);

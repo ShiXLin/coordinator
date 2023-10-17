@@ -9,6 +9,7 @@ import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.workflow.domain.WfCategory;
+import com.ruoyi.workflow.domain.vo.WfAppTypeVo;
 import com.ruoyi.workflow.domain.vo.WfCategoryVo;
 import com.ruoyi.workflow.mapper.WfCategoryMapper;
 import com.ruoyi.workflow.service.IWfCategoryService;
@@ -16,8 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 流程分类Service业务层处理
@@ -90,4 +94,13 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
             .ne(ObjectUtil.isNotNull(category.getCategoryId()), WfCategory::getCategoryId, category.getCategoryId()));
         return !exist;
     }
+
+	@Override
+	public List<WfAppTypeVo> queryInfoByCode(@NotNull(message = "主键不能为空") String code) {
+		WfAppTypeVo wfAppTypeVo = new WfAppTypeVo();
+		wfAppTypeVo = baseMapper.selectAppTypeVoByCode(code);
+		ArrayList<WfAppTypeVo> wfAppTypeVoList = new ArrayList<WfAppTypeVo>();
+		wfAppTypeVoList.add(wfAppTypeVo);
+		return wfAppTypeVoList;
+	}
 }
