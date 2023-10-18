@@ -12,7 +12,7 @@
 
 - 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，从nbcio-boot(https://gitee.com/nbacheng/nbcio-boot)项目
   移植过来相关功能，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
-- 项目处于开发移植阶段，目前初步完成流程相关工作，当然工作流流程还存在不足。因此，目前仅推荐用于学习、毕业设计等个人使用。
+- 项目处于开发移植阶段，目前初步完成流程相关工作，当然还存在不足，目前仅推荐用于学习、毕业设计等个人使用，确有商业应用的请知会作者。
 
 ## 参考文档
 - 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向nbcio-boot项目文档 见演示系统里的在线帮助]
@@ -87,7 +87,19 @@ QQ交流群: 703572701
 
 - 缓存：Redis
 
+## 前端技术
 
+- 基础框架：ant-design-vue - Ant Design Of Vue 实现
+
+- Element UI JavaScript 框架：Vue
+
+- Webpack node npm eslint @vue/cli 3.2.1
+
+- fullcalendar v-charts echarts luckysheet
+
+- vue-cropper - 头像裁剪组件 @antv/g2 - Alipay AntV 数据可视化图表
+
+- Viser-vue - antv/g2 封装实现
 
 ## 参与开源
 - 如遇到问题，欢迎提交到 [issues](https://gitee.com/nbacheng/ruoyi-nbcio/issues)（请按模版进行填写信息）。
