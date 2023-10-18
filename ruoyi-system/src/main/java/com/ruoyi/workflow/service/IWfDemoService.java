@@ -48,5 +48,5 @@ public interface IWfDemoService {
      */
     Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
 
-    Page<WfDemoBo> myPage(Page<WfDemoBo> page, QueryWrapper<WfDemoBo> queryWrapper);
+    Page<WfDemoVo> myPage(Page<WfDemoVo> page, QueryWrapper<WfDemoVo> queryWrapper);
 }

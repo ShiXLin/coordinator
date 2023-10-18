@@ -116,7 +116,7 @@ public class WfDemoServiceImpl extends ServiceImpl<WfDemoMapper, WfDemo> impleme
     }
 
     @Override
-    public Page<WfDemoBo> myPage(Page<WfDemoBo> page, QueryWrapper<WfDemoBo> queryWrapper) {
+    public Page<WfDemoVo> myPage(Page<WfDemoVo> page, QueryWrapper<WfDemoVo> queryWrapper) {
         return baseMapper.myPage(page, queryWrapper);
     }
     

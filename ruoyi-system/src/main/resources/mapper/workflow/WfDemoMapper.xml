@@ -19,7 +19,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="remark" column="remark"/>
     </resultMap>
     
-    <select id="myPage" resultType="com.ruoyi.workflow.domain.bo.WfDemoBo">
+    <select id="myPage" resultType="com.ruoyi.workflow.domain.vo.WfDemoVo">
         select t.*,b.process_definition_key,
             b.process_definition_id,
             b.process_instance_id,

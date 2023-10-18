@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import javax.validation.constraints.*;
 
-import java.util.Date;
-
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
@@ -57,12 +55,6 @@ public class WfDemoBo extends BaseEntity {
      * 备注
      */
     private String remark;
-    
-    private String actStatus;
-    
-    private String taskName;
-    
-    private String todoUsers;
 
 
 }

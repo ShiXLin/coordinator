@@ -4,6 +4,8 @@ import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import com.alibaba.excel.annotation.ExcelProperty;
 import com.ruoyi.common.annotation.ExcelDictFormat;
 import com.ruoyi.common.convert.ExcelDictConvert;
+import com.ruoyi.workflow.domain.WfMyBusiness;
+
 import lombok.Data;
 import java.util.Date;
 
@@ -17,7 +19,7 @@ import java.util.Date;
  */
 @Data
 @ExcelIgnoreUnannotated
-public class WfDemoVo {
+public class WfDemoVo  extends WfMyBusiness {
 
     private static final long serialVersionUID = 1L;
 

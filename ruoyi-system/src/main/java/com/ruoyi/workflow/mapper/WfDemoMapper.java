@@ -1,7 +1,6 @@
 package com.ruoyi.workflow.mapper;
 
 import com.ruoyi.workflow.domain.WfDemo;
-import com.ruoyi.workflow.domain.bo.WfDemoBo;
 import com.ruoyi.workflow.domain.vo.WfDemoVo;
 
 import org.apache.ibatis.annotations.Param;
@@ -19,6 +18,6 @@ import com.ruoyi.common.core.mapper.BaseMapperPlus;
  */
 public interface WfDemoMapper extends BaseMapperPlus<WfDemoMapper, WfDemo, WfDemoVo> {
 
-	Page<WfDemoBo> myPage(Page<WfDemoBo> page, @Param(Constants.WRAPPER) QueryWrapper<WfDemoBo> queryWrapper);
+	Page<WfDemoVo> myPage(Page<WfDemoVo> page, @Param(Constants.WRAPPER) QueryWrapper<WfDemoVo> queryWrapper);
 
 }

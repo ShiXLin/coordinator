@@ -16,9 +16,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 import com.ruoyi.common.annotation.RepeatSubmit;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
@@ -26,16 +24,13 @@ import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.validate.AddGroup;
 import com.ruoyi.common.core.validate.EditGroup;
-import com.ruoyi.common.core.validate.QueryGroup;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.system.query.QueryGenerator;
 import com.ruoyi.workflow.domain.vo.WfDemoVo;
-import com.ruoyi.workflow.domain.WfDemo;
 import com.ruoyi.workflow.domain.bo.WfDemoBo;
 import com.ruoyi.workflow.service.IWfDemoService;
-import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
  * DEMO
@@ -57,7 +52,7 @@ public class WfDemoController extends BaseController {
      */
     @SaCheckPermission("workflow:demo:list")
     @GetMapping("/list")
-    public TableDataInfo<WfDemoBo> list(WfDemoBo bo, PageQuery pageQuery, HttpServletRequest req) {
+    public TableDataInfo<WfDemoVo> list(WfDemoVo vo, PageQuery pageQuery, HttpServletRequest req) {
     	//by nbacheng for java.sql.SQLSyntaxErrorException: ORA-00918: 未明确定义列
 		Map<String, String[]> ParameterMap = new HashMap<String, String[]>(req.getParameterMap());
 		String[] column = new String[]{""};
@@ -67,10 +62,10 @@ public class WfDemoController extends BaseController {
 			ParameterMap.replace("column", column);
 			log.info("修改的排序规则>>列:" + ParameterMap.get("column")[0]);			
 		}
-		QueryWrapper<WfDemoBo> queryWrapper = QueryGenerator.initQueryWrapper(bo, ParameterMap);
+		QueryWrapper<WfDemoVo> queryWrapper = QueryGenerator.initQueryWrapper(vo, ParameterMap);
 		
-		Page<WfDemoBo> page = new Page<WfDemoBo>(pageQuery.getPageNum(), pageQuery.getPageSize());
-	    Page<WfDemoBo> result = iWfDemoService.myPage(page, queryWrapper);
+		Page<WfDemoVo> page = new Page<WfDemoVo>(pageQuery.getPageNum(), pageQuery.getPageSize());
+	    Page<WfDemoVo> result = iWfDemoService.myPage(page, queryWrapper);
 	    return TableDataInfo.build(result);
     }
 
