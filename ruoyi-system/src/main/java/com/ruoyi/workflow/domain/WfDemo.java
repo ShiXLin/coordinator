@@ -25,7 +25,7 @@ public class WfDemo extends BaseEntity {
     /**
      * DEMO-ID
      */
-    @TableId(value = "demo_id")
+    @TableId(value = "demo_id", type = IdType.AUTO)
     private Long demoId;
     /**
      * 用户账号

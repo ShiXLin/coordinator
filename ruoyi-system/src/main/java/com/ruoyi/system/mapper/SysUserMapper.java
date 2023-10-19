@@ -148,4 +148,6 @@ public interface SysUserMapper extends BaseMapperPlus<SysUserMapper, SysUser, Sy
      * @return 结果
      */
     public SysAuthUser selectAuthUserByUuid(String uuId);
+
+	List<SysUser> selectUserListForDept();
 }

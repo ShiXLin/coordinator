@@ -1,5 +1,6 @@
 package com.ruoyi.workflow.domain;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ruoyi.common.core.domain.BaseEntity;
@@ -21,7 +22,7 @@ public class WfForm extends BaseEntity {
     /**
      * 表单主键
      */
-    @TableId(value = "form_id")
+    @TableId(value = "form_id", type = IdType.AUTO)
     private Long formId;
 
     /**

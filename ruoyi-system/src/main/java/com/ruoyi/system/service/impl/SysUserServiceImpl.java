@@ -500,4 +500,9 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     {
         return baseMapper.selectAuthUserListByUserId(userId);
     }
+
+	@Override
+	public List<SysUser> selectUserListForDept() {
+		return baseMapper.selectUserListForDept();
+	}
 }

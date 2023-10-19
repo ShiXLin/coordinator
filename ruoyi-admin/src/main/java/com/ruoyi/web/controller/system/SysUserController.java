@@ -64,6 +64,15 @@ public class SysUserController extends BaseController {
     public TableDataInfo<SysUser> list(SysUser user, PageQuery pageQuery) {
         return userService.selectPageUserList(user, pageQuery);
     }
+    
+    /**
+     * 根据部门编号获取用户列表,作为部门编辑负责人时使用
+     */
+    @SaCheckPermission("system:user:list")
+    @GetMapping("/listForDept")
+    public List<SysUser> listForDept() {
+        return userService.selectUserListForDept();
+    }
 
     /**
      * 查询用户列表，用于用户选择场景

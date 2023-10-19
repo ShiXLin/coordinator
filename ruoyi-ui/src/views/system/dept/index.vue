@@ -120,15 +120,15 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="负责人id" prop="leaderId">
-              <el-select v-model="form.leaderId" placeholder="请输入负责人" clearable style="width: 100%">
-                <el-option v-for="item in users" :key="parseInt(item.id)" :label="item.nickname" :value="parseInt(item.id)" />
+            <el-form-item label="负责人" prop="leaderId">
+              <el-select v-model="form.leaderId" placeholder="请选择负责人" clearable style="width: 100%" @change="changeUserName">
+                <el-option v-for="item in userList" :key="Number(item.userId)" :label="item.nickName" :value="Number(item.userId)" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="负责人" prop="leader">
-              <el-input v-model="form.leader" placeholder="请输入负责人" maxlength="20" />
+            <el-form-item label="账号" prop="leader">
+              <el-input v-model="form.leader" placeholder="" maxlength="20" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -168,6 +168,7 @@
 
 <script>
 import { listDept, getDept, delDept, addDept, updateDept, listDeptExcludeChild } from "@/api/system/dept";
+import { selectUserForDept } from "@/api/system/user";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
@@ -183,6 +184,8 @@ export default {
       showSearch: true,
       // 表格树数据
       deptList: [],
+      // 用户列表数据
+      userList: [],
       // 部门树选项
       deptOptions: [],
       // 弹出层标题
@@ -230,8 +233,18 @@ export default {
   },
   created() {
     this.getList();
+    this.getUserList();
   },
   methods: {
+    /** 查询用户列表 */
+    getUserList() {
+      this.loading = true;
+      selectUserForDept().then(response => {
+        console.log("selectUserForDept response",response);
+        this.userList = response;
+        this.loading = false;
+      });
+    },
     /** 查询部门列表 */
     getList() {
       this.loading = true;
@@ -239,6 +252,12 @@ export default {
         this.deptList = this.handleTree(response.data, "deptId");
         this.loading = false;
       });
+    },
+    changeUserName(value) {
+      console.log("changeUserName value",value);
+      let item = this.userList.find(item => item.userId === value);
+      console.log("changeUserName item",item);
+      this.form.leader = item.userName;
     },
     /** 转换部门数据结构 */
     normalizer(node) {

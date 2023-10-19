@@ -26,7 +26,7 @@ public class WfMyBusiness extends BaseEntity {
     /**
      * 主键ID
      */
-    @TableId(value = "id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     /**
      * 流程定义key 一个key会有多个版本的id

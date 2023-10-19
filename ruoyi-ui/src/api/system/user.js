@@ -19,6 +19,14 @@ export function selectUser(query) {
   })
 }
 
+// 根据部门编号获取用户列表,作为部门编辑负责人时使用
+export function selectUserForDept() {
+  return request({
+    url: '/system/user/listForDept',
+    method: 'get'
+  })
+}
+
 // 查询用户详细
 export function getUser(userId) {
   return request({

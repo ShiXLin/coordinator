@@ -1,5 +1,6 @@
 package com.ruoyi.workflow.domain;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -23,7 +24,7 @@ public class WfCopy extends BaseEntity {
     /**
      * 抄送主键
      */
-    @TableId(value = "copy_id")
+    @TableId(value = "copy_id", type = IdType.AUTO)
     private Long copyId;
     /**
      * 抄送标题
