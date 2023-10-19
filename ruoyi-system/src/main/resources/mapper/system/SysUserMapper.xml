@@ -197,5 +197,9 @@
  	<select id="selectAuthUserByUuid" parameterType="String" resultMap="SysAuthUserResult">
         select * from sys_auth_user u where  u.uuid = #{uuId}
     </select>
+    
+    <select id="selectUserListForDept"  resultMap="SysUserResult">
+        select * from sys_user where status = '0' and del_flag = '0'
+    </select>
 	
 </mapper> 
