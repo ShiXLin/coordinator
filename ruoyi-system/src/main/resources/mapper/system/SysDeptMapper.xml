@@ -10,6 +10,7 @@
         <result property="ancestors" column="ancestors"/>
         <result property="deptName" column="dept_name"/>
         <result property="orderNum" column="order_num"/>
+        <result property="leaderId" column="leader_id"/>
         <result property="leader" column="leader"/>
         <result property="phone" column="phone"/>
         <result property="email" column="email"/>
@@ -35,6 +36,10 @@
                 and d.dept_id not in (select d.parent_id from sys_dept d inner join sys_role_dept rd on d.dept_id = rd.dept_id and rd.role_id = #{roleId})
             </if>
         order by d.parent_id, d.order_num
+    </select>
+    
+    <select id="getDepLeaderByUserName" parameterType="String" resultType="String">
+       select b.leader from sys_user a LEFT JOIN sys_dept b on a.dept_id = b.dept_id  where a.user_name = #{userName}
     </select>
 
 </mapper>

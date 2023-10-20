@@ -37,4 +37,6 @@ public interface SysDeptMapper extends BaseMapperPlus<SysDeptMapper, SysDept, Sy
      */
     List<Long> selectDeptListByRoleId(@Param("roleId") Long roleId, @Param("deptCheckStrictly") boolean deptCheckStrictly);
 
+	String getDepLeaderByUserName(String userName);
+
 }

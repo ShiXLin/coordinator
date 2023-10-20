@@ -7,6 +7,7 @@
         <el-radio label="ROLES">角色</el-radio>
         <el-radio label="DEPTS">部门</el-radio>
         <el-radio label="INITIATOR">发起人</el-radio>
+        <el-radio label="MANAGER">部门经理</el-radio>
       </el-radio-group>
     </el-row>
     <el-row>
@@ -54,7 +55,11 @@
             <el-row><el-radio label="Null">无</el-radio></el-row>
             <el-row><el-radio label="SequentialMultiInstance">会签（需所有审批人同意）</el-radio></el-row>
             <el-row><el-radio label="ParallelMultiInstance">或签（一名审批人同意即可）</el-radio></el-row>
+            <el-row><el-radio label="CustomMultiInstance">自定义会签条件</el-radio></el-row>
           </el-radio-group>
+        </el-row>
+        <el-row v-if="multiLoopType === 'CustomMultiInstance'">
+          <el-input v-model="CustomCompletionCondition" clearable @change="updateLoopCondition" />
         </el-row>
         <el-row v-if="multiLoopType !== 'Null'">
           <el-tooltip content="开启后，实例需按顺序轮流审批" placement="top-start" @click.stop.prevent>
@@ -172,6 +177,7 @@ export default {
       showMultiFlog: false,
       isSequential: false,
       multiLoopType: 'Null',
+      CustomCompletionCondition: '${nrOfCompletedInstances/nrOfInstances>=1}',
     };
   },
   watch: {
@@ -234,8 +240,11 @@ export default {
       this.roleIds = [];
       this.deptIds = [];
     },
+    // 完成条件
+    updateLoopCondition(condition) {
+    },
     /**
-     * 跟新节点数据
+     * 更新节点数据
      */
     updateElementTask() {
       const taskAttr = Object.create(null);
@@ -342,7 +351,7 @@ export default {
         this.multiLoopType = 'Null';
         this.changeMultiLoopType();
       } else {
-        userTaskForm.candidateUsers = this.selectedUserDate.map(k => k.userId).join() || null;
+        userTaskForm.candidateUsers = this.selectedUserDate.map(k => k.userName).join() || null;
         userTaskForm.text = this.selectedUserDate.map(k => k.nickName).join() || null;
         userTaskForm.assignee = null;
         this.showMultiFlog = true;
@@ -410,6 +419,7 @@ export default {
       // 清空 userTaskForm 所有属性值
       Object.keys(userTaskForm).forEach(key => userTaskForm[key] = null);
       userTaskForm.dataType = val;
+      console.log("changeDataType this.selectedUser",this.selectedUser);
       if (val === 'USERS') {
         if (this.selectedUser && this.selectedUser.ids && this.selectedUser.ids.length > 0) {
           if (this.selectedUser.ids.length === 1) {
@@ -447,6 +457,10 @@ export default {
           })
           userTaskForm.text = textArr?.map(k => k.label).join() || null;
         }
+      } else if (val === 'MANAGER') {
+        userTaskForm.assignee = "${DepManagerHandler.getUser(execution)}";
+        userTaskForm.text = "部门经理";
+
       } else if (val === 'INITIATOR') {
         userTaskForm.assignee = "${initiator}";
         userTaskForm.text = "流程发起人";
@@ -462,9 +476,10 @@ export default {
       if (businessObject.loopCharacteristics.completionCondition) {
         if (businessObject.loopCharacteristics.completionCondition.body === "${nrOfCompletedInstances >= nrOfInstances}") {
           this.multiLoopType = "SequentialMultiInstance";
-        } else {
+        } else if (businessObject.loopCharacteristics.completionCondition.body === "${nrOfCompletedInstances > 0}") {
           this.multiLoopType = "ParallelMultiInstance";
-
+        } else {
+          this.multiLoopType = "CustomMultiInstance";
         }
       }
     },
@@ -490,9 +505,13 @@ export default {
       if (this.multiLoopType === "ParallelMultiInstance") {
         completionCondition = window.bpmnInstances.moddle.create("bpmn:FormalExpression", { body: "${nrOfCompletedInstances > 0}" });
       }
+      // 自定义会签
+      if (this.multiLoopType === "CustomMultiInstance") {
+        completionCondition = window.bpmnInstances.moddle.create("bpmn:FormalExpression", { body: this.CustomCompletionCondition });
+      }
       // 更新模块属性信息
       window.bpmnInstances.modeling.updateModdleProperties(this.bpmnElement, this.multiLoopInstance, {
-        collection: '${multiInstanceHandler.getUserIds(execution)}',
+        collection: '${multiInstanceHandler.getUserNames(execution)}',
         elementVariable: 'assignee',
         completionCondition
       });

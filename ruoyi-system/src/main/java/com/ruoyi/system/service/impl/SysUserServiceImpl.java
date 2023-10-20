@@ -34,6 +34,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -504,5 +505,16 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
 	@Override
 	public List<SysUser> selectUserListForDept() {
 		return baseMapper.selectUserListForDept();
+	}
+
+	@Override
+	public List<String> selectUserNames(List<Long> userIds) {
+		List<SysUser> listuser =  baseMapper.selectBatchIds(userIds);
+		List<String> userNames = new ArrayList<>();
+		for(SysUser sysuser: listuser) {
+			userNames.add(sysuser.getUserName());
+		}
+		return userNames;
+		
 	}
 }

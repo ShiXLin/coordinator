@@ -113,4 +113,12 @@ public interface ISysDeptService {
      * @return 结果
      */
     int deleteDeptById(Long deptId);
+    
+    /**
+     * 根据用户账号获取部门经理
+     *
+     * @param userName 用户账号
+     * @return 结果
+     */
+    String getDepLeaderByUserName(String userName);
 }

@@ -304,4 +304,9 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         return baseMapper.deleteById(deptId);
     }
 
+	@Override
+	public String getDepLeaderByUserName(String userName) {
+		return baseMapper.getDepLeaderByUserName(userName);
+	}
+
 }

@@ -24,6 +24,7 @@ import com.ruoyi.system.mapper.CommonMapper;
 import com.ruoyi.system.mapper.SysNoticeMapper;
 import com.ruoyi.system.mapper.SysNoticeSendMapper;
 import com.ruoyi.system.mapper.SysUserMapper;
+import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.helper.LoginHelper;
@@ -48,6 +49,8 @@ public class SysCommServiceImple extends ServiceImpl<CommonMapper, Object> imple
 	private SysNoticeSendMapper sysNoticeSendMapper;
 	@Resource
 	ISysUserService sysUserService;
+	@Resource
+	ISysDeptService sysDeptService;
 	
 	@Resource
 	private CommonMapper commonMapper;
@@ -156,6 +159,7 @@ public class SysCommServiceImple extends ServiceImpl<CommonMapper, Object> imple
 	@Override
 	public String getDepLeaderByUserName(String userName) {
 		
-		return null;
+		return sysDeptService.getDepLeaderByUserName(userName);
 	}
+	
 }

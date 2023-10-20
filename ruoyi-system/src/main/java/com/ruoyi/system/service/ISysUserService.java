@@ -208,7 +208,7 @@ public interface ISysUserService {
      */
     int deleteUserByIds(Long[] userIds);
 
-  /**
+    /**
      * 根据用户编号查询授权列表
      * 
      * @param userId 用户编号
@@ -217,4 +217,11 @@ public interface ISysUserService {
     public List<SysAuthUser> selectAuthUserListByUserId(Long userId);
 
     public List<SysUser> selectUserListForDept();
+    /**
+     * 根据用户编号查询用户账号列表,目前用在流程角色或部门选择时使用
+     * 
+     * @param userIds 用户编号
+     * @return 用户账号列表
+     */
+    public List<String> selectUserNames(List<Long> userIds);
 }

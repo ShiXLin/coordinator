@@ -751,7 +751,12 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                         		sysUser.setUserName("${initiator}");
                         		list.add(sysUser);
                         		setAssigneeFlowNetDto(flowNextDto,list,userTask);
-                        	}          
+                        	} else if(StringUtils.equalsAnyIgnoreCase(assignee, "${DepManagerHandler.getUser(execution)}")) {//对部门经理做特殊处理
+                        		SysUser sysUser = new SysUser();
+                        		sysUser.setUserName("${DepManagerHandler.getUser(execution)}");
+                        		list.add(sysUser);
+                        		setAssigneeFlowNetDto(flowNextDto,list,userTask);
+                        	}
                         	else if(StringUtils.contains(assignee, "${flowExp.getDynamicAssignee")) {//对表达式单个动态用户做特殊处理
                         		String methodname = StringUtils.substringBetween(assignee, ".", "(");
                         		SysUser sysUser = new SysUser();
@@ -779,7 +784,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                         		setUsersFlowNetDto(flowNextDto,list,userTask);
                         	   
                         	}
-                        	else if(StringUtils.contains(assignee, "${DepManagerHandler")) {//对部门经理多用户做特殊处理
+                        	/*else if(StringUtils.contains(assignee, "${DepManagerHandler")) {//对部门经理多用户做特殊处理
                         		String methodname = "getInitiatorDepManagers";
                         		// 获取流程发起人
     	                   		ProcessInstance processInstance = runtimeService
@@ -797,7 +802,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
 								}
                         		setUsersFlowNetDto(flowNextDto,list,userTask);
                         	   
-                        	}
+                        	}*/
                         	else {
                         	    SysUser sysUser =  sysUserService.selectUserByUserName(assignee);
                     		    
