@@ -15,5 +15,7 @@ const getters = {
   topbarRouters:state => state.permission.topbarRouters,
   defaultRoutes:state => state.permission.defaultRoutes,
   sidebarRouters:state => state.permission.sidebarRouters,
+  selectedNode:state => state.flow.selectedNode, //for dingidng
+  design:state => state.flow.design, //for dingidng
 }
 export default getters

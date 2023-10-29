@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import app from './modules/app'
 import dict from './modules/dict'
+import flow from './modules/flow'
 import user from './modules/user'
 import tagsView from './modules/tagsView'
 import permission from './modules/permission'
@@ -14,6 +15,7 @@ const store = new Vuex.Store({
   modules: {
     app,
     dict,
+    flow,
     user,
     tagsView,
     permission,
