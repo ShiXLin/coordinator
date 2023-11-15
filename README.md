@@ -42,6 +42,8 @@
    9、支持部门经理审批
    
    10、增加仿钉钉流程设计（正在开发中）
+   
+   11、流程设计器增加自定义业务表单的绑定
 
 ## 支持项目
 -  如果项目对你有帮助，请给项目点个Star，同时也可以请作者喝杯咖啡吧！
@@ -201,5 +203,10 @@ QQ交流群: 703572701
 自定义业务流程相关信息
 
 ![](https://oscimg.oschina.net/oscnet/up-b99f34fa23f1056ca8d70baca93ada49558.png)
+
+大家在使用本项目时，推荐结合贺波老师的书[《深入Activiti流程引擎：核心原理与高阶实战》]
+(https://item.m.jd.com/product/13928958.html?gx=RnAomTM2bmCImZxDqYAkVCoIHuIYVqc)，
+这本书对系统学习和深入掌握Activiti/Flowable的用法非常有帮助。
+![](https://foruda.gitee.com/images/1699658576150803044/9bdfb7f1_2042292.png)
 </tbody>
 </table>
