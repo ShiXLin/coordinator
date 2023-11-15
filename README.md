@@ -204,6 +204,7 @@ QQ交流群: 703572701
 
 ![](https://oscimg.oschina.net/oscnet/up-b99f34fa23f1056ca8d70baca93ada49558.png)
 
+## 推荐
 大家在使用本项目时，推荐结合贺波老师的书[《深入Activiti流程引擎：核心原理与高阶实战》]
 (https://item.m.jd.com/product/13928958.html?gx=RnAomTM2bmCImZxDqYAkVCoIHuIYVqc)，
 这本书对系统学习和深入掌握Activiti/Flowable的用法非常有帮助。
