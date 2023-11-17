@@ -19,7 +19,9 @@
         if(!this.path){
           return null;
         }
-        return () => import(`@/views/${this.path}.vue`)
+        //return () => import(`@/views/${this.path}.vue`)
+        //去掉这个编译警告Critical dependency: the request of a dependency is an expression
+        return () => Promise.resolve(require(`@/views/${this.path}.vue`).default)
       }
     },
     props: ['path','formData'],
