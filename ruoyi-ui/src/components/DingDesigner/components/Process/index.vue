@@ -7,9 +7,9 @@ export default {
   name: 'Process',
   props:['tabName', 'conf'],
   data() {
-    let data = getMockData()
+    let data = getMockData();
     if (typeof this.conf === 'object' && this.conf !== null) {
-      Object.assign(data, this.conf)
+      Object.assign(data, this.conf.processData)
     }
     return {
       data, // 流程图数据
@@ -69,7 +69,7 @@ export default {
      * @param { Object } value - 被编辑的节点的properties属性对象
      */
     onPropEditConfirm(value, content) {
-      this.activeData.content = content || '请设置条件'
+      this.activeData.content = content || '请设置条件表达式'
       let oldProp = this.activeData.properties;
       this.activeData.properties = value;
       // 修改优先级
@@ -80,7 +80,7 @@ export default {
           oldProp.priority,
           this.data
         );
-        NodeUtils.setDefaultCondition(this.activeData, this.data)
+        //NodeUtils.setDefaultCondition(this.activeData, this.data)
       }
       if (NodeUtils.isConcurrentNode(this.activeData) ) {
         value.priority !== oldProp.priority
@@ -89,7 +89,7 @@ export default {
           oldProp.priority,
           this.data
         );
-        NodeUtils.setDefaultCondition(this.activeData, this.data)
+        //NodeUtils.setDefaultCondition(this.activeData, this.data)
       }
       if(NodeUtils.isStartNode(this.activeData)) this.$emit('startNodeChange', this.data)
       this.onClosePanel();

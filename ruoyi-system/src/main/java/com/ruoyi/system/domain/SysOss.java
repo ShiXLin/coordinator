@@ -20,7 +20,7 @@ public class SysOss extends BaseEntity {
     /**
      * 对象存储主键
      */
-    @TableId(value = "oss_id", type = IdType.AUTO)
+    @TableId(value = "oss_id")
     private Long ossId;
 
     /**

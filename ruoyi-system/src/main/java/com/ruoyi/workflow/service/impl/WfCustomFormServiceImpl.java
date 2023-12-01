@@ -1,14 +1,25 @@
 package com.ruoyi.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.ObjectUtil;
+
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
+
+import org.flowable.bpmn.model.BpmnModel;
+import org.flowable.bpmn.model.FlowNode;
+import org.flowable.bpmn.model.StartEvent;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ruoyi.workflow.domain.bo.WfCustomFormBo;
 import com.ruoyi.workflow.domain.vo.CustomFormVo;
 import com.ruoyi.workflow.domain.vo.WfCustomFormVo;
@@ -122,4 +133,47 @@ public class WfCustomFormServiceImpl implements IWfCustomFormService {
 	public WfCustomForm selectSysCustomFormByServiceName(String serviceName) {
 		return baseMapper.selectSysCustomFormByServiceName(serviceName);
 	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public boolean saveCustomDeployForm(String deployId, String deployName, BpmnModel bpmnModel) {
+        // 获取开始节点
+        StartEvent startEvent = ModelUtils.getStartEvent(bpmnModel);
+        if (ObjectUtil.isNull(startEvent)) {
+            throw new RuntimeException("开始节点不存在，请检查流程设计是否有误！");
+        }
+        // 更新开始节点表单信息与流程信息到自定义业务关联表
+        WfCustomFormBo customFormBo = buildCustomForm(deployId, deployName, startEvent);
+        if (ObjectUtil.isNotNull(customFormBo)) {
+        	updateByBo(customFormBo);
+        	return true;
+        }
+		return false;
+	}
+	/**
+     * 构建部署表单关联信息对象
+     * @param deployId 部署ID
+     * @param node 节点信息
+     * @return 部署表单关联对象。若无表单信息（formKey），则返回null
+     */
+    private WfCustomFormBo buildCustomForm(String deployId, String deployName, FlowNode node) {
+        String formKey = ModelUtils.getFormKey(node);
+        if (StringUtils.isEmpty(formKey)) {
+            return null;
+        }
+        Long formId = Convert.toLong(StringUtils.substringAfter(formKey, "key_"));
+        WfCustomFormVo customFormVo = queryById(formId);
+        if (ObjectUtil.isNull(customFormVo)) {
+            throw new ServiceException("表单信息查询错误");
+        }
+        WfCustomFormBo customFormBo = new WfCustomFormBo();
+        customFormBo.setId(formId);
+        customFormBo.setBusinessName(customFormVo.getBusinessName());
+        customFormBo.setBusinessService(customFormVo.getBusinessService());
+        customFormBo.setCreateBy(customFormBo.getCreateBy());
+        customFormBo.setRouteName(customFormVo.getRouteName());
+        customFormBo.setDeployId(deployId);
+        customFormBo.setFlowName(deployName);
+        return customFormBo;
+    }
 }

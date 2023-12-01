@@ -2,6 +2,7 @@ package com.ruoyi.workflow.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 
@@ -20,6 +21,7 @@ import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.flowable.common.enums.FlowComment;
 import com.ruoyi.flowable.common.enums.ProcessStatus;
 import com.ruoyi.flowable.core.domain.ActStatus;
+import com.ruoyi.flowable.core.domain.ExtensionElementInfo;
 import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.flowable.factory.FlowServiceFactory;
 import com.ruoyi.flowable.flow.CustomProcessDiagramGenerator;
@@ -31,12 +33,14 @@ import com.ruoyi.flowable.utils.flowExp;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.workflow.domain.WfMyBusiness;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
+import com.ruoyi.workflow.domain.dto.FlowViewerDto;
 import com.ruoyi.workflow.mapper.FlowTaskMapper;
 import com.ruoyi.workflow.service.IWfCopyService;
 import com.ruoyi.workflow.service.IWfTaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
@@ -94,6 +98,9 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         if (Objects.isNull(task)) {
             throw new ServiceException("任务不存在");
         }
+        //获取流程当前节点设置的扩展属性值,需要的时候可以使用
+        //Map<String, Object> flowProperties = getFlowProperties(taskBo.getProcInsId());
+        
         // 获取 bpmn 模型
         BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
         if (DelegationState.PENDING.equals(task.getDelegationState())) {
@@ -113,6 +120,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         }
         // 设置任务节点名称
         taskBo.setTaskName(task.getName());
+        
         // 处理下一级审批人
         if (StringUtils.isNotBlank(taskBo.getNextUserIds())) {
             this.assignNextUsers(bpmnModel, taskBo.getProcInsId(), taskBo.getNextUserIds());
@@ -784,25 +792,6 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                         		setUsersFlowNetDto(flowNextDto,list,userTask);
                         	   
                         	}
-                        	/*else if(StringUtils.contains(assignee, "${DepManagerHandler")) {//对部门经理多用户做特殊处理
-                        		String methodname = "getInitiatorDepManagers";
-                        		// 获取流程发起人
-    	                   		ProcessInstance processInstance = runtimeService
-    	                                   .createProcessInstanceQuery()
-    	                                   .processInstanceId(task.getProcessInstanceId())
-    	                                   .singleResult();
-    	                        String startUserId = processInstance.getStartUserId();
-                        		flowExp flowexp = SpringContextUtils.getBean(flowExp.class);
-                        		Object[] argsPara=new Object[]{};
-                        		argsPara[0] = startUserId;
-                        		try {
-                        			list = (List<SysUser>) flowexp.invokeMethod(flowexp, methodname,argsPara);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-                        		setUsersFlowNetDto(flowNextDto,list,userTask);
-                        	   
-                        	}*/
                         	else {
                         	    SysUser sysUser =  sysUserService.selectUserByUserName(assignee);
                     		    
@@ -1011,5 +1000,127 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                 }
             }
         }
+    }
+    
+    @Override
+	public Map<String, List<ExtensionElement>> getSequenceFlowExtensionElement(String taskId) {
+		Task task =  taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (ObjectUtil.isNotNull(task)) {
+
+            Map<String, List<ExtensionElement>> extensionElements = MapUtil.newHashMap();
+
+            HistoricTaskInstance historicTaskInstance = historyService.createHistoricTaskInstanceQuery().taskId(taskId).singleResult();
+            ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(historicTaskInstance.getProcessDefinitionId()).active().singleResult();;
+            Execution execution = runtimeService.createExecutionQuery().executionId(historicTaskInstance.getExecutionId()).singleResult(); 
+
+            String activityId = execution.getActivityId();
+            while (true) {
+                //根据活动节点获取当前的组件信息
+                FlowNode flowNode = getFlowNode(processDefinition.getId(), activityId);
+
+                //获取该节点之后的流向
+                List<SequenceFlow> sequenceFlowListOutGoing = flowNode.getOutgoingFlows();
+
+                // 获取的下个节点不一定是userTask的任务节点，所以要判断是否是任务节点
+                if (sequenceFlowListOutGoing.size() > 1) {
+                    sequenceFlowListOutGoing.forEach(a -> extensionElements.putAll(a.getExtensionElements()));
+                } else if (sequenceFlowListOutGoing.size() == 1) {
+                    // 只有1条出线,直接取得下个节点
+                    SequenceFlow sequenceFlow = sequenceFlowListOutGoing.get(0);
+                    // 下个节点
+                    FlowElement flowElement = sequenceFlow.getTargetFlowElement();
+                    if (flowElement instanceof UserTask) {
+                        return extensionElements;
+                    } else if (flowElement instanceof ExclusiveGateway) {
+                        // 下个节点为排它网关时
+                        ExclusiveGateway exclusiveGateway = (ExclusiveGateway) flowElement;
+                        List<SequenceFlow> outgoingFlows = exclusiveGateway.getOutgoingFlows();
+                        outgoingFlows.forEach(a -> extensionElements.putAll(a.getExtensionElements()));
+                        return extensionElements;
+                    }
+
+                } else {
+                    // 没有出线，则表明是结束节点
+                    return Collections.emptyMap();
+                }
+            }
+        }
+        return MapUtil.empty();
+	}
+    
+    @Override
+	public List<ExtensionElementInfo> getExtensionElement(String taskId) {
+		Map<String, List<ExtensionElement>> extensionElements = getSequenceFlowExtensionElement(taskId);
+        return FlowableUtils.getExtensionElement(extensionElements);
+	}
+    
+    /**
+     * 根据活动节点和流程定义ID获取该活动节点的组件信息
+     */
+    private FlowNode getFlowNode(String processDefinitionId, String flowElementId) {
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
+        return (FlowNode) bpmnModel.getMainProcess().getFlowElement(flowElementId);
+    }
+    
+    @Override
+	public Map<String, Object> getFlowProperties(String procInsId) {
+		try {
+            Task task = taskService.createTaskQuery().processInstanceId(procInsId).active().singleResult();
+            ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(task.getProcessDefinitionId()).singleResult();
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
+            List<FlowViewerDto> flowViewerList = (List<FlowViewerDto>) getFlowViewer(task.getProcessInstanceId()).getData();
+            FlowViewerDto dto = flowViewerList.stream().filter(flowViewerDto -> !flowViewerDto.isCompleted()).findFirst().orElse(null);
+            String actId;
+            if (ObjectUtils.isNotEmpty(dto)) {
+                actId = dto.getKey();
+            } else {
+                return null;
+            }
+            FlowElement element = bpmnModel.getFlowElement(actId);
+            List<ExtensionElement> extensionElements = element
+                    .getExtensionElements().get("properties");
+            List<ExtensionElement> child = null;
+
+            for (ExtensionElement extensionElement : extensionElements) {
+                child = extensionElement.getChildElements().get("property");
+            }
+            List<Map<String, List<ExtensionAttribute>>> list = new ArrayList<>();
+            child.stream().forEach(o -> {
+                Map<String, List<ExtensionAttribute>> attributeMap = o.getAttributes();
+                list.add(attributeMap);
+            });
+            Map<String, Object> result = new HashMap();
+            list.stream().forEach(a -> {
+                result.put(a.get("name").get(0).getValue(), a.get("value").get(0).getValue());
+            });
+            return result;
+        } catch (NullPointerException nullExcption) {
+            return null;
+        }
+	}
+    /**
+     * 获取流程执行过程
+     *
+     * @param procInsId
+     * @return
+     */
+    @Override
+    public R getFlowViewer(String procInsId) {
+        List<FlowViewerDto> flowViewerList = new ArrayList<>();
+        FlowViewerDto flowViewerDto;
+        // 获得活动的节点
+        List<HistoricActivityInstance> hisActIns = historyService.createHistoricActivityInstanceQuery()
+                .processInstanceId(procInsId)
+                .orderByHistoricActivityInstanceStartTime()
+                .asc().list();
+        for (HistoricActivityInstance activityInstance : hisActIns) {
+            if (!"sequenceFlow".equals(activityInstance.getActivityType())) {
+                flowViewerDto = new FlowViewerDto();
+                flowViewerDto.setKey(activityInstance.getActivityId());
+                flowViewerDto.setCompleted(!Objects.isNull(activityInstance.getEndTime()));
+                flowViewerList.add(flowViewerDto);
+            }
+        }
+        return R.ok(flowViewerList);
     }
 }

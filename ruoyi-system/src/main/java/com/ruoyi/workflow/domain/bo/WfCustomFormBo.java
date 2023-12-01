@@ -63,5 +63,10 @@ public class WfCustomFormBo extends BaseEntity {
     @NotBlank(message = "组件注入方法不能为空", groups = { AddGroup.class, EditGroup.class })
     private String component;
 
+    /**
+     * 关联业务主表主键
+     */
+    @NotNull(message = "关联业务主表主键不能为空", groups = { EditGroup.class })
+    private Long tableId;
 
 }

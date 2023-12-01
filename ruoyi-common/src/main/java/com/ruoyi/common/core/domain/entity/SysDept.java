@@ -28,7 +28,7 @@ public class SysDept extends TreeEntity<SysDept> {
     /**
      * 部门ID
      */
-    @TableId(value = "dept_id", type = IdType.AUTO)
+    @TableId(value = "dept_id")
     private Long deptId;
 
     /**

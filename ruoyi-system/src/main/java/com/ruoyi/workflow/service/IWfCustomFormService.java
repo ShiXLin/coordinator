@@ -10,6 +10,8 @@ import com.ruoyi.common.core.domain.PageQuery;
 import java.util.Collection;
 import java.util.List;
 
+import org.flowable.bpmn.model.BpmnModel;
+
 /**
  * 流程业务单Service接口
  *
@@ -51,4 +53,12 @@ public interface IWfCustomFormService {
     void updateCustom(CustomFormVo customFormVo);
 
 	WfCustomForm selectSysCustomFormByServiceName(String serviceName);
+	/**
+     * 保存流程实例关联自定义业务表单
+     * @param deployId 部署ID
+     * @param deployName 部署名称
+     * @param bpmnModel bpmnModel对象
+     * @return
+     */
+    boolean saveCustomDeployForm(String deployId, String deployName, BpmnModel bpmnModel);
 }

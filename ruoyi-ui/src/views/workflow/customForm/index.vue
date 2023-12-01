@@ -338,10 +338,10 @@ export default {
           { required: true, message: "业务服务名称不能为空", trigger: "blur" }
         ],
         flowName: [
-          { required: false, message: "流程名称不能为空", trigger: "blur" }
+          { required: true, message: "流程名称不能为空", trigger: "blur" }
         ],
         deployId: [
-          { required: false, message: "关联流程发布主键不能为空", trigger: "blur" }
+          { required: true, message: "关联流程发布主键不能为空", trigger: "blur" }
         ],
         routeName: [
           { required: true, message: "前端路由地址不能为空", trigger: "blur" }

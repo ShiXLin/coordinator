@@ -1,7 +1,11 @@
 package com.ruoyi.flowable.flow;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.flowable.core.domain.ExtensionElementInfo;
+
 import lombok.extern.slf4j.Slf4j;
 import org.flowable.bpmn.model.*;
 import org.flowable.engine.impl.bpmn.behavior.ParallelMultiInstanceBehavior;
@@ -16,6 +20,10 @@ import java.util.*;
  */
 @Slf4j
 public class FlowableUtils {
+	
+	private static final String ATTRIBUTE_NAME = "name";
+    private static final String ATTRIBUTE_VALUE = "stringValue";
+    private static final String ATTRIBUTE_EXPRESSION = "expression";
 
     /**
      * 根据节点，获取入口连线
@@ -699,6 +707,29 @@ public class FlowableUtils {
             }
         }
         return rejectedList;
+    }
+    
+    /**
+     * 获取扩展元素
+     *
+     * @param extensionElements 扩展元素
+     * @return {@link List}<{@link ExtensionElementInfo}>
+     */
+    public static List<ExtensionElementInfo> getExtensionElement(Map<String, List<ExtensionElement>> extensionElements) {
+        if (CollectionUtil.isNotEmpty(extensionElements)) {
+            List<ExtensionElementInfo> extensionElementInfos = CollectionUtil.newArrayList();
+            extensionElements.forEach((key, value) -> {
+                ExtensionElementInfo extensionElementInfo = new ExtensionElementInfo();
+                value.forEach(a -> {
+                    extensionElementInfo.setName(a.getAttributeValue(null, ATTRIBUTE_NAME));
+                    extensionElementInfo.setValue(a.getAttributeValue(null, ATTRIBUTE_VALUE));
+                    extensionElementInfo.setExpression(a.getAttributeValue(null, ATTRIBUTE_EXPRESSION));
+                });
+                extensionElementInfos.add(extensionElementInfo);
+            });
+           return extensionElementInfos;
+        }
+        return Collections.emptyList();
     }
 
 }

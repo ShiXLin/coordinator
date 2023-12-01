@@ -23,7 +23,7 @@ public class SysNoticeSend extends BaseEntity {
     /**
      * 公告发送ID
      */
-    @TableId(value = "send_id", type = IdType.AUTO)
+    @TableId(value = "send_id")
     private Long sendId;
     /**
      * 公告ID

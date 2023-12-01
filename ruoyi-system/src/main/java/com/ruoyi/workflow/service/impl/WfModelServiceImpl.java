@@ -1,5 +1,6 @@
 package com.ruoyi.workflow.service.impl;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -16,16 +17,24 @@ import com.ruoyi.flowable.utils.ModelUtils;
 import com.ruoyi.workflow.domain.bo.WfModelBo;
 import com.ruoyi.workflow.domain.dto.WfMetaInfoDto;
 import com.ruoyi.workflow.domain.vo.WfAppTypeVo;
+import com.ruoyi.workflow.domain.vo.WfCustomFormVo;
 import com.ruoyi.workflow.domain.vo.WfFormVo;
 import com.ruoyi.workflow.domain.vo.WfModelVo;
 import com.ruoyi.workflow.mapper.WfCategoryMapper;
+import com.ruoyi.workflow.service.IWfCustomFormService;
 import com.ruoyi.workflow.service.IWfDeployFormService;
+import com.ruoyi.workflow.service.IWfFlowConfigService;
 import com.ruoyi.workflow.service.IWfFormService;
 import com.ruoyi.workflow.service.IWfModelService;
+import com.ruoyi.workflow.domain.bo.WfFlowConfigBo;
+import com.ruoyi.workflow.domain.vo.WfFlowConfigVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.FlowElement;
+
 import org.flowable.bpmn.model.SequenceFlow;
 import org.flowable.bpmn.model.StartEvent;
 import org.flowable.bpmn.model.UserTask;
@@ -33,6 +42,7 @@ import org.flowable.engine.repository.Deployment;
 import org.flowable.engine.repository.Model;
 import org.flowable.engine.repository.ModelQuery;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.bpmn.model.Process;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +64,8 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
     private final IWfFormService formService;
     private final IWfDeployFormService deployFormService;
     private final WfCategoryMapper categoryMapper;
+    private final IWfCustomFormService customFormService;
+    private final IWfFlowConfigService flowConfigService;
 
     @Override
     public TableDataInfo<WfModelVo> list(WfModelBo modelBo, PageQuery pageQuery) {
@@ -379,6 +391,8 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         }
         if(StrUtil.equalsAnyIgnoreCase(appType, "OA")) {
         	return deployFormService.saveInternalDeployForm(deployment.getId(), bpmnModel);
+        } else if(StrUtil.equalsAnyIgnoreCase(appType, "ZDYYW")) {
+        	return customFormService.saveCustomDeployForm(deployment.getId(), deployment.getName(), bpmnModel);
         }
         else {//对于其它流程应用类型，可以不挂接表单，通过其它方式挂接
         	return true;
@@ -399,4 +413,68 @@ public class WfModelServiceImpl extends FlowServiceFactory implements IWfModelSe
         }
         return JsonUtils.toJsonString(metaInfo);
     }
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public String configModel(String modelId, String appType) {
+		// 获取流程模型
+        Model model = repositoryService.getModel(modelId);
+        if (ObjectUtil.isNull(model)) {
+            throw new RuntimeException("流程模型不存在！");
+        }
+        // 获取流程图
+        byte[] bpmnBytes = repositoryService.getModelEditorSource(modelId);
+        if (ArrayUtil.isEmpty(bpmnBytes)) {
+            throw new RuntimeException("请先设计流程图！");
+        }
+        String bpmnXml = StringUtils.toEncodedString(bpmnBytes, StandardCharsets.UTF_8);
+        BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXml);
+        String processName = model.getName();
+        Process process = bpmnModel.getMainProcess();
+        Collection<FlowElement> flowElements = process.getFlowElements();
+        for (FlowElement flowElement : flowElements) {
+        	WfFlowConfigBo flowConfigBo = new WfFlowConfigBo();
+        	if (flowElement instanceof StartEvent) {
+        		StartEvent startEvent =  (StartEvent)flowElement;
+        		WfFlowConfigVo flowConfigVo = new WfFlowConfigVo();
+        		flowConfigVo.setModelId(modelId);
+        		flowConfigVo.setNodeKey(startEvent.getId());
+            	if(ObjectUtils.isEmpty(flowConfigService.selectByModelIdAndNodeKey(flowConfigVo))) {
+            		flowConfigBo.setModelId(modelId);
+        		    flowConfigBo.setAppType(appType);
+        		    flowConfigBo.setFormKey(startEvent.getFormKey());
+        		    flowConfigBo.setNodeName(startEvent.getName());
+        		    flowConfigBo.setNodeKey(startEvent.getId());
+        		    flowConfigService.insertByBo(flowConfigBo);
+            	}
+            	else {
+            		flowConfigVo.setAppType(appType);
+            		flowConfigVo.setFormKey(startEvent.getFormKey());
+            		flowConfigVo.setNodeName(startEvent.getName());
+          		    flowConfigService.updateFlowConfig(flowConfigVo);
+            	}
+        	}
+            if (flowElement instanceof UserTask) {
+                UserTask userTask = (UserTask)flowElement;
+                WfFlowConfigVo flowConfigVo = new WfFlowConfigVo();
+        		flowConfigVo.setModelId(modelId);
+        		flowConfigVo.setNodeKey(userTask.getId());
+            	if(ObjectUtils.isEmpty(flowConfigService.selectByModelIdAndNodeKey(flowConfigVo))) {
+            		 flowConfigBo.setModelId(modelId);
+            		 flowConfigBo.setAppType(appType);
+            		 flowConfigBo.setFormKey(userTask.getFormKey());
+            		 flowConfigBo.setNodeName(userTask.getName());
+            		 flowConfigBo.setNodeKey(userTask.getId());
+            		 flowConfigService.insertByBo(flowConfigBo);
+            	}
+            	else {
+            		 flowConfigVo.setAppType(appType);
+            		 flowConfigVo.setFormKey(userTask.getFormKey());
+            		 flowConfigVo.setNodeName(userTask.getName());
+          		     flowConfigService.updateFlowConfig(flowConfigVo);
+            	}
+            }
+        }
+        return modelId;
+	}
 }

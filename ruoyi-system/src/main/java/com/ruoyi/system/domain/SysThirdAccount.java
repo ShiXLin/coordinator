@@ -21,7 +21,7 @@ public class SysThirdAccount  {
     /**
      * 编号
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
     /**
      * 第三方登录id

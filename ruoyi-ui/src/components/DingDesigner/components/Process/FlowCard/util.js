@@ -282,7 +282,7 @@ export class NodeUtils {
     } else {
       conditions.push( node )
     }
-    this.setDefaultCondition( node, data )
+    //this.setDefaultCondition( node, data )
   }
   /**
    * 添加条件分支 branch
@@ -324,12 +324,8 @@ export class NodeUtils {
     const concurrents = data.concurrentNodes
     let node = this.createNode( 'concurrent', data.nodeId )
     let defaultNodeIndex = concurrents.findIndex( node => node.properties.isDefault )
-    node.properties.priority = concurrents.length
     if ( defaultNodeIndex > -1 ) {
       concurrents.splice( -1, 0, node ) // 插在倒数第二个
-      //更新优先级
-      node.properties.priority = concurrents.length - 2
-      concurrents[concurrents.length - 1].properties.priority = concurrents.length - 1
     } else {
       concurrents.push( node )
     }
@@ -361,7 +357,6 @@ export class NodeUtils {
       this.createNode( "concurrent", nodeData.nodeId )
     ].map( ( c, i ) => {
       c.properties.title += i + 1;
-      c.properties.priority = i;
       return c
     } )
     nodeData.concurrentNodes = concurrentNodes
@@ -444,7 +439,7 @@ export class NodeUtils {
     const hasCondition = node => node.properties && ( node.properties.initiator || !isEmptyArray( node.properties.conditions ) )
     const clearDefault = node => {
       node.properties.isDefault = false
-      node.content === DEFAULT_TEXT && ( node.content = '请设置条件' )
+      node.content === DEFAULT_TEXT && ( node.content = '请设置条件表达式' )
     }
     const setDefault = node => {
       node.properties.isDefault = true
@@ -458,7 +453,7 @@ export class NodeUtils {
     const lastNode = conditions[conditions.length - 1]
     count > 0 && !hasCondition( lastNode ) ? setDefault( lastNode ) : clearDefault( lastNode )
   }
-  
+
   /**
   * 当有其他并发节点设置并发后 检查并设置最后一个节点为默认节点
   * @param {Node} cnode  - 当前节点
@@ -472,7 +467,7 @@ export class NodeUtils {
      const hasConcurrent = node => node.properties && ( node.properties.initiator || !isEmptyArray( node.properties.concurrents ) )
      const clearDefault = node => {
        node.properties.isDefault = false
-       node.content === DEFAULT_TEXT && ( node.content = '请设置条件' )
+       node.content === DEFAULT_TEXT && ( node.content = '请设置条件表达式' )
      }
      const setDefault = node => {
        node.properties.isDefault = true
@@ -486,7 +481,7 @@ export class NodeUtils {
      const lastNode = concurrents[concurrents.length - 1]
      count > 0 && !hasConcurrent( lastNode ) ? setDefault( lastNode ) : clearDefault( lastNode )
    }
-  
+
   /**
    * 校验单个节点必填项完整性
    * @param {Node} node - 节点数据
@@ -503,21 +498,61 @@ export class NodeUtils {
       && !props.isDefault
       && !props.initiator
       && isEmptyArray( props.conditions )
+      && !this.checkChildNode ( node, parent )
       && ( valid = false )
 
-    this.isConcurrentNode( node )
-      && !props.isDefault
-      && !props.initiator
-      && isEmptyArray( props.concurrents )
-      && ( valid = false )
+
+    //this.isConcurrentNode( node )
+     // && !this.checkChildNode ( node, parent )
+     // && ( valid = false )
 
     const customSettings = ['myself', 'optional', 'director']
     this.isApproverNode( node )
       && !customSettings.includes( props.assigneeType )
       && isEmptyArray( props.approvers )
       && ( valid = false )
+
+
     return valid
   }
+
+  /**
+   * 校验子节点必填项完整性，目前主要是针对条件节点与并发节点
+   * @param {Node} node - 节点数据
+   */
+  static checkChildNode ( node, parent ) {
+    let valid = false
+    if ( this.isConditionNode( node ) ) {
+         if (!isEmpty(node.childNode)) {
+           valid = true
+         }
+    }
+    if ( this.isConcurrentNode( node ) ) {
+        if (!isEmpty(node.childNode)) {
+          valid = true
+        }
+    }
+    return valid
+  }
+
+  /**
+   * 校验延时子节点必填项完整性
+   * @param {Node} node - 节点数据
+   */
+  static checkDelayNode ( node, parent ) {
+    let valid = true
+    if (node.properties.type === "AUTO") {
+      if ((node.properties.dateTime || "") === ""){
+        valid = false
+      }
+    } else {
+      if (node.properties.type === "FIXED" && node.properties.time <= 0) {
+        valid = false
+      }
+    }
+    return valid
+  }
+
   /**
    * 判断所有节点是否信息完整
    * @param {Node} processData - 整个流程图数据
@@ -526,10 +561,15 @@ export class NodeUtils {
   static checkAllNode ( processData ) {
     let valid = true
     const loop = ( node, callback, parent ) => {
+
       !this.checkNode( node, parent ) && callback()
       if ( node.childNode ) loop( node.childNode, callback, parent )
       if ( !isEmptyArray( node.conditionNodes ) ) {
         node.conditionNodes.forEach( n => loop( n, callback, node ) )
+      }
+      if ( !isEmptyArray( node.concurrentNodes ) ) {
+        console.log("node.concurrentNodes ", node.concurrentNodes)
+        node.concurrentNodes.forEach( n => loop( n, callback, node ) )
       }
     }
     loop( processData, () => valid = false )

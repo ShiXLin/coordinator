@@ -49,6 +49,9 @@ function createNormalCard(ctx, conf, h) {
   );
 }
 // arg = ctx, data, h
+/* 各个节点类型的构造函数
+    modify by nbacheng 2023-11-01
+*/
 const createFunc = (...arg) => createNormalCard.call(arg[0], ...arg)
 let nodes = {
   start: createFunc,
@@ -143,7 +146,6 @@ let nodes = {
               />
             }
           </div>
-          <span class="priority">优先级{conf.properties.priority + 1}</span>
           <div class="actions">
 
             <i
@@ -187,6 +189,9 @@ let nodes = {
   }
 };
 
+/* 添加节点按钮类型
+    modify by nbacheng 2023-11-01
+*/
 function addNodeButton(ctx, data, h, isBranch = false) {
   // 只有非条件节点和条件分支树下面的那个按钮 才能添加新分支树
   console.log("addNodeButton data,isBranch",data,isBranch);
@@ -252,21 +257,21 @@ function addNodeButton(ctx, data, h, isBranch = false) {
   );
 }
 
+/* 构造节点
+    modify by nbacheng 2023-11-02
+*/
 function NodeFactory(ctx, data, h) {
   if (!data) return
   console.log("NodeFactory data",data)
   const showErrorTip = ctx.verifyMode && NodeUtils.checkNode(data) === false
-  console.log("NodeFactory showErrorTip",showErrorTip)
-  let classstring = `node-wrap-box ${data.type} ${showErrorTip ? 'error' : ''}`
-  console.log("NodeFactory classstring",classstring)
-  console.log("NodeFactory nodes[data.type]",nodes[data.type])
-  console.log("NodeFactory ctx, ctx, data, h",ctx, ctx, data, h)
-  let res = [],
-    branchNode = "",
+  const showChildErrorTip = ctx.verifyMode && (NodeUtils.isConditionNode(data) || NodeUtils.isConcurrentNode(data)) && NodeUtils.checkChildNode(data) === false
+  const showErrorDelayTip = ctx.verifyMode && NodeUtils.checkDelayNode(data) === false
+  let res = [], branchNode = "", selfNode = null ;
+    if (showErrorTip) { //通用节点的错误检查做特殊处理
     selfNode = (
       <div class="node-wrap">
-        <div class={`node-wrap-box ${data.type} ${showErrorTip ? 'error' : ''}` }>
-          <el-tooltip content="未设置条件" placement="top" effect="dark">
+        <div class={`node-wrap-box ${data.type} ${ showErrorTip ? 'error' : ''}` }>
+          <el-tooltip content="未设置条件表达式" placement="top" effect="dark">
             <div class="error-tip" onClick={this.eventLancher.bind(ctx, "edit", data)}>!!!</div>
           </el-tooltip>
           {nodes[data.type].call(ctx, ctx, data, h)}
@@ -274,6 +279,40 @@ function NodeFactory(ctx, data, h) {
         </div>
       </div>
     );
+    } else if (showChildErrorTip) { //对并发与条件节点的错误检查做特殊处理
+    selfNode = (
+        <div class="node-wrap">
+          <div class={`node-wrap-box ${data.type} ${ showChildErrorTip  ? 'error' : ''}` }>
+            <el-tooltip content="未设置审批人员节点" placement="top" effect="dark">
+              <div class="error-tip" onClick={ctx.eventLancher.bind( ctx, "addApprovalNode",  data, false )}>!!!</div>
+            </el-tooltip>
+            {nodes[data.type].call(ctx, ctx, data, h)}
+            {addNodeButton.call(ctx, ctx, data, h)}
+          </div>
+        </div>
+      );
+    } else if (showErrorDelayTip) { //对延时节点的错误检查做特殊处理
+    selfNode = (
+        <div class="node-wrap">
+          <div class={`node-wrap-box ${data.type} ${ showErrorDelayTip  ? 'error' : ''}` }>
+            <el-tooltip content="未设置延时时间" placement="top" effect="dark">
+              <div class="error-tip" onClick={this.eventLancher.bind(ctx, "edit", data)}>!!!</div>
+            </el-tooltip>
+            {nodes[data.type].call(ctx, ctx, data, h)}
+            {addNodeButton.call(ctx, ctx, data, h)}
+          </div>
+        </div>
+      );
+    } else { //正常节点的显示
+      selfNode = (
+          <div class="node-wrap">
+            <div class={`node-wrap-box ${data.type} ${''}` }>
+              {nodes[data.type].call(ctx, ctx, data, h)}
+              {addNodeButton.call(ctx, ctx, data, h)}
+            </div>
+          </div>
+        );
+    }
 
   if (hasConditionBranch(data)) {
     // 如果节点是数组 而且是条件分支 添加分支样式包裹

@@ -31,7 +31,7 @@ public class SysDictType extends BaseEntity {
      * 字典主键
      */
     @ExcelProperty(value = "字典主键")
-    @TableId(value = "dict_id", type = IdType.AUTO)
+    @TableId(value = "dict_id")
     private Long dictId;
 
     /**

@@ -32,7 +32,7 @@ public class SysPost extends BaseEntity {
      * 岗位序号
      */
     @ExcelProperty(value = "岗位序号")
-    @TableId(value = "post_id", type = IdType.AUTO)
+    @TableId(value = "post_id")
     private Long postId;
 
     /**

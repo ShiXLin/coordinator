@@ -1,6 +1,5 @@
 package com.ruoyi.workflow.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -26,7 +25,7 @@ public class WfCategory extends BaseEntity {
     /**
      * 分类ID
      */
-    @TableId(value = "category_id", type = IdType.AUTO)
+    @TableId(value = "category_id")
     private Long categoryId;
     /**
      * 分类名称

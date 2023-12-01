@@ -10,7 +10,7 @@ flex-center()
     align-items center
 
 //  三点省略 支持单行多行
-// Mixin { n:Number } n：省略行数限制 
+// Mixin { n:Number } n：省略行数限制
 ellipsis(n)
     overflow: hidden;
     text-overflow: ellipsis;
@@ -40,6 +40,34 @@ btn-bigger()
     overflow: hidden;
   }
   &.approver::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 4px;
+    border-style: solid;
+    border-width: 8px 6px 4px;
+    border-color: $line-color transparent transparent;
+    background: $bg-color;
+  }
+
+  &.delay::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 4px;
+    border-style: solid;
+    border-width: 8px 6px 4px;
+    border-color: $line-color transparent transparent;
+    background: $bg-color;
+  }
+
+  &.trigger::before {
     content: '';
     position: absolute;
     top: -10px;
@@ -89,7 +117,7 @@ btn-bigger()
   &.condition .error-tip {
     right: 60px;
   }
-  
+
   &.concurrent .error-tip {
     right: 60px;
   }
@@ -99,7 +127,7 @@ btn-bigger()
   text-align: center;
   flex-center()
   flex-direction column
-  
+
   &::before {
     content:"";
     width: 10px;
@@ -143,6 +171,24 @@ btn-bigger()
     }
   }
 
+  &.delay{
+    &:hover{
+      box-shadow: 0 0 0 2px #ff9431, 0 0 5px 4px rgba(0, 0, 0, 0.2);
+    }
+    .header{
+      background-color rgb(242, 86, 67)
+    }
+  }
+
+  &.trigger{
+    &:hover{
+      box-shadow: 0 0 0 2px #ff9431, 0 0 5px 4px rgba(0, 0, 0, 0.2);
+    }
+    .header{
+      background-color rgb(71, 188, 130)
+    }
+  }
+
   &.start-node{
     &:hover{
       box-shadow: 0 0 0 2px #576a95, 0 0 5px 4px rgba(0, 0, 0, 0.2);
@@ -151,7 +197,7 @@ btn-bigger()
       background-color #576a95
     }
   }
-  
+
 
   .header {
     padding-left: 16px;
@@ -264,7 +310,7 @@ btn-bigger()
     .title-text{
         color #15bc83
     }
-        
+
   }
 
   .body {
@@ -302,7 +348,7 @@ btn-bigger()
     .title-text{
         color #15bc83
     }
-        
+
   }
 
   .body {
@@ -333,11 +379,11 @@ btn-bigger()
     display none
 .col-box:last-of-type .condition .right
     display none
-    
+
 .col-box:first-of-type .concurrent .left
     display none
 .col-box:last-of-type .concurrent .right
-    display none    
+    display none
 
 .add-node-btn-box {
   width: 220px;
@@ -434,7 +480,7 @@ btn-bigger()
                 width: 2px;
                 background: $line-color;
                 position absolute
-        > .btn 
+        > .btn
             z-index 99
             cursor pointer
             position: absolute;
@@ -456,7 +502,7 @@ btn-bigger()
     align-items center
     text-align center
     padding: 10px 20px;
-    >div:nth-child(1)  .iconfont   
+    >div:nth-child(1)  .iconfont
         color #FF943E
     >div:nth-child(2)  .iconfont
         color #3296FA
@@ -470,10 +516,10 @@ btn-bigger()
         font-size 12px
         cursor pointer
         margin-bottom 4px
-    
+
         .iconfont
             font-size 32px
-        
+
         &:hover
             background #3296FA
             box-shadow 0 0 8px 4px rgba(0,0,0,.1)
@@ -485,7 +531,7 @@ btn-bigger()
     align-items center
     text-align center
     padding: 10px 20px;
-    >div:nth-child(1)  .iconfont   
+    >div:nth-child(1)  .iconfont
         color #FF943E
     >div:nth-child(2)  .iconfont
         color #3296FA
@@ -499,10 +545,10 @@ btn-bigger()
         font-size 12px
         cursor pointer
         margin-bottom 4px
-    
+
         .iconfont
             font-size 32px
-        
+
         &:hover
             background #3296FA
             box-shadow 0 0 8px 4px rgba(0,0,0,.1)

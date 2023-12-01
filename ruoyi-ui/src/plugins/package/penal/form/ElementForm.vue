@@ -2,8 +2,11 @@
   <div class="panel-tab__content">
     <el-form size="mini" label-width="90px" @submit.native.prevent>
       <el-form-item label="表单" prop="formKey">
-        <el-select v-model="formKey" placeholder="请选择表单" @change="updateElementFormKey" clearable>
+        <el-select v-model="formKey" v-if = "appType[0].id === 'OA'" placeholder="请选择表单" @change="updateElementFormKey" clearable>
           <el-option v-for="item in formOptions" :key="item.formId" :label="item.formName" :value="`key_${item.formId}`" />
+        </el-select>
+        <el-select v-model="formKey" v-if = "appType[0].id === 'ZDYYW'" placeholder="请选择自定义业务表单" @change="updateElementFormKey" clearable>
+          <el-option v-for="item in formOptions" :key="item.id" :label="item.businessName" :value="`key_${item.id}`" />
         </el-select>
       </el-form-item>
       <el-form-item prop="localScope">
@@ -163,12 +166,17 @@
 
 <script>
 import { listForm } from "@/api/workflow/form";
+import { listCustomForm } from "@/api/workflow/customForm";
 
 export default {
   name: "ElementForm",
   props: {
     id: String,
-    type: String
+    type: String,
+    appType: {
+      type: Array,
+      default: () => []
+    }
   },
   inject: {
     prefix: "prefix",
@@ -217,7 +225,19 @@ export default {
   methods: {
     /** 查询表单列表 */
     getFormList() {
-      listForm().then(response => this.formOptions = response.rows)
+      if(this.appType[0].id === 'OA' ) {
+        listForm().then(response => {
+          this.formOptions = response.rows;
+          console.log("listForm this.formOptions=",this.formOptions);
+        });
+      }
+      else if(this.appType[0].id === 'ZDYYW') {
+        listCustomForm().then(response => {
+          this.formOptions = response.rows;
+          console.log("listCustomForm this.formOptions=",this.formOptions);
+        });
+      }
+
     },
     resetFormList() {
       this.bpmnELement = window.bpmnInstances.bpmnElement;

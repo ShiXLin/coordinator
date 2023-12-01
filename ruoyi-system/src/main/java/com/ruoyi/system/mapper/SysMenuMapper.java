@@ -7,6 +7,7 @@ import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.domain.entity.SysMenu;
 import com.ruoyi.common.core.mapper.BaseMapperPlus;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -79,4 +80,7 @@ public interface SysMenuMapper extends BaseMapperPlus<SysMenuMapper, SysMenu, Sy
      */
     List<Long> selectMenuListByRoleId(@Param("roleId") Long roleId, @Param("menuCheckStrictly") boolean menuCheckStrictly);
 
+    //获取最大id for 生成代码用,目前放弃先不用了 add by nbacheng
+    @Select("select max(menu_id) from sys_menu")
+    Long selectMaxId();
 }

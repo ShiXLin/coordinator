@@ -78,7 +78,7 @@ public class TaskCreateListener implements FlowableEventListener {
     	    					         + taskId + "&businessKey" + "&category=" 
     	    					         + category + "&processed=true" + ">点击这个进行处理</a>" ;
     	    		}
-    	        	String msgContent = "流程待办通知" + taskMessageUrl;
+    	        	String msgContent ="流程待办通知" + taskMessageUrl;
     	      		if(!StringUtils.equals((loginUser.getUserId()).toString(),receiver)) {//发起人或登录人自己不发送
     	      			log.info("流程待办通知给:" + receiver);
     	      			commonService.sendSysNotice(loginUser.getUserId().toString(), receiver, "流程待办通知", msgContent, Constants.MSG_CATEGORY_3);//setMsgCategory=3是待办

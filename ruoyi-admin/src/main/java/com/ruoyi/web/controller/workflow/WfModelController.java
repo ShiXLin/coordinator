@@ -166,6 +166,19 @@ public class WfModelController extends BaseController {
     public R<Void> deployModel(@RequestParam String modelId) {
         return toAjax(modelService.deployModel(modelId));
     }
+    
+    /**
+     * 配置流程模型
+     *
+     * @param modelId 流程模型主键
+     */
+    @SaCheckPermission("workflow:model:config")
+    @Log(title = "配置流程模型", businessType = BusinessType.INSERT)
+    @RepeatSubmit()
+    @PostMapping("/config/{modelId}/{appType}")
+    public R<Void> configModel(@PathVariable String modelId, @PathVariable String appType) {
+        return R.ok(modelService.configModel(modelId, appType));
+    }
 
     /**
      * 导出流程模型数据

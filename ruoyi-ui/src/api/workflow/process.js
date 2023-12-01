@@ -84,7 +84,7 @@ export function detailProcess(query) {
 // 钉钉流程转bpmn
 export function dingdingToBpmn(data) {
   return request({
-    url: '/workflow/process/jsonToBpmn',
+    url: '/workflow/process/ddtobpmn',
     method: 'post',
     data: data
   })

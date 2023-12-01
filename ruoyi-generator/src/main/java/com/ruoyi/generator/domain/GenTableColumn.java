@@ -1,7 +1,6 @@
 package com.ruoyi.generator.domain;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -27,7 +26,7 @@ public class GenTableColumn extends BaseEntity {
     /**
      * 编号
      */
-    @TableId(value = "column_id", type = IdType.AUTO)
+    @TableId(value = "column_id")
     private Long columnId;
 
     /**

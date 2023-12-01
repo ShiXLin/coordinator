@@ -121,6 +121,13 @@
             v-hasPermi="['workflow:model:deploy']"
             @click.native="handleDeploy(scope.row)"
           >部署</el-button>
+          <el-button
+            type="text"
+            size="mini"
+            icon="el-icon-setting"
+            v-hasPermi="['workflow:model:config']"
+            @click.native="handleConfig(scope.row)"
+          >配置</el-button>
           <el-dropdown size="mini" v-hasPermi="['workflow:model:query', 'workflow:model:list', 'workflow:model:remove']">
             <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
             <el-dropdown-menu slot="dropdown">
@@ -282,15 +289,27 @@
         @save="onSaveDesigner"
       />
     </el-dialog>
+
+    <el-dialog :title="flowConfigData.title" :visible.sync="flowConfigOpen" append-to-body fullscreen>
+      <flow-config
+        :key="flowConfigOpen"
+        style="border:1px solid rgba(0, 0, 0, 0.1);"
+        ref="flowConfig"
+        v-loading="flowConfigData.loading"
+        :flowConfigData="flowConfigData"
+      />
+    </el-dialog>
   </div>
 
 </template>
 
 <script>
-import { getBpmnXml, listModel, historyModel, latestModel, addModel, updateModel, saveModel, delModel, deployModel } from "@/api/workflow/model";
+import { getBpmnXml, listModel, historyModel, latestModel, addModel,
+         updateModel, saveModel, delModel, deployModel, configModel } from "@/api/workflow/model";
 import { listCategory, getAppType } from '@/api/workflow/category'
 import ProcessDesigner from '@/components/ProcessDesigner';
 import ProcessViewer from '@/components/ProcessViewer'
+import FlowConfig from '@/components/FlowConfig'
 import { getToken } from "@/utils/auth";
 
 export default {
@@ -298,6 +317,7 @@ export default {
   components: {
     ProcessDesigner,
     ProcessViewer,
+    FlowConfig,
   },
   data() {
     return {
@@ -348,6 +368,12 @@ export default {
         open: false,
         index: undefined,
         xmlData:"",
+      },
+      flowConfigOpen: false,
+      flowConfigData: {
+        loading: false,
+        modelId: null,
+
       },
       // bpmn.xml 导入
       upload: {
@@ -448,6 +474,24 @@ export default {
         });
       }).finally(() => {
         this.loading = false;
+      })
+    },
+    /** 配置流程 */
+    handleConfig(row) {
+      this.loading = true;
+      console.log("row=",row);
+      getAppType(row.category).then(res => {
+        console.log("res=",res);
+        configModel(row.modelId,res.data[0].id).then(response => {
+          this.$modal.msgSuccess(response.msg);
+          this.flowConfigOpen = true;
+          this.flowConfigData.modelId = row.modelId;
+          console.log("response=",response);
+        }).finally(() => {
+          this.loading = false;
+        })
+      }).finally(() => {
+          this.loading = false;
       })
     },
     /** 查看流程图 */

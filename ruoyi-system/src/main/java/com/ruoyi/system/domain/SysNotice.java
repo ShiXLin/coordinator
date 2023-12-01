@@ -28,7 +28,7 @@ public class SysNotice extends BaseEntity {
     /**
      * 公告ID
      */
-    @TableId(value = "notice_id", type = IdType.AUTO)
+    @TableId(value = "notice_id")
     private Long noticeId;
 
     /**

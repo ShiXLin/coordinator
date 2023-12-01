@@ -22,6 +22,12 @@
             <groupId>com.ruoyi</groupId>
             <artifactId>ruoyi-common</artifactId>
         </dependency>
+        
+        <!-- 代码生成-->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>ruoyi-generator</artifactId>
+        </dependency>
 
         <!-- Flowable功能模块 -->
         <dependency>

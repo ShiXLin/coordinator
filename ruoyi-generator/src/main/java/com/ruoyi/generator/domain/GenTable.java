@@ -26,7 +26,7 @@ public class GenTable extends BaseEntity {
     /**
      * 编号
      */
-    @TableId(value = "table_id", type = IdType.AUTO)
+    @TableId(value = "table_id")
     private Long tableId;
 
     /**

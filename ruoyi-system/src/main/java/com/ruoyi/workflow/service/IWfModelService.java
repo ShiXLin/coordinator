@@ -68,4 +68,9 @@ public interface IWfModelService {
      * 部署流程模型
      */
     boolean deployModel(String modelId);
+
+    /**
+     * 配置流程模型
+     */
+    String configModel(String modelId, String appType);
 }

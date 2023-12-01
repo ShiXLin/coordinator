@@ -9,8 +9,13 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ruoyi.common.core.domain.PageQuery;
 import com.ruoyi.common.core.domain.R;
 import com.ruoyi.common.core.domain.entity.SysDept;
@@ -56,13 +61,17 @@ import com.ruoyi.workflow.service.WfCallBackServiceI;
 import com.ruoyi.common.core.domain.model.LoginUser;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.ObjectUtils;
+import org.flowable.bpmn.BpmnAutoLayout;
 import org.flowable.bpmn.constants.BpmnXMLConstants;
+import org.flowable.bpmn.converter.BpmnXMLConverter;
 import org.flowable.bpmn.model.Process;
 import org.flowable.bpmn.model.*;
+
 import org.flowable.engine.history.HistoricActivityInstance;
 import org.flowable.engine.history.HistoricActivityInstanceQuery;
 import org.flowable.engine.history.HistoricProcessInstance;
@@ -78,11 +87,11 @@ import org.flowable.task.api.TaskQuery;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.task.api.history.HistoricTaskInstanceQuery;
 import org.flowable.variable.api.history.HistoricVariableInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.ruoyi.common.core.domain.entity.SysUser;
@@ -93,6 +102,7 @@ import com.ruoyi.common.core.domain.entity.SysUser;
  */
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProcessService {
 
     private final IWfTaskService wfTaskService;
@@ -107,6 +117,11 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     private final WfCommonService wfCommonService;
     private final WfCategoryMapper categoryMapper;
     private final WfMyBusinessServiceImpl wfMyBusinessServiceImpl;
+    
+    //仿钉钉流程转bpmn用
+    private BpmnModel ddBpmnModel;
+    private Process ddProcess;
+    private List<SequenceFlow> ddSequenceFlows;
 
     /**
      * 流程定义列表
@@ -1554,4 +1569,433 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         }
         
 	}
+
+	/**
+	 * 根据仿钉钉流程json转flowable的bpmn的xml格式
+	 *  add by nbacheng
+	 * @param String ddjson
+	 *           
+	 *
+	 * @return
+	 */
+	@Override
+	public R<Void> dingdingToBpmn(String ddjson) {	
+		try {
+
+            JSONObject object = JSON.parseObject(ddjson, JSONObject.class);
+            //JSONObject workflow = object.getJSONObject("process");
+            //ddBpmnModel.addProcess(ddProcess);
+            //ddProcess.setName (workflow.getString("name"));
+            //ddProcess.setId(workflow.getString("processId"));
+            ddProcess = new Process();
+            ddBpmnModel = new BpmnModel();
+            ddSequenceFlows = Lists.newArrayList();
+            ddBpmnModel.addProcess(ddProcess);
+            ddProcess.setId("Process_"+UUID.randomUUID());
+            ddProcess.setName ("dingding演示流程");
+            JSONObject flowNode = object.getJSONObject("processData");
+            StartEvent startEvent = createStartEvent(flowNode);
+            ddProcess.addFlowElement(startEvent);
+            String lastNode = create(startEvent.getId(), flowNode);
+            EndEvent endEvent = createEndEvent();
+            ddProcess.addFlowElement(endEvent);
+            ddProcess.addFlowElement(connect(lastNode, endEvent.getId()));
+
+            new BpmnAutoLayout(ddBpmnModel).execute();
+            return R.ok(new String(new BpmnXMLConverter().convertToXML(ddBpmnModel)));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("创建失败: e=" + e.getMessage());
+        }
+	}
+	
+	String id(String prefix) {
+        return prefix + "_" + UUID.randomUUID().toString().replace("-", "").toLowerCase();
+    }
+
+    ServiceTask serviceTask(String name) {
+        ServiceTask serviceTask = new ServiceTask();
+        serviceTask.setName(name);
+        return serviceTask;
+    }
+
+    SequenceFlow connect(String from, String to) {
+        SequenceFlow flow = new SequenceFlow();
+        flow.setId(id("sequenceFlow"));
+        flow.setSourceRef(from);
+        flow.setTargetRef(to);
+        ddSequenceFlows.add(flow);
+        return flow;
+    }
+
+    StartEvent createStartEvent(JSONObject flowNode) {
+    	String nodeType = flowNode.getString("type");
+        StartEvent startEvent = new StartEvent();
+        startEvent.setId(id("start"));
+        if (Type.INITIATOR_TASK.isEqual(nodeType)) {
+        	JSONObject properties = flowNode.getJSONObject("properties");
+        	if(StringUtils.isNotEmpty(properties.getString("formKey"))) {
+        		startEvent.setFormKey(properties.getString("formKey"));
+        	}
+        }
+        return startEvent;
+    }
+
+    EndEvent createEndEvent() {
+        EndEvent endEvent = new EndEvent();
+        endEvent.setId(id("end"));
+        return endEvent;
+    }
+
+
+    String create(String fromId, JSONObject flowNode) throws InvocationTargetException, IllegalAccessException {
+        String nodeType = flowNode.getString("type");
+       
+        if (Type.INITIATOR_TASK.isEqual(nodeType)) {
+            flowNode.put("incoming", Collections.singletonList(fromId));
+            String id = createUserTask(flowNode,nodeType);
+
+            if(flowNode.containsKey("concurrentNodes")) { //并行网关
+                return createConcurrentGatewayBuilder(id, flowNode);   
+            }
+            
+            if(flowNode.containsKey("conditionNodes")) { //排它网关或叫条件网关
+                return createExclusiveGatewayBuilder(id, flowNode);
+            }    
+            
+            // 如果当前任务还有后续任务，则遍历创建后续任务
+            JSONObject nextNode = flowNode.getJSONObject("childNode");
+            if (Objects.nonNull(nextNode)) {
+                FlowElement flowElement = ddBpmnModel.getFlowElement(id);
+                return create(id, nextNode);
+            } else {
+                return id;
+            }
+        } else if (Type.USER_TASK.isEqual(nodeType) || Type.APPROVER_TASK.isEqual(nodeType)) {
+        	flowNode.put("incoming", Collections.singletonList(fromId));     
+            String id = createUserTask(flowNode,nodeType);
+            if(flowNode.containsKey("concurrentNodes")) { //并行网关
+                return createConcurrentGatewayBuilder(id, flowNode);   
+            }
+            
+            if(flowNode.containsKey("conditionNodes")) { //排它网关或叫条件网关
+                return createExclusiveGatewayBuilder(id, flowNode);
+            }  
+            
+            // 如果当前任务还有后续任务，则遍历创建后续任务
+            JSONObject nextNode = flowNode.getJSONObject("childNode");
+            if (Objects.nonNull(nextNode)) {
+                FlowElement flowElement = ddBpmnModel.getFlowElement(id);
+                return create(id, nextNode);          
+            } else {
+            	return id;  
+            }
+        } else if (Type.SERVICE_TASK.isEqual(nodeType)) {
+            flowNode.put("incoming", Collections.singletonList(fromId));
+            String id = createServiceTask(flowNode);
+
+            if(flowNode.containsKey("concurrentNodes")) { //并行网关
+                return createConcurrentGatewayBuilder(id, flowNode);   
+            }
+            
+            if(flowNode.containsKey("conditionNodes")) { //排它网关或叫条件网关
+                return createExclusiveGatewayBuilder(id, flowNode);
+            } 
+            
+            // 如果当前任务还有后续任务，则遍历创建后续任务
+            JSONObject nextNode = flowNode.getJSONObject("childNode");
+            if (Objects.nonNull(nextNode)) {
+                FlowElement flowElement = ddBpmnModel.getFlowElement(id);
+                return create(id, nextNode);
+            } else {
+                return id;
+            }
+        }  
+        else {
+            throw new RuntimeException("未知节点类型: nodeType=" + nodeType);
+        }
+    }
+
+    String createExclusiveGatewayBuilder(String formId, JSONObject flowNode) throws InvocationTargetException, IllegalAccessException {
+        //String name = flowNode.getString("nodeName");
+        String exclusiveGatewayId = id("exclusiveGateway");
+        ExclusiveGateway exclusiveGateway = new ExclusiveGateway();
+        exclusiveGateway.setId(exclusiveGatewayId);
+        exclusiveGateway.setName("排它条件网关");
+        ddProcess.addFlowElement(exclusiveGateway);
+        ddProcess.addFlowElement(connect(formId, exclusiveGatewayId));
+
+        if (Objects.isNull(flowNode.getJSONArray("conditionNodes")) && Objects.isNull(flowNode.getJSONObject("childNode"))) {
+            return exclusiveGatewayId;
+        }
+        List<JSONObject> flowNodes = Optional.ofNullable(flowNode.getJSONArray("conditionNodes")).map(e -> e.toJavaList(JSONObject.class)).orElse(Collections.emptyList());
+        List<String> incoming = Lists.newArrayListWithCapacity(flowNodes.size());
+
+        List<JSONObject> conditions = Lists.newCopyOnWriteArrayList();
+        for (JSONObject element : flowNodes) {
+            JSONObject childNode = element.getJSONObject("childNode");
+            JSONObject properties = element.getJSONObject("properties");
+            String nodeName = properties.getString("title");
+            String expression = properties.getString("conditions");
+
+            if (Objects.isNull(childNode)) {
+                incoming.add(exclusiveGatewayId);
+                JSONObject condition = new JSONObject();
+                condition.fluentPut("nodeName", nodeName)
+                        .fluentPut("expression", expression);
+                conditions.add(condition);
+                continue;
+            }
+            // 只生成一个任务，同时设置当前任务的条件
+            childNode.put("incoming", Collections.singletonList(exclusiveGatewayId));
+            String identifier = create(exclusiveGatewayId, childNode);
+            List<SequenceFlow> flows = ddSequenceFlows.stream().filter(flow -> StringUtils.equals(exclusiveGatewayId, flow.getSourceRef()))
+                    .collect(Collectors.toList());
+            
+            flows.stream().forEach(
+                    e -> {
+                        if (StringUtils.isBlank(e.getName()) && StringUtils.isNotBlank(nodeName)) {
+                            e.setName(nodeName);
+                        }
+                        // 设置条件表达式
+                        if (Objects.isNull(e.getConditionExpression()) && StringUtils.isNotBlank(expression)) {
+                            e.setConditionExpression(expression);
+                        }
+                    }
+            );
+            if (Objects.nonNull(identifier)) {
+                incoming.add(identifier);
+            }
+        }
+
+
+        JSONObject childNode = flowNode.getJSONObject("childNode");
+        if (Objects.nonNull(childNode)) {
+            if (incoming == null || incoming.isEmpty()) {
+                return create(exclusiveGatewayId, childNode);
+            } else {
+                // 所有 service task 连接 end exclusive gateway
+                childNode.put("incoming", incoming);
+                FlowElement flowElement = ddBpmnModel.getFlowElement(incoming.get(0));
+                // 1.0 先进行边连接, 暂存 nextNode
+                JSONObject nextNode = childNode.getJSONObject("childNode");
+                childNode.put("childNode", null);
+                String identifier = create(flowElement.getId(), childNode);
+                for (int i = 1; i < incoming.size(); i++) {
+                	ddProcess.addFlowElement(connect(incoming.get(i), identifier));
+                }
+
+                //  针对 gateway 空任务分支 添加条件表达式
+                if (!conditions.isEmpty()) {
+                    FlowElement flowElement1 = ddBpmnModel.getFlowElement(identifier);
+                    // 获取从 gateway 到目标节点 未设置条件表达式的节点
+                    List<SequenceFlow> flows = ddSequenceFlows.stream().filter(flow -> StringUtils.equals(flowElement1.getId(), flow.getTargetRef()))
+                            .filter(flow -> StringUtils.equals(flow.getSourceRef(), exclusiveGatewayId))
+                            .collect(Collectors.toList());
+                    flows.stream().forEach(sequenceFlow -> {
+                        if (!conditions.isEmpty()) {
+                            JSONObject condition = conditions.get(0);
+                            String nodeName = condition.getString("content");
+                            String expression = condition.getString("expression");
+
+                            if (StringUtils.isBlank(sequenceFlow.getName()) && StringUtils.isNotBlank(nodeName)) {
+                                sequenceFlow.setName(nodeName);
+                            }
+                            // 设置条件表达式
+                            if (Objects.isNull(sequenceFlow.getConditionExpression()) && StringUtils.isNotBlank(expression)) {
+                                sequenceFlow.setConditionExpression(expression);
+                            }
+
+                            conditions.remove(0);
+                        }
+                    });
+
+                }
+
+                // 1.1 边连接完成后，在进行 nextNode 创建
+                if (Objects.nonNull(nextNode)) {
+                    return create(identifier, nextNode);
+                } else {
+                    return identifier;
+                }
+            }
+        }
+        return exclusiveGatewayId;
+    }
+
+    String createConcurrentGatewayBuilder(String fromId, JSONObject flowNode) throws InvocationTargetException, IllegalAccessException {
+        //String name = flowNode.getString("nodeName");
+        //下面创建并行网关并进行连线
+    	ParallelGateway parallelGateway = new ParallelGateway();
+        String parallelGatewayId = id("parallelGateway");
+        parallelGateway.setId(parallelGatewayId);
+        parallelGateway.setName("并行网关");
+        ddProcess.addFlowElement(parallelGateway);
+        ddProcess.addFlowElement(connect(fromId, parallelGatewayId));
+
+        if (Objects.isNull(flowNode.getJSONArray("concurrentNodes"))
+                && Objects.isNull(flowNode.getJSONObject("childNode"))) {
+            return parallelGatewayId;
+        }
+
+        //获取并行列表数据
+        List<JSONObject> flowNodes = Optional.ofNullable(flowNode.getJSONArray("concurrentNodes")).map(e -> e.toJavaList(JSONObject.class)).orElse(Collections.emptyList());
+        List<String> incoming = Lists.newArrayListWithCapacity(flowNodes.size());
+        for (JSONObject element : flowNodes) {
+            JSONObject childNode = element.getJSONObject("childNode");
+            if (Objects.isNull(childNode)) {//没子节点,就把并行id加入入口队列
+                incoming.add(parallelGatewayId);
+                continue;
+            }
+            String identifier = create(parallelGatewayId, childNode);
+            if (Objects.nonNull(identifier)) {//否则加入有子节点的用户id
+                incoming.add(identifier);
+            }
+        }
+
+        JSONObject childNode = flowNode.getJSONObject("childNode");
+       
+        if (Objects.nonNull(childNode)) {
+            // 普通结束网关
+            if (CollectionUtils.isEmpty(incoming)) {
+                return create(parallelGatewayId, childNode);
+            } else {
+                // 所有 user task 连接 end parallel gateway
+                childNode.put("incoming", incoming);
+                FlowElement flowElement = ddBpmnModel.getFlowElement(incoming.get(0));
+                // 1.0 先进行边连接, 暂存 nextNode
+                JSONObject nextNode = childNode.getJSONObject("childNode");
+                childNode.put("childNode", null); //不加这个,下面创建子节点会进入递归了
+                String identifier = create(incoming.get(0), childNode);
+                for (int i = 1; i < incoming.size(); i++) {//其中0之前创建的时候已经连接过了，所以从1开始补另外一条
+                    FlowElement flowElementIncoming = ddBpmnModel.getFlowElement(incoming.get(i));
+                    ddProcess.addFlowElement(connect(flowElementIncoming.getId(), identifier));
+                }
+                // 1.1 边连接完成后，在进行 nextNode 创建
+                if (Objects.nonNull(nextNode)) {
+                    return create(identifier, nextNode);
+                } else {
+                    return identifier;
+                }
+            }
+        }
+        if(incoming.size()>0) {
+        	return incoming.get(1);
+        }
+        else {
+        	return parallelGatewayId;   
+        }
+        
+    }
+
+    String createUserTask(JSONObject flowNode, String nodeType) {
+        List<String> incoming = flowNode.getJSONArray("incoming").toJavaList(String.class);
+        // 自动生成id
+        String id = id("userTask");
+        if (incoming != null && !incoming.isEmpty()) {
+        	UserTask userTask = new UserTask();
+        	JSONObject properties = flowNode.getJSONObject("properties");
+        	userTask.setName(properties.getString("title"));
+        	userTask.setId(id);
+        	List<ExtensionAttribute> attributes = new  ArrayList<ExtensionAttribute>();
+        	if (Type.INITIATOR_TASK.isEqual(nodeType)) {
+        		ExtensionAttribute extAttribute =  new ExtensionAttribute();
+        		extAttribute.setNamespace(ProcessConstants.NAMASPASE);
+        		extAttribute.setName("dataType");
+        		extAttribute.setValue("INITIATOR");
+        		attributes.add(extAttribute);
+        		userTask.addAttribute(extAttribute);
+        		userTask.setAssignee("${initiator}");
+        	} else if (Type.USER_TASK.isEqual(nodeType) || Type.APPROVER_TASK.isEqual(nodeType)) {
+        		JSONArray approvers = properties.getJSONArray("approvers");
+        		JSONObject approver = approvers.getJSONObject(0);
+        		ExtensionAttribute extDataTypeAttribute =  new ExtensionAttribute();
+        		extDataTypeAttribute.setNamespace(ProcessConstants.NAMASPASE);
+        		extDataTypeAttribute.setName("dataType");
+        		extDataTypeAttribute.setValue("USERS");
+        		userTask.addAttribute(extDataTypeAttribute);
+        		ExtensionAttribute extTextAttribute =  new ExtensionAttribute();
+        		extTextAttribute.setNamespace(ProcessConstants.NAMASPASE);
+        		extTextAttribute.setName("text");
+        		extTextAttribute.setValue(approver.getString("nickName"));
+        		userTask.addAttribute(extTextAttribute);
+        		userTask.setFormKey(properties.getString("formKey"));
+        		userTask.setAssignee(approver.getString("userName"));
+        	}
+        	
+            ddProcess.addFlowElement(userTask);
+            ddProcess.addFlowElement(connect(incoming.get(0), id));
+        }
+        return id;
+    }
+    
+    String createServiceTask(JSONObject flowNode) {
+        List<String> incoming = flowNode.getJSONArray("incoming").toJavaList(String.class);
+        // 自动生成id
+        String id = id("serviceTask");
+        if (incoming != null && !incoming.isEmpty()) {
+            ServiceTask serviceTask = new ServiceTask();
+            serviceTask.setName(flowNode.getString("nodeName"));
+            serviceTask.setId(id);
+            ddProcess.addFlowElement(serviceTask);
+            ddProcess.addFlowElement(connect(incoming.get(0), id));
+        }
+        return id;
+    }
+
+    enum Type {
+
+        /**
+         * 并行事件
+         */
+    	CONCURRENT("concurrent", ParallelGateway.class),
+
+        /**
+         * 排他事件
+         */
+        EXCLUSIVE("exclusive", ExclusiveGateway.class),
+
+        /**
+         * 服务任务
+         */
+        SERVICE_TASK("serviceTask", ServiceTask.class),
+        
+        /**
+         * 发起人任务
+         */
+        INITIATOR_TASK("start", ServiceTask.class),
+        
+        /**
+         * 审批任务
+         */
+        APPROVER_TASK("approver", ServiceTask.class),
+    	
+    	/**
+         * 用户任务
+         */
+        USER_TASK("userTask", UserTask.class);
+
+        private String type;
+
+        private Class<?> typeClass;
+
+        Type(String type, Class<?> typeClass) {
+            this.type = type;
+            this.typeClass = typeClass;
+        }
+
+        public final static Map<String, Class<?>> TYPE_MAP = Maps.newHashMap();
+
+        static {
+            for (Type element : Type.values()) {
+                TYPE_MAP.put(element.type, element.typeClass);
+            }
+        }
+
+        public boolean isEqual(String type) {
+            return this.type.equals(type);
+        }
+
+    }
+	
 }

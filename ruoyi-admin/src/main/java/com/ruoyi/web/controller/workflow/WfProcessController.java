@@ -276,4 +276,16 @@ public class WfProcessController extends BaseController {
     public R processIscompleted(String procInsId) {
         return R.ok(processService.processIscompleted(procInsId));
     }
+    
+    /**
+     * 根据钉钉流程json转flowable的bpmn的xml格式
+     *
+     * @param ddjson json对象
+     * 
+     */
+    @PostMapping("/ddtobpmn")
+    public R<Void> ddToBpmn(@RequestBody String ddjson) {
+    	return processService.dingdingToBpmn(ddjson);
+
+    }
 }

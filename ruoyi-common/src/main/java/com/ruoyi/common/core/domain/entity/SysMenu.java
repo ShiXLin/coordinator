@@ -26,7 +26,7 @@ public class SysMenu extends TreeEntity<SysMenu> {
     /**
      * 菜单ID
      */
-    @TableId(value = "menu_id", type = IdType.AUTO)
+    @TableId(value = "menu_id")
     private Long menuId;
 
     /**

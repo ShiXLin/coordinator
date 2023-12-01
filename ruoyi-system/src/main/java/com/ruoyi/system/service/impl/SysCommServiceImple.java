@@ -21,6 +21,7 @@ import com.ruoyi.flowable.common.constant.TaskConstants;
 import com.ruoyi.system.domain.SysNotice;
 import com.ruoyi.system.domain.SysNoticeSend;
 import com.ruoyi.system.mapper.CommonMapper;
+import com.ruoyi.system.mapper.SysMenuMapper;
 import com.ruoyi.system.mapper.SysNoticeMapper;
 import com.ruoyi.system.mapper.SysNoticeSendMapper;
 import com.ruoyi.system.mapper.SysUserMapper;
@@ -31,6 +32,13 @@ import com.ruoyi.common.helper.LoginHelper;
 
 import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
+
+/**
+ * 通用 公共服务
+ *
+ * @author nbacheng
+ * @date 2023-09-21
+ */
 
 @RequiredArgsConstructor
 @Service
@@ -51,9 +59,10 @@ public class SysCommServiceImple extends ServiceImpl<CommonMapper, Object> imple
 	ISysUserService sysUserService;
 	@Resource
 	ISysDeptService sysDeptService;
-	
 	@Resource
 	private CommonMapper commonMapper;
+	@Resource
+	private SysMenuMapper sysMenuMapper;
 	
 	@Override
 	public void sendSysNotice(MessageDTO message) {
@@ -160,6 +169,11 @@ public class SysCommServiceImple extends ServiceImpl<CommonMapper, Object> imple
 	public String getDepLeaderByUserName(String userName) {
 		
 		return sysDeptService.getDepLeaderByUserName(userName);
+	}
+
+	@Override
+	public Long selectMaxId() {
+		return sysMenuMapper.selectMaxId();
 	}
 	
 }

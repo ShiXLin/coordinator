@@ -71,5 +71,11 @@ public interface CommonService extends IService<Object> {
      * @return 用户信息
      */
     public String getDepLeaderByUserName(String userName);
+    /**
+     * 获取菜单的最大id
+     *
+     * @return 最大id
+     */
+    public Long selectMaxId();
     
 }

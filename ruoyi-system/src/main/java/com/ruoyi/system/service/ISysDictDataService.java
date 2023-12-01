@@ -63,4 +63,13 @@ public interface ISysDictDataService {
      * @return 结果
      */
     List<SysDictData> updateDictData(SysDictData dictData);
+    
+    /**
+     * 根据字典类型查询字典数据
+     *
+     * @param dictType 字典类型
+     * @return 字典数据集合信息
+     */
+    List<SysDictData> selectDictDataListByDictType(String dictType);
+    
 }

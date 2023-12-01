@@ -15,7 +15,7 @@
       </el-collapse-item>
       <el-collapse-item name="condition" v-if="formVisible" key="form">
         <div slot="title" class="panel-tab__title"><i class="el-icon-s-order"></i>表单</div>
-        <element-form :id="elementId" :type="elementType" />
+        <element-form :id="elementId" :appType="appType" :type="elementType" />
       </el-collapse-item>
       <el-collapse-item name="task" v-if="elementType.indexOf('Task') !== -1" key="task">
         <div slot="title" class="panel-tab__title"><i class="el-icon-s-claim"></i>任务</div>
@@ -86,7 +86,7 @@ export default {
       type: Array,
       default: () => []
     },
-    
+
     width: {
       type: Number,
       default: 480
@@ -188,7 +188,7 @@ export default {
         activatedElement.source &&
         activatedElement.source.type.indexOf("StartEvent") === -1
       );
-      this.formVisible = this.elementType === "UserTask" || this.elementType === "StartEvent";
+      this.formVisible = (this.elementType === "UserTask" && this.appType[0].id != 'ZDYYW') || this.elementType === "StartEvent";
     },
     beforeDestroy() {
       window.bpmnInstances = null;

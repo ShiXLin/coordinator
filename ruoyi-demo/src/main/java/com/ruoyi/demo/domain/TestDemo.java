@@ -22,7 +22,7 @@ public class TestDemo extends BaseEntity {
     /**
      * 主键
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     /**

@@ -32,7 +32,7 @@ public class SysOperLog implements Serializable {
      * 日志主键
      */
     @ExcelProperty(value = "日志主键")
-    @TableId(value = "oper_id", type = IdType.AUTO)
+    @TableId(value = "oper_id")
     private Long operId;
 
     /**

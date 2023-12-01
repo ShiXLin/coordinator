@@ -75,6 +75,13 @@ export function deployModel(params) {
   })
 }
 
+export function configModel(modelId, appType) {
+  return request({
+    url: '/workflow/model/config/' + modelId + '/' +  appType,
+    method: 'post'
+  })
+}
+
 // 获取流程模型流程图
 export function getBpmnXml(modelId) {
   return request({

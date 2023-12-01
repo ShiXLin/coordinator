@@ -64,4 +64,9 @@ public class WfCustomFormVo {
     private String component;
 
 
+    /**
+     * 关联业务主表主键
+     */
+    @ExcelProperty(value = "关联业务主表主键主键")
+    private Long tableId;
 }

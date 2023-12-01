@@ -7,6 +7,9 @@ import com.ruoyi.common.core.mapper.BaseMapperPlus;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
 /**
  * 字典表 数据层
  *
@@ -21,4 +24,7 @@ public interface SysDictDataMapper extends BaseMapperPlus<SysDictDataMapper, Sys
                 .eq(SysDictData::getDictType, dictType)
                 .orderByAsc(SysDictData::getDictSort));
     }
+    
+    @Select("SELECT * FROM sys_dict_data WHERE dict_type = #{ dictType}")
+    List<SysDictData> selectDictDataListByDictType(@Param("dictType") String dictType);
 }

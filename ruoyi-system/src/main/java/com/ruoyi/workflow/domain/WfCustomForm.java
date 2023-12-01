@@ -25,7 +25,7 @@ public class WfCustomForm extends BaseEntity {
     /**
      * 主键
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
     /**
      * 业务表单名称
@@ -51,5 +51,9 @@ public class WfCustomForm extends BaseEntity {
      * 组件注入方法
      */
     private String component;
+    /**
+     * 关联业务主表id
+     */
+    private Long tableId;    
 
 }

@@ -1,8 +1,11 @@
 package com.ruoyi.workflow.service;
 
 import com.ruoyi.common.core.domain.R;
+import com.ruoyi.flowable.core.domain.ExtensionElementInfo;
 import com.ruoyi.flowable.core.domain.dto.FlowNextDto;
 import com.ruoyi.workflow.domain.bo.WfTaskBo;
+
+import org.flowable.bpmn.model.ExtensionElement;
 import org.flowable.bpmn.model.FlowElement;
 import org.flowable.engine.runtime.ProcessInstance;
 
@@ -145,4 +148,26 @@ public interface IWfTaskService {
      * @return
      */
 	boolean deleteActivityAndJoin(String dataId, String processInstanceId, String actStatusType);
+	/**
+     * 获取序列流扩展节点
+     *
+     * @param taskId 任务ID
+     * @return 
+     */
+    Map<String, List<ExtensionElement>> getSequenceFlowExtensionElement(String taskId);
+	/**
+     * 获取扩展属性值
+     *
+     * @param taskId 任务ID
+     * @return 
+     */
+    List<ExtensionElementInfo> getExtensionElement(String taskId);
+    
+    Map<String, Object> getFlowProperties(String procInsId);
+    /**
+     * 获取流程执行过程
+     * @param procInsId
+     * @return
+     */
+    R getFlowViewer(String procInsId);
 }

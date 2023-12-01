@@ -132,4 +132,6 @@ public interface IWfProcessService {
 	 * @return
 	 */
 	WfDetailVo queryProcessDetailByDataId(String dataId);
+
+	R<Void> dingdingToBpmn(String ddjson);
 }

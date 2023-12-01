@@ -22,7 +22,7 @@ public class WfForm extends BaseEntity {
     /**
      * 表单主键
      */
-    @TableId(value = "form_id", type = IdType.AUTO)
+    @TableId(value = "form_id")
     private Long formId;
 
     /**
