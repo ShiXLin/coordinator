@@ -2,8 +2,8 @@ const state = {
   nodeMap: new Map(),
   selectedNode: {},
   design:{},
-  processConditions: [], // processConditions ÓÃÓÚ´«µİÁ÷³ÌÍ¼ĞèÒªµÄÌõ¼ş
-  formItemList: [], // Á÷³Ì½Úµã±íµ¥È¨ÏŞ¿ØÖÆ¡ª¡ª×é¼şÁĞ±í
+  processConditions: [], // processConditions ç”¨äºä¼ é€’æµç¨‹å›¾éœ€è¦çš„æ¡ä»¶
+  formItemList: [], // æµç¨‹èŠ‚ç‚¹è¡¨å•æƒé™æ§åˆ¶â€”â€”ç»„ä»¶åˆ—è¡¨
 }
 
 const mutations = {
@@ -13,8 +13,8 @@ const mutations = {
   loadForm(state, val) {
     state.design = val
   },
-  //ËùÓĞmutationsÖĞµÄ·½·¨µÄµÚÒ»¸ö²ÎÊıÒ»¶¨ÊÇstate±äÁ¿£¬ÓÃÀ´½øĞĞ¶ÔstateÖĞµÄ×´Ì¬µÄ²Ù×÷
-  //µÚ¶ş¸ö²ÎÊıÊÇ¿ÉÑ¡²ÎÊı£¬ÓÃÓÚµ÷ÓÃ¸Ã mutations ·½·¨µÄÊ±ºò´«²Î
+  //æ‰€æœ‰mutationsä¸­çš„æ–¹æ³•çš„ç¬¬ä¸€ä¸ªå‚æ•°ä¸€å®šæ˜¯stateå˜é‡ï¼Œç”¨æ¥è¿›è¡Œå¯¹stateä¸­çš„çŠ¶æ€çš„æ“ä½œ
+  //ç¬¬äºŒä¸ªå‚æ•°æ˜¯å¯é€‰å‚æ•°ï¼Œç”¨äºè°ƒç”¨è¯¥ mutations æ–¹æ³•çš„æ—¶å€™ä¼ å‚
   initPConditions ( state, data ) {
     state.processConditions = data
   },
@@ -30,7 +30,7 @@ const mutations = {
     let cons = state.processConditions
     index > -1 && cons.splice( index, 1 )
   },
-  //  * Çå³ıËùÓĞµÄÌõ¼ş
+  //  * æ¸…é™¤æ‰€æœ‰çš„æ¡ä»¶
   clearPCondition ( state ) {
     state.processConditions = []
   },
