@@ -105,7 +105,33 @@ public class WfProcessController extends BaseController {
         copyBo.setUserId(getUserId());
         return copyService.selectPageList(copyBo, pageQuery);
     }
+    
+    /**
+     * 获取我的抄送列表
+     *
+     * @param copyBo 流程抄送对象
+     * @param pageQuery 分页参数
+     */
+    @SaCheckPermission("workflow:process:myCopyList")
+    @GetMapping(value = "/myCopyList")
+    public TableDataInfo<WfCopyVo> myCopyProcessList(WfCopyBo copyBo, PageQuery pageQuery) {
+        copyBo.setUserId(getUserId());
+        return copyService.selectMyPageList(copyBo, pageQuery);
+    }
 
+    /**
+     *更新抄送状态为已读
+     *
+     * @param id 
+     * 
+     */
+    @GetMapping(value = "/updateViewStatust")
+    public R<Object> updateViewStatus(@RequestParam(name = "id",required = false) String id) {
+    	copyService.updateStatus(id);
+        return R.ok("更新成功!");
+    }
+    
+    
     /**
      * 导出可发起流程列表
      */

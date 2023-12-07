@@ -23,6 +23,9 @@
     >
       <el-input v-model="serviceTaskForm.expression" clearable @change="updateElementTask" />
     </el-form-item>
+    <el-form-item v-if="serviceTaskForm.executeType === 'expression'" label="结果变量">
+      <el-input v-model="serviceTaskForm.resultVariable" clearable @change="updateInfo('resultVariable')" />
+    </el-form-item>
     <el-form-item
       v-if="serviceTaskForm.executeType === 'delegateExpression'"
       label="代理表达式"
@@ -47,6 +50,7 @@ export default {
         executeType: "",
         class: "",
         expression: "",
+        resultVariable: "",
         delegateExpression: ""
       },
       serviceTaskForm: {}

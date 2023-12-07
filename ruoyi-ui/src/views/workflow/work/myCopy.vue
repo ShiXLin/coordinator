@@ -43,7 +43,6 @@
       <el-table-column label="标题" align="center" prop="title" :show-overflow-tooltip="true" />
       <el-table-column label="流程名称" align="center" prop="processName" :show-overflow-tooltip="true" />
       <el-table-column label="发起人" align="center" prop="originatorName" />
-      <el-table-column label="状态" align="center" prop="state" />>
       <el-table-column label="创建时间" align="center" prop="createTime">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
@@ -73,10 +72,10 @@
 </template>
 
 <script>
-import { listCopyProcess, updateCcReaded } from "@/api/workflow/process"
+import { listMyCopyProcess } from "@/api/workflow/process"
 
 export default {
-  name: "Copy",
+  name: "myCopy",
   data() {
     return {
       // 按钮loading
@@ -142,7 +141,7 @@ export default {
     /** 查询流程抄送列表 */
     getList() {
       this.loading = true;
-      listCopyProcess(this.queryParams).then(response => {
+      listMyCopyProcess(this.queryParams).then(response => {
         this.copyList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -167,7 +166,6 @@ export default {
         createTime: undefined,
         updateBy: undefined,
         updateTime: undefined,
-        state: undefined,
         delFlag: undefined
       };
       this.resetForm("form");
@@ -191,11 +189,6 @@ export default {
     /** 查看详情 */
     handleFlowRecord(row){
       console.log(row);
-      updateCcReaded({ id: row.copyId }).then(res => {
-        if (res.success) {
-          console.log(res);
-        }
-      })
       this.$router.push({
         path: '/workflow/process/detail/' + row.instanceId,
         query: {

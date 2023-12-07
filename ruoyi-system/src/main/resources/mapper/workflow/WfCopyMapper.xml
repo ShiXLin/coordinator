@@ -19,5 +19,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="delFlag" column="del_flag"/>
     </resultMap>
 
+    <update id="updateState" parameterType="com.ruoyi.workflow.domain.WfCopy">
+        update wf_copy
+        set state = '已读'
+            WHERE copy_id=#{id}
+    </update>
 
 </mapper>

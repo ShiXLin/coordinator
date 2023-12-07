@@ -1,5 +1,7 @@
 package com.ruoyi.workflow.mapper;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.ruoyi.common.core.mapper.BaseMapperPlus;
 import com.ruoyi.workflow.domain.WfCopy;
 import com.ruoyi.workflow.domain.vo.WfCopyVo;
@@ -11,5 +13,5 @@ import com.ruoyi.workflow.domain.vo.WfCopyVo;
  * @date 2022-05-19
  */
 public interface WfCopyMapper extends BaseMapperPlus<WfCopyMapper, WfCopy, WfCopyVo> {
-
+	public int updateState(@Param("id") String id);
 }

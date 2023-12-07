@@ -8,6 +8,8 @@ import com.ruoyi.workflow.domain.vo.WfCopyVo;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 /**
  * 流程抄送Service接口
  *
@@ -46,4 +48,19 @@ public interface IWfCopyService {
      * @return
      */
     Boolean makeCopy(WfTaskBo taskBo);
+
+	/**
+	 * 查询我的流程抄送列表
+	 *
+	 * @param bo 流程抄送
+	 * @return 流程抄送
+	 */
+	TableDataInfo<WfCopyVo> selectMyPageList(WfCopyBo bo, PageQuery pageQuery);
+	
+	 /**
+     * 更新为已读状态
+     * @param id
+     * @return
+     */
+	public void updateStatus(@Param("id") String id);
 }

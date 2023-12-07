@@ -84,6 +84,12 @@ public class WfCopyVo {
      */
     @ExcelProperty(value = "发起人名称")
     private String originatorName;
+    
+    /**
+     * 状态
+     */
+    @ExcelProperty(value = "状态")
+    private String state;
 
     /**
      * 抄送时间（创建时间）

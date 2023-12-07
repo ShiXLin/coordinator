@@ -152,6 +152,24 @@ export function listCopyProcess(query) {
   })
 }
 
+// 查询流程我的抄送列表
+export function listMyCopyProcess(query) {
+  return request({
+    url: '/workflow/process/myCopyList',
+    method: 'get',
+    params: query
+  })
+}
+
+//抄送人已读状态
+export function updateCcReaded(parameter) {
+  return request({
+    url: '/workflow/process/updateViewStatust',
+    method:'get',
+    params: parameter
+  })
+}
+
 // 取消申请
 export function stopProcess(data) {
   return request({

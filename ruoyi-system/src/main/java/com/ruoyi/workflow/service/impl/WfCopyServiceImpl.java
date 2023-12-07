@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruoyi.common.core.domain.PageQuery;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.core.page.TableDataInfo;
+import com.ruoyi.common.core.service.CommonService;
 import com.ruoyi.common.helper.LoginHelper;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.workflow.domain.WfCopy;
@@ -35,6 +37,8 @@ public class WfCopyServiceImpl implements IWfCopyService {
     private final WfCopyMapper baseMapper;
 
     private final HistoryService historyService;
+    
+    private final CommonService commonService;
 
     /**
      * 查询流程抄送
@@ -60,6 +64,20 @@ public class WfCopyServiceImpl implements IWfCopyService {
         Page<WfCopyVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
         return TableDataInfo.build(result);
     }
+    
+    /**
+     * 查询我的流程抄送列表
+     *
+     * @param bo 流程抄送
+     * @return 流程抄送
+     */
+    @Override
+    public TableDataInfo<WfCopyVo> selectMyPageList(WfCopyBo bo, PageQuery pageQuery) {
+        LambdaQueryWrapper<WfCopy> lqw = buildMyQueryWrapper(bo);
+        lqw.orderByDesc(WfCopy::getCreateTime);
+        Page<WfCopyVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        return TableDataInfo.build(result);
+    }
 
     /**
      * 查询流程抄送列表
@@ -79,6 +97,14 @@ public class WfCopyServiceImpl implements IWfCopyService {
         lqw.eq(bo.getUserId() != null, WfCopy::getUserId, bo.getUserId());
         lqw.like(StringUtils.isNotBlank(bo.getProcessName()), WfCopy::getProcessName, bo.getProcessName());
         lqw.like(StringUtils.isNotBlank(bo.getOriginatorName()), WfCopy::getOriginatorName, bo.getOriginatorName());
+        return lqw;
+    }
+    
+    private LambdaQueryWrapper<WfCopy> buildMyQueryWrapper(WfCopyBo bo) {
+        Map<String, Object> params = bo.getParams();
+        LoginUser sysUser = commonService.getLoginUser();
+        LambdaQueryWrapper<WfCopy> lqw = Wrappers.lambdaQuery();
+        lqw.eq(bo.getUserId() == sysUser.getUserId(), WfCopy::getOriginatorId, bo.getUserId());
         return lqw;
     }
 
@@ -107,8 +133,14 @@ public class WfCopyServiceImpl implements IWfCopyService {
             copy.setUserId(userId);
             copy.setOriginatorId(originatorId);
             copy.setOriginatorName(originatorName);
+            copy.setState("未读");
             copyList.add(copy);
         }
         return baseMapper.insertBatch(copyList);
     }
+
+	@Override
+	public void updateStatus(String id) {
+		baseMapper.updateState(id);
+	}
 }

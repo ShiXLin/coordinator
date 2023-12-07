@@ -70,5 +70,10 @@ public class WfCopy extends BaseEntity {
      */
     @TableLogic
     private String delFlag;
+    /**
+     * 读状态(未读,已读)
+     */
+    private String state;
+    
 
 }
