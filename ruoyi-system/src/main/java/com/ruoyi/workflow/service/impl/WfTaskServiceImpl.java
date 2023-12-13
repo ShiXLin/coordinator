@@ -355,7 +355,8 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 设置办理人为当前登录人
         taskService.setOwner(bo.getTaskId(), TaskUtils.getUserName());
         // 执行委派
-        taskService.delegateTask(bo.getTaskId(), bo.getUserId());
+        String userName = userService.selectUserNameById(Long.parseLong(bo.getUserId()));
+        taskService.delegateTask(bo.getTaskId(), userName);
         // 设置任务节点名称
         bo.setTaskName(task.getName());
         // 处理抄送用户
@@ -394,7 +395,8 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         // 设置拥有者为当前登录人
         taskService.setOwner(bo.getTaskId(), TaskUtils.getUserName());
         // 转办任务
-        taskService.setAssignee(bo.getTaskId(), bo.getUserId());
+        String userName = userService.selectUserNameById(Long.parseLong(bo.getUserId()));
+        taskService.setAssignee(bo.getTaskId(), userName);
         // 设置任务节点名称
         bo.setTaskName(task.getName());
         // 处理抄送用户
