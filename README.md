@@ -14,9 +14,17 @@
   移植过来相关功能，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
 - 项目处于开发移植阶段，目前初步完成流程相关工作，后续还会继续完善，目前仅推荐用于学习、毕业设计等个人使用，确有商业应用的请知会作者。
 
-## 参考文档
-- 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向nbcio-boot项目文档 见演示系统里的在线帮助]
-- 脚手架文档：[RuoYi-Vue-Plus文档](https://gitee.com/dromara/RuoYi-Vue-Plus/wikis/pages)
+## 在线演示
+演示服务不限制操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。
+
+[RuoYi-Nbcio 在线演示](http://122.227.135.243:9666/)
+
+|                 | 账号  | 密码      |
+|---------------- | ----- | -------- |
+| 超管账户         目前只能通过gitee授权免密码登录或star后进群要密码
+| 监控中心（未运行） | ruoyi | 123456   |
+| 任务调度中心      | admin | 123456   |
+| 数据监控中心      | ruoyi | 123456   |
 
 ## 项目地址
 - Gitee：<https://gitee.com/nbacheng/ruoyi-nbcio>
@@ -48,22 +56,12 @@
    12、增加支持定时边界事件和定时捕获事件
    
    13、增加我的抄送
+   
+   14、流程审批增加加签、跳转、驳回和收回等功能
 
 ## 支持项目
 -  如果项目对你有帮助，请给项目点个Star，同时也可以请作者喝杯咖啡吧！
 ![](https://oscimg.oschina.net/oscnet/up-58088c35672c874bd5a95c2327300d44dca.png)
-
-## 在线演示
-演示服务不限制操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。
-
-[RuoYi-Nbcio 在线演示](http://122.227.135.243:9666/)
-
-|                 | 账号  | 密码      |
-|---------------- | ----- | -------- |
-| 超管账户         目前只能通过gitee授权免密码登录或star后进群要密码
-| 监控中心（未运行） | ruoyi | 123456   |
-| 任务调度中心      | admin | 123456   |
-| 数据监控中心      | ruoyi | 123456   |
 
 ## 技术交流群
 
@@ -114,6 +112,11 @@ QQ交流群: 703572701
 ## 参与开源
 - 如遇到问题，欢迎提交到 [issues](https://gitee.com/nbacheng/ruoyi-nbcio/issues)（请按模版进行填写信息）。
 - 欢迎fork项目，同时提交相关功能。
+
+## 参考文档
+- 项目文档：[RuoYi-Nbcio开发文档 目前暂时指向nbcio-boot项目文档 见演示系统里的在线帮助]
+- 脚手架文档：[RuoYi-Vue-Plus文档](https://gitee.com/dromara/RuoYi-Vue-Plus/wikis/pages)
+
 
 ## 特别鸣谢
 - [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 
