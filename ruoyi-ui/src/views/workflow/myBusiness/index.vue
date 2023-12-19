@@ -32,7 +32,7 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <!--<el-col :span="1.5">
         <el-button
           type="primary"
           plain
@@ -63,7 +63,7 @@
           @click="handleDelete"
           v-hasPermi="['workflow:myBusiness:remove']"
         >删除</el-button>
-      </el-col>
+      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -83,22 +83,22 @@
       <el-table-column label="流程定义key" align="center" prop="processDefinitionKey" />
       <el-table-column label="流程定义id " align="center" prop="processDefinitionId" />
       <el-table-column label="流程业务实例id" align="center" prop="processInstanceId" />
-      <el-table-column label="流程业务简要描述" align="center" prop="title" />
+      <el-table-column label="流程业务描述" align="center" prop="title" />
       <el-table-column label="业务表id" align="center" prop="dataId" />
       <el-table-column label="业务类名" align="center" prop="serviceImplName" />
       <el-table-column label="申请人" align="center" prop="proposer" />
       <el-table-column label="流程状态说明" align="center" prop="actStatus" />
-      <el-table-column label="当前的节点定义上的Id," align="center" prop="taskId" />
+      <el-table-column label="当前定义Id," align="center" prop="taskId" />
       <el-table-column label="当前的节点" align="center" prop="taskName" />
-      <el-table-column label="当前的节点实例上的Id" align="center" prop="taskNameId" />
-      <el-table-column label="当前的节点可以处理的用户名" align="center" prop="todoUsers" />
+      <el-table-column label="当前实例Id" align="center" prop="taskNameId" />
+      <el-table-column label="当前可处理用户" align="center" prop="todoUsers" />
       <el-table-column label="处理过的人" align="center" prop="doneUsers" />
       <el-table-column label="当前任务节点的优先级 " align="center" prop="priority" />
       <el-table-column label="前端页面显示的路由地址" align="center" prop="routeName" />
       <el-table-column label="流程实例主键" align="center" prop="deployId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <el-button
+          <!--<el-button
             size="mini"
             type="text"
             icon="el-icon-edit"
@@ -111,7 +111,7 @@
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['workflow:myBusiness:remove']"
-          >删除</el-button>
+          >删除</el-button>-->
         </template>
       </el-table-column>
     </el-table>
@@ -127,43 +127,43 @@
     <!-- 添加或修改流程业务扩展对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="流程定义key 一个key会有多个版本的id" prop="processDefinitionKey">
+        <el-form-item label="流程定义key" prop="processDefinitionKey">
           <el-input v-model="form.processDefinitionKey" placeholder="请输入流程定义key 一个key会有多个版本的id" />
         </el-form-item>
-        <el-form-item label="流程定义id 一个流程定义唯一" prop="processDefinitionId">
+        <el-form-item label="流程定义id" prop="processDefinitionId">
           <el-input v-model="form.processDefinitionId" placeholder="请输入流程定义id 一个流程定义唯一" />
         </el-form-item>
-        <el-form-item label="流程业务实例id 一个流程业务唯一，本表中也唯一" prop="processInstanceId">
+        <el-form-item label="流程业务实例id " prop="processInstanceId">
           <el-input v-model="form.processInstanceId" placeholder="请输入流程业务实例id 一个流程业务唯一，本表中也唯一" />
         </el-form-item>
-        <el-form-item label="流程业务简要描述" prop="title">
+        <el-form-item label="流程业务描述" prop="title">
           <el-input v-model="form.title" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="业务表id，理论唯一" prop="dataId">
+        <el-form-item label="业务表id" prop="dataId">
           <el-input v-model="form.dataId" placeholder="请输入业务表id，理论唯一" />
         </el-form-item>
-        <el-form-item label="业务类名，用来获取spring容器里的服务对象" prop="serviceImplName">
+        <el-form-item label="业务类名" prop="serviceImplName">
           <el-input v-model="form.serviceImplName" placeholder="请输入业务类名，用来获取spring容器里的服务对象" />
         </el-form-item>
         <el-form-item label="申请人" prop="proposer">
           <el-input v-model="form.proposer" placeholder="请输入申请人" />
         </el-form-item>
-        <el-form-item label="当前的节点定义上的Id," prop="taskId">
+        <el-form-item label="当前定义Id," prop="taskId">
           <el-input v-model="form.taskId" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="当前的节点" prop="taskName">
           <el-input v-model="form.taskName" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="当前的节点实例上的Id" prop="taskNameId">
+        <el-form-item label="当前实例Id" prop="taskNameId">
           <el-input v-model="form.taskNameId" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="当前的节点可以处理的用户名" prop="todoUsers">
+        <el-form-item label="当前可处理用户" prop="todoUsers">
           <el-input v-model="form.todoUsers" type="textarea" placeholder="请输入内容" />
         </el-form-item>
         <el-form-item label="处理过的人" prop="doneUsers">
           <el-input v-model="form.doneUsers" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="当前任务节点的优先级 流程定义的时候所填" prop="priority">
+        <el-form-item label="当前任务节点的优先级" prop="priority">
           <el-input v-model="form.priority" placeholder="请输入当前任务节点的优先级 流程定义的时候所填" />
         </el-form-item>
         <el-form-item label="前端页面显示的路由地址" prop="routeName">
