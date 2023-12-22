@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruoyi.common.constant.WebsocketConst;
 import com.ruoyi.common.core.domain.BaseProtocol;
 import com.ruoyi.common.redis.NbcioRedisClient;
@@ -133,7 +134,12 @@ public class WebSocketServer {
         BaseMap baseMap = new BaseMap();
         baseMap.put("userId", "");
         baseMap.put("message", message);
-        nbcioRedisClient.sendMessage(REDIS_TOPIC_NAME, baseMap);
+        try {
+			nbcioRedisClient.sendMessage(REDIS_TOPIC_NAME, baseMap);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     /**
@@ -146,7 +152,12 @@ public class WebSocketServer {
         BaseMap baseMap = new BaseMap();
         baseMap.put("userId", userId);
         baseMap.put("message", message);
-        nbcioRedisClient.sendMessage(REDIS_TOPIC_NAME, baseMap);
+        try {
+			nbcioRedisClient.sendMessage(REDIS_TOPIC_NAME, baseMap);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     /**
