@@ -1254,7 +1254,10 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             Map<String, Object> formvariables = new HashedMap<String, Object>();
             //遍历Map
             if(variables.containsKey("variables")) {
-              formvariables = (Map<String, Object>)((Map<String, Object>) variables.get("variables")).get("formValue");
+            	formvariables = (Map<String, Object>) variables.get("variables");
+            	if(formvariables.containsKey("formValue")) {
+            		formvariables = (Map<String, Object>)(formvariables).get("formValue");
+            	}
             }
  
             // 非节点表单此处查询结果可能有多条，只获取第一条信息

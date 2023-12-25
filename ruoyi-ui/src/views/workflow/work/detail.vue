@@ -8,7 +8,8 @@
             <span>填写表单</span>
           </div>
           <el-col :span="20" :offset="2">
-            <parser :form-conf="taskFormData" ref="taskFormParser"/>
+            <form-builder ref="taskFormParser" v-model="taskFormVal" :buildData="taskFormCode" />
+            <!--<parser :form-conf="taskFormData" ref="taskFormParser"/> -->
           </el-col>
         </el-card>
         <el-card class="box-card" shadow="hover">
@@ -314,7 +315,9 @@ export default {
       currentUserId: null,
       variables: [], // 流程变量数据
       taskFormOpen: false,
-      taskFormData: {}, // 流程变量数据
+      //taskFormData: {}, // 流程变量数据
+      taskFormVal: '', // formdesigner流程数据
+      taskFormCode: '', // formdesigner流程变量
       processFormList: [], // 流程变量数据
       formOpen: false, // 是否加载流程变量数据
       customForm: { //自定义业务表单
@@ -615,7 +618,7 @@ export default {
           });
           this.taskFormOpen = data.existTaskForm;
           if (this.taskFormOpen) {
-            this.taskFormData = data.taskFormData;
+            this.taskFormCode = JSON.stringify(data.taskFormData);
           }
           this.formOpen = true
         }
@@ -645,7 +648,7 @@ export default {
       const isExistTaskForm = taskFormRef !== undefined;
       // 若无任务表单，则 taskFormPromise 为 true，即不需要校验
       const taskFormPromise = !isExistTaskForm ? true : new Promise((resolve, reject) => {
-        taskFormRef.$refs[taskFormRef.formConfCopy.formRef].validate(valid => {
+        taskFormRef.$refs[taskFormRef.formConf.formModel].validate(valid => {
           valid ? resolve() : reject()
         })
       });
@@ -654,10 +657,17 @@ export default {
           valid ? resolve() : reject()
         })
       });
+
       Promise.all([taskFormPromise, approvalPromise]).then(() => {
         if (isExistTaskForm) {
-          this.taskForm.variables = taskFormRef[taskFormRef.formConfCopy.formModel]
+          let taskFormData = JSON.parse(this.taskFormCode);
+          const taskFormValue = JSON.stringify(taskFormRef.form);
+          const variables = JSON.parse(taskFormValue);
+          taskFormData.formValue = JSON.parse(taskFormValue);
+          variables.variables = taskFormData;
+          this.taskForm.variables = variables;
         }
+        console.log("this.taskForm",this.taskForm);
         complete(this.taskForm).then(response => {
           this.$modal.msgSuccess(response.msg);
           this.goBack();

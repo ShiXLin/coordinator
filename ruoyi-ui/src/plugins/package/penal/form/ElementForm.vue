@@ -264,6 +264,10 @@ export default {
     },
     updateElementFormKey() {
       window.bpmnInstances.modeling.updateProperties(this.bpmnELement, { formKey: this.formKey });
+      if(this.type != 'StartEvent') {
+        this.localScope = true;
+        window.bpmnInstances.modeling.updateProperties(this.bpmnELement, { localScope: this.localScope });
+      }
     },
     updateElementFormScope() {
       window.bpmnInstances.modeling.updateProperties(this.bpmnELement, { localScope: this.localScope });
