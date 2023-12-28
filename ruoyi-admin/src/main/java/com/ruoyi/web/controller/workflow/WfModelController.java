@@ -164,7 +164,8 @@ public class WfModelController extends BaseController {
     @RepeatSubmit()
     @PostMapping("/deploy")
     public R<Void> deployModel(@RequestParam String modelId) {
-        return toAjax(modelService.deployModel(modelId));
+        modelService.deployModel(modelId);
+        return R.ok("发布成功!");
     }
     
     /**
