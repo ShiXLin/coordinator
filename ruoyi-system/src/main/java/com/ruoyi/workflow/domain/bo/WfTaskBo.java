@@ -13,6 +13,10 @@ import java.util.Map;
  */
 @Data
 public class WfTaskBo {
+	/**
+     * 自定义业务用数据Id
+     */
+	private String dataId;
     /**
      * 任务Id
      */

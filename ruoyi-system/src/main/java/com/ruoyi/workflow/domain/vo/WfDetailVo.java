@@ -44,4 +44,12 @@ public class WfDetailVo {
     public Boolean isExistTaskForm() {
         return ObjectUtil.isNotEmpty(this.taskFormData);
     }
+    /**
+     * 是否是流程的第一个发起人节点
+     */
+    private boolean isStartUserNode = false;
+    /**
+     * 当前任务节点相关信息
+     */
+    CurNodeInfoVo curNodeInfo;
 }

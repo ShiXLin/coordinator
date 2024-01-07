@@ -708,11 +708,17 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     @Override
     public WfDetailVo queryProcessDetail(String procInsId, String taskId, String dataId ) {
         WfDetailVo detailVo = new WfDetailVo();
+        CurNodeInfoVo curNodeInfo = new CurNodeInfoVo();
         // 获取流程实例
         HistoricProcessInstance historicProcIns = historyService.createHistoricProcessInstanceQuery()
             .processInstanceId(procInsId)
             .includeProcessVariables()
             .singleResult();
+        curNodeInfo.setProcDefName(historicProcIns.getProcessDefinitionName());
+        curNodeInfo.setProcDefVersion("V"+historicProcIns.getProcessDefinitionVersion().toString());
+        curNodeInfo.setProcInsId(procInsId);
+        curNodeInfo.setTaskId(taskId);
+        
         if (StringUtils.isNotBlank(taskId)) {
             HistoricTaskInstance taskIns = historyService.createHistoricTaskInstanceQuery()
                 .taskId(taskId)
@@ -723,17 +729,66 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
             if (taskIns == null) {
                 throw new ServiceException("没有可办理的任务！");
             }
+            curNodeInfo.setAssignee(taskIns.getAssignee());
+            curNodeInfo.setReceiveTime(taskIns.getCreateTime());
             detailVo.setTaskFormData(currTaskFormData(historicProcIns.getDeploymentId(), taskIns));
         }
         // 获取Bpmn模型信息
         InputStream inputStream = repositoryService.getProcessModel(historicProcIns.getProcessDefinitionId());
         String bpmnXmlStr = StrUtil.utf8Str(IoUtil.readBytes(inputStream, false));
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXmlStr);
+        detailVo.setCurNodeInfo(curNodeInfo);
         detailVo.setBpmnXml(bpmnXmlStr);
         detailVo.setHistoryProcNodeList(historyProcNodeList(historicProcIns));
         detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns, dataId));
         detailVo.setFlowViewer(getFlowViewer(bpmnModel, procInsId));
+        if(isStartUserNode(taskId)) {
+        	detailVo.setStartUserNode(true);
+        }
         return detailVo;
+    }
+    
+    /**
+     * 根据任务ID判断当前节点是否为开始节点后面的第一个用户任务节点
+     *
+     * @param taskId 任务Id
+     * @return
+     */
+    boolean isStartUserNode(String taskId) {
+      //判断当前是否是第一个发起任务节点，若是就put变量isStartNode为True,让相应的表单可以编辑
+      boolean isStartNode= false;
+		if (Objects.nonNull(taskId)) {
+			// 当前任务 task
+			Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+			// 获取流程定义信息
+			if (task != null) {
+				ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+						.processDefinitionId(task.getProcessDefinitionId()).singleResult();
+				// 获取所有节点信息
+				Process process = repositoryService.getBpmnModel(processDefinition.getId()).getProcesses().get(0);
+				// 获取全部节点列表，包含子节点
+				Collection<FlowElement> allElements = FlowableUtils.getAllElements(process.getFlowElements(), null);
+				// 获取当前任务节点元素
+				FlowElement source = null;
+				if (allElements != null) {
+					for (FlowElement flowElement : allElements) {
+						// 类型为用户节点
+						if (flowElement.getId().equals(task.getTaskDefinitionKey())) {
+							// 获取节点信息
+							source = flowElement;
+							List<SequenceFlow> inFlows = FlowableUtils.getElementIncomingFlows(source);
+							if (inFlows.size() == 1) {
+								FlowElement sourceFlowElement = inFlows.get(0).getSourceFlowElement();
+								if (sourceFlowElement instanceof StartEvent) {// 源是开始节点
+									isStartNode = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+        return isStartNode;
     }
     
     /**
@@ -745,17 +800,38 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
     @Override
     public WfDetailVo queryProcessDetailByDataId(String dataId ) {
         WfDetailVo detailVo = new WfDetailVo();
+        CurNodeInfoVo curNodeInfo = new CurNodeInfoVo();
         WfMyBusiness business = wfMyBusinessServiceImpl.getByDataId(dataId);
         String procInsId = business.getProcessInstanceId();
+        String taskId = business.getTaskId();
         // 获取流程实例
         HistoricProcessInstance historicProcIns = historyService.createHistoricProcessInstanceQuery()
             .processInstanceId(procInsId)
             .includeProcessVariables()
             .singleResult();
+        curNodeInfo.setProcDefName(historicProcIns.getProcessDefinitionName());
+        curNodeInfo.setProcDefVersion("V"+historicProcIns.getProcessDefinitionVersion().toString());
+        curNodeInfo.setProcInsId(procInsId);
+        curNodeInfo.setTaskId(taskId);
+        if (StringUtils.isNotBlank(taskId)) {
+            HistoricTaskInstance taskIns = historyService.createHistoricTaskInstanceQuery()
+                .taskId(taskId)
+                .includeIdentityLinks()
+                .includeProcessVariables()
+                .includeTaskLocalVariables()
+                .singleResult();
+            if (taskIns == null) {
+                throw new ServiceException("没有可办理的任务！");
+            }
+            curNodeInfo.setAssignee(taskIns.getAssignee());
+            curNodeInfo.setReceiveTime(taskIns.getCreateTime());
+            detailVo.setTaskFormData(currTaskFormData(historicProcIns.getDeploymentId(), taskIns));
+        }
         // 获取Bpmn模型信息
         InputStream inputStream = repositoryService.getProcessModel(historicProcIns.getProcessDefinitionId());
         String bpmnXmlStr = StrUtil.utf8Str(IoUtil.readBytes(inputStream, false));
         BpmnModel bpmnModel = ModelUtils.getBpmnModel(bpmnXmlStr);
+        detailVo.setCurNodeInfo(curNodeInfo);
         detailVo.setBpmnXml(bpmnXmlStr);
         detailVo.setHistoryProcNodeList(historyProcNodeList(historicProcIns));
         detailVo.setProcessFormList(processFormList(bpmnModel, historicProcIns, dataId));
@@ -1910,20 +1986,70 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         		userTask.addAttribute(extAttribute);
         		userTask.setAssignee("${initiator}");
         	} else if (Type.USER_TASK.isEqual(nodeType) || Type.APPROVER_TASK.isEqual(nodeType)) {
-        		JSONArray approvers = properties.getJSONArray("approvers");
-        		JSONObject approver = approvers.getJSONObject(0);
-        		ExtensionAttribute extDataTypeAttribute =  new ExtensionAttribute();
-        		extDataTypeAttribute.setNamespace(ProcessConstants.NAMASPASE);
-        		extDataTypeAttribute.setName("dataType");
-        		extDataTypeAttribute.setValue("USERS");
-        		userTask.addAttribute(extDataTypeAttribute);
-        		ExtensionAttribute extTextAttribute =  new ExtensionAttribute();
-        		extTextAttribute.setNamespace(ProcessConstants.NAMASPASE);
-        		extTextAttribute.setName("text");
-        		extTextAttribute.setValue(approver.getString("nickName"));
-        		userTask.addAttribute(extTextAttribute);
-        		userTask.setFormKey(properties.getString("formKey"));
-        		userTask.setAssignee(approver.getString("userName"));
+        		String assignType = properties.getString("assigneeType");
+        		if(StringUtils.equalsAnyIgnoreCase("user", assignType)) {
+	        		JSONArray approvers = properties.getJSONArray("approvers");
+	        		JSONObject approver = approvers.getJSONObject(0);
+	        		ExtensionAttribute extDataTypeAttribute =  new ExtensionAttribute();
+	        		extDataTypeAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extDataTypeAttribute.setName("dataType");
+	        		extDataTypeAttribute.setValue("USERS");
+	        		userTask.addAttribute(extDataTypeAttribute);
+	        		ExtensionAttribute extTextAttribute =  new ExtensionAttribute();
+	        		extTextAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extTextAttribute.setName("text");
+	        		extTextAttribute.setValue(approver.getString("nickName"));
+	        		userTask.addAttribute(extTextAttribute);
+	        		userTask.setFormKey(properties.getString("formKey"));
+	        		userTask.setAssignee(approver.getString("userName"));
+        		}
+        		else if (StringUtils.equalsAnyIgnoreCase("director", assignType)) {
+	        		ExtensionAttribute extDataTypeAttribute =  new ExtensionAttribute();
+	        		extDataTypeAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extDataTypeAttribute.setName("dataType");
+	        		extDataTypeAttribute.setValue("MANAGER");
+	        		userTask.addAttribute(extDataTypeAttribute);
+	        		ExtensionAttribute extTextAttribute =  new ExtensionAttribute();
+	        		extTextAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extTextAttribute.setName("text");
+	        		extTextAttribute.setValue("部门经理");
+	        		userTask.addAttribute(extTextAttribute);
+	        		userTask.setFormKey(properties.getString("formKey"));
+	        		userTask.setAssignee("${DepManagerHandler.getUser(execution)}");
+        		}
+        		else if (StringUtils.equalsAnyIgnoreCase("role", assignType)) {
+        			JSONArray approvers = properties.getJSONArray("approvers");
+	        		JSONObject approver = approvers.getJSONObject(0);
+	        		ExtensionAttribute extDataTypeAttribute =  new ExtensionAttribute();
+	        		extDataTypeAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extDataTypeAttribute.setName("dataType");
+	        		extDataTypeAttribute.setValue("ROLES");
+	        		userTask.addAttribute(extDataTypeAttribute);
+	        		ExtensionAttribute extTextAttribute =  new ExtensionAttribute();
+	        		extTextAttribute.setNamespace(ProcessConstants.NAMASPASE);
+	        		extTextAttribute.setName("text");
+	        		extTextAttribute.setValue(approver.getString("roleName"));
+	        		userTask.addAttribute(extTextAttribute);
+	        		userTask.setFormKey(properties.getString("formKey"));
+	        		List<SysRole> sysroleslist = approvers.toJavaList(SysRole.class);
+	        		List<String> roleslist = sysroleslist.stream().map(e->e.getRoleKey()).collect(Collectors.toList());
+	        		userTask.setCandidateGroups(roleslist);
+	        		userTask.setAssignee("${assignee}");
+	        		MultiInstanceLoopCharacteristics loopCharacteristics = new MultiInstanceLoopCharacteristics();
+	        		if(StringUtils.equalsAnyIgnoreCase(properties.getString("counterSign"), "true")) {//并行会签
+	        			loopCharacteristics.setSequential(false);
+	        			loopCharacteristics.setInputDataItem("${multiInstanceHandler.getUserNames(execution)}");
+	        			loopCharacteristics.setElementVariable("assignee");
+	        			loopCharacteristics.setCompletionCondition("${nrOfCompletedInstances &gt;= nrOfInstances}");
+	        		}
+	        		else {
+	        			loopCharacteristics.setSequential(false);
+	        			loopCharacteristics.setInputDataItem("${multiInstanceHandler.getUserNames(execution)}");
+	        			loopCharacteristics.setElementVariable("assignee");
+	        			loopCharacteristics.setCompletionCondition("${nrOfCompletedInstances &gt; 0}");
+	        		}
+	        		userTask.setLoopCharacteristics(loopCharacteristics);
+        		}
         	}
         	
             ddProcess.addFlowElement(userTask);
