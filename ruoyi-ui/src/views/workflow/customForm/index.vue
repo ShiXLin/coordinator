@@ -239,8 +239,13 @@
                </template>
              </el-table-column>
             </el-table>
-          <el-pagination v-show="deployTotal>0" :total="deployTotal" :current-page.sync="queryParams.pageNum"
-            :page-size.sync="queryParams.pageSize" @size-change="getDeployList" @current-change="getDeployList" />
+          <pagination
+            v-show="deployTotal>0"
+            :total="deployTotal"
+            :page.sync="queryFlowParams.pageNum"
+            :limit.sync="queryFlowParams.pageSize"
+            @pagination="getDeployList"
+          />
 
         </el-col>
       </el-row>
