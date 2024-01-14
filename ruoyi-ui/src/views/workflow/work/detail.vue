@@ -69,16 +69,11 @@
 
       <el-tab-pane label="表单信息" name="form">
         <div v-if="customForm.visible"> <!-- 自定义表单 -->
-            <!--<component ref="refCustomForm" :disabled="customForm.disabled" v-bind:is="customForm.formComponent" :model="customForm.model"
-                        :customFormData="customForm.customFormData" :isNew = "customForm.isNew"></component> -->
             <component ref="refCustomForm" :disabled="customForm.disabled" v-bind:is="customForm.formComponent" :model="customForm.model"
                         :customFormData="customForm.customFormData" :isNew = "customForm.isNew"></component>
         </div>
         <div v-if="formOpen"> <!-- formdesigner表单 -->
           <el-card class="box-card" shadow="never" v-for="(formInfo, index) in formViewData" :key="index">
-            <!--<div slot="header" class="clearfix">
-              <span>{{ formInfo.title }}</span>
-            </div>-->
             <!--流程处理表单模块-->
             <el-col :span="20" :offset="2">
               <form-viewer ref="formViewer" v-model="formVal[index]" :buildData="formInfo" />
