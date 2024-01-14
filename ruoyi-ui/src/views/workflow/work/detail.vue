@@ -220,6 +220,7 @@ import ProcessViewer from '@/components/ProcessViewer'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import Treeselect from '@riophae/vue-treeselect'
 import formViewer from '@/components/formdesigner/components/formViewer'
+import formBuilder from '@/components/formdesigner/components/formBuilder'
 import { getCustomForm} from '@/api/workflow/customForm'
 import {
     flowableMixin
@@ -231,6 +232,7 @@ export default {
   components: {
     ProcessViewer,
     Parser,
+    formBuilder,
     Treeselect,
     formViewer
   },
