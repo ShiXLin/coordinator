@@ -95,6 +95,13 @@ export default {
             case '5': return '转办'
             case '6': return '终止'
             case '7': return '撤回'
+            case '8': return '拒绝'
+            case '9': return '跳过'
+            case '10': return '前加签'
+            case '11': return '后加签'
+            case '12': return '多实例加签'
+            case '13': return '跳转'
+            case '14': return '收回'
           }
         }
       },
@@ -161,20 +168,22 @@ export default {
         const params = {dataId: dataId}
         detailProcessByDataId(params).then(res => {
           console.log("detailProcessByDataId res=",res);
-          const data = res.data;
-          this.xmlData = data.bpmnXml;
-          this.processFormList = data.processFormList;
-          if(this.processFormList.length == 1 &&
-             this.processFormList[0].formValues.hasOwnProperty('routeName')) {
-             this.customForm.disabled = true;
-             this.customForm.visible = true;
-             this.customForm.formComponent = this.getFormComponent(this.processFormList[0].formValues.routeName).component;
-             this.customForm.model = this.processFormList[0].formValues.formData;
-             this.customForm.customFormData = this.processFormList[0].formValues.formData;
-             console.log("detailProcess customForm",this.customForm);
+          if (res.code === 200 && res.data != null) {
+            const data = res.data;
+            this.xmlData = data.bpmnXml;
+            this.processFormList = data.processFormList;
+            if(this.processFormList.length == 1 &&
+               this.processFormList[0].formValues.hasOwnProperty('routeName')) {
+               this.customForm.disabled = true;
+               this.customForm.visible = true;
+               this.customForm.formComponent = this.getFormComponent(this.processFormList[0].formValues.routeName).component;
+               this.customForm.model = this.processFormList[0].formValues.formData;
+               this.customForm.customFormData = this.processFormList[0].formValues.formData;
+               console.log("detailProcess customForm",this.customForm);
+            }
+            this.historyProcNodeList = data.historyProcNodeList;
+            this.finishedInfo = data.flowViewer;
           }
-          this.historyProcNodeList = data.historyProcNodeList;
-          this.finishedInfo = data.flowViewer;
         })
       },
       changeTab(tab, event) {
@@ -184,7 +193,7 @@ export default {
           if(this.customForm.formId === "") {
             // 回填数据,这里主要是处理文件列表显示,临时解决，以后应该在formdesigner里完成
             this.processFormList.forEach((item, i) => {
-              if (item.hasOwnProperty('list')) {
+              if (item.hasOwnProperty('list') && item.list != null) {
                 this.fillFormData(item.list, item)
                 // 更新表单
                 this.key = +new Date().getTime()

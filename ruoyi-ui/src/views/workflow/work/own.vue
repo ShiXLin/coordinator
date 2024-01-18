@@ -113,13 +113,13 @@
             @click="handleStop(scope.row)"
             v-hasPermi="['workflow:process:cancel']"
           >取消</el-button>
-          <el-button
+          <!--<el-button
             type="text"
             size="mini"
             icon="el-icon-refresh-right"
             v-hasPermi="['workflow:process:start']"
             @click="handleAgain(scope.row)"
-          >重新发起</el-button>
+          >重新发起</el-button> -->
         </template>
       </el-table-column>
     </el-table>
@@ -246,19 +246,26 @@ export default {
       this.multiple = !selection.length;
     },
     handleAgain(row) {
-      this.$router.push({
-        path: '/workflow/process/start/' + row.deployId,
-        query: {
-          definitionId: row.procDefId,
-          procInsId: row.procInsId
-        }
-      })
+      if(row.dataId != null) {
+
+      }
+      else {
+          this.$router.push({
+          path: '/workflow/process/start/' + row.deployId,
+          query: {
+            definitionId: row.procDefId,
+            procInsId: row.procInsId
+          }
+        })
+      }
+
       console.log(row);
     },
     /**  取消流程申请 */
     handleStop(row){
       const params = {
-        procInsId: row.procInsId
+        procInsId: row.procInsId,
+        dataId: row.dataId
       }
       stopProcess(params).then( res => {
         this.$modal.msgSuccess(res.msg);
@@ -267,7 +274,6 @@ export default {
     },
     /** 流程流转记录 */
     handleFlowRecord(row) {
-      console.log("handleFlowRecord row",row);
       this.$router.push({
         path: '/workflow/process/detail/' + row.procInsId,
         query: {

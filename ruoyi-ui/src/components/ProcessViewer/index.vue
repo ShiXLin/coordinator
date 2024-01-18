@@ -219,7 +219,8 @@ export default {
       const elementRegistry = this.bpmnViewer.get('elementRegistry');
       if (Array.isArray(finishedSequenceFlowSet)) {
         finishedSequenceFlowSet.forEach(item => {
-          if (item != null) {
+          if (item != null && item != 'newSequenceFlowId') { //去掉之前收回创建的id
+            console.log("setProcessStatus item",item)
             canvas.addMarker(item, 'success');
             let element = elementRegistry.get(item);
             const conditionExpression = element.businessObject.conditionExpression;

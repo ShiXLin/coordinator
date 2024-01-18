@@ -412,6 +412,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void stopProcess(WfTaskBo bo) {
         List<Task> task = taskService.createTaskQuery().processInstanceId(bo.getProcInsId()).list();
         if (CollectionUtils.isEmpty(task)) {
@@ -426,9 +427,9 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             List<EndEvent> endNodes = process.findFlowElementsOfType(EndEvent.class, false);
             if (CollectionUtils.isNotEmpty(endNodes)) {
                 Authentication.setAuthenticatedUserId(TaskUtils.getUserName());
-//                taskService.addComment(task.getId(), processInstance.getProcessInstanceId(), FlowComment.STOP.getType(),
-//                        StringUtils.isBlank(flowTaskVo.getComment()) ? "取消申请" : flowTaskVo.getComment());
                 // 获取当前流程最后一个节点
+                taskService.addComment(task.get(0).getId(), processInstance.getProcessInstanceId(), FlowComment.STOP.getType(),
+                        StringUtils.isBlank(bo.getComment()) ? "取消申请" : bo.getComment());
                 String endId = endNodes.get(0).getId();
                 List<Execution> executions = runtimeService.createExecutionQuery()
                     .parentId(processInstance.getProcessInstanceId()).list();
@@ -437,6 +438,21 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
                 // 变更流程为已结束状态
                 runtimeService.createChangeActivityStateBuilder()
                     .moveExecutionsToSingleActivityId(executionIds, endId).changeState();
+                String dataId = bo.getDataId();
+                if(StringUtils.isNotEmpty(dataId)) {
+                	WfMyBusiness business = wfMyBusinessService.getByDataId(dataId);
+                	//删除自定义业务任务关联表与流程历史表，以便可以重新发起流程。
+                	if (business != null) {
+                		business.setActStatus(ActStatus.stop);
+                		business.setTodoUsers("");
+                		business.setDoneUsers("");
+                		business.setProposer("");
+                		business.setTaskName("");
+                		business.setTaskId("");
+                		business.setTaskNameId("");
+                    	wfMyBusinessService.updateById(business);
+                    }	
+                }
             }
         }
     }
@@ -502,6 +518,30 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
             runtimeService.createChangeActivityStateBuilder()
                 .processInstanceId(procInsId)
                 .moveExecutionsToSingleActivityId(revokeExecutionIds, currTaskIns.getTaskDefinitionKey()).changeState();
+            String dataId = taskBo.getDataId();
+            if(StringUtils.isNotEmpty(dataId)) {
+            	//当前任务信息
+                List<Task> listtask = taskService.createTaskQuery().processInstanceId(procInsId).taskAssignee(TaskUtils.getUserName()).list();
+            	WfMyBusiness business = wfMyBusinessService.getByDataId(dataId);
+            	//更新自定义业务任务关联表与流程历史表，以便可以重新发起流程。
+            	if (business != null) {
+            		if (listtask != null && listtask.size()>0) {
+            			business.setActStatus(ActStatus.revoke);
+                		business.setTodoUsers(listtask.get(0).getAssignee());
+            		}
+            		else {
+            			business.setActStatus(ActStatus.revoke);
+	            		business.setTodoUsers("");
+	            		business.setDoneUsers("");
+	            		business.setProposer("");
+	            		business.setTaskName("");
+	            		business.setTaskId("");
+	            		business.setTaskNameId("");
+            		}
+            		
+                	wfMyBusinessService.updateById(business);
+                }	
+            }
         } catch (FlowableObjectNotFoundException e) {
             throw new RuntimeException("未找到流程实例，流程可能已发生变化");
         } catch (FlowableException e) {
@@ -925,11 +965,13 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
 	public boolean isFirstInitiator(String processInstanceId, String actStatusType) {
 		if(StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.reject) ||
  	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.recall) ||
- 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ) {
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.revoke)) {
  		if(StringUtils.isNotEmpty(processInstanceId)) {
- 		    //  获取当前任务
+ 		     //  获取当前任务
              Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
-	    		BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
+             if (task != null) {
+            	 BpmnModel bpmnModel = repositoryService.getBpmnModel(task.getProcessDefinitionId());
 		        //  获取当前活动节点
 		        FlowNode currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(task.getTaskDefinitionKey());
 		        // 输入连线
@@ -942,6 +984,7 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
 		                return true;
 		            }
 		        }
+             }
  		}
  	}
 		return false;
@@ -954,7 +997,8 @@ public class WfTaskServiceImpl extends FlowServiceFactory implements IWfTaskServ
         WfMyBusiness business = wfMyBusinessService.getByDataId(dataId);
         if(StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.reject) ||
  	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.recall) ||
- 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ) {
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.retrun) ||
+ 	    	   StringUtils.equalsAnyIgnoreCase(actStatusType, ActStatus.revoke) ) {
             //  重新查询当前任务
             Task currentTask = taskService.createTaskQuery().processInstanceId(processInstanceId).singleResult();
             //删除自定义业务任务关联表与流程历史表，以便可以重新发起流程。

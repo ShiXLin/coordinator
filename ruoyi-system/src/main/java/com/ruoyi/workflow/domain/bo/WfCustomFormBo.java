@@ -66,7 +66,7 @@ public class WfCustomFormBo extends BaseEntity {
     /**
      * 关联业务主表主键
      */
-    @NotNull(message = "关联业务主表主键不能为空", groups = { EditGroup.class })
+    //@NotNull(message = "关联业务主表主键不能为空", groups = { EditGroup.class })
     private Long tableId;
 
 }

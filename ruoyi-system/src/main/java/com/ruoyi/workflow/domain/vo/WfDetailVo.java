@@ -51,5 +51,5 @@ public class WfDetailVo {
     /**
      * 当前任务节点相关信息
      */
-    CurNodeInfoVo curNodeInfo;
+    private List<CurNodeInfoVo> listCurNodeInfo;
 }

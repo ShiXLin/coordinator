@@ -68,6 +68,14 @@
             size="mini"
             type="text"
             icon="el-icon-tickets"
+            @click="handleRecall(scope.row)"
+            v-hasPermi="['workflow:process:recall']"
+          >收回
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-tickets"
             @click="handleRevoke(scope.row)"
             v-hasPermi="['workflow:process:revoke']"
           >撤回
@@ -226,7 +234,8 @@ export default {
     handleRevoke(row) {
       const params = {
         procInsId: row.procInsId,
-        taskId: row.taskId
+        taskId: row.taskId,
+        dataId: row.dataId
       };
       revokeProcess(params).then(res => {
         this.$modal.msgSuccess(res.msg);

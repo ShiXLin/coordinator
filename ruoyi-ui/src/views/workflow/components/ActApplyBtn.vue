@@ -125,13 +125,13 @@
         } else {
           this.error = '';
         }
-        //对于自定义业务，判断是否是驳回或退回的第一个发起人节点
+        //对于自定义业务,判断是否是驳回或退回的第一个发起人节点
         this.submitLoading = true;
         console.log("applySubmit this.dataId",this.dataId);
         console.log("applySubmit this.variables",this.variables);
         isFirstInitiator(this.dataId, this.variables)
           .then(res => {
-            if (res.success && res.result) { //若是，弹出窗口选择重新发起新流程还是继续老流程
+            if (res.code === 200 && res.data) { //若是，弹出窗口选择重新发起新流程还是继续老流程
               this.firstInitiatorTitle = "根据自己需要进行选择"
               this.firstInitiatorOpen = true;
             }
@@ -154,7 +154,7 @@
             }
           })
           .finally(() => (this.submitLoading = false));
-      }
+        }
     }
 
   };

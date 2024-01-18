@@ -248,6 +248,13 @@ export default {
           case '5': return '转办'
           case '6': return '终止'
           case '7': return '撤回'
+          case '8': return '拒绝'
+          case '9': return '跳过'
+          case '10': return '前加签'
+          case '11': return '后加签'
+          case '12': return '多实例加签'
+          case '13': return '跳转'
+          case '14': return '收回'
         }
       }
     },

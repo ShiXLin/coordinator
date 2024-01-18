@@ -128,5 +128,9 @@ public class WfTaskVo implements Serializable {
      * 流程状态
      */
     private String processStatus;
+    /**
+     * 自定义业务dataId
+     */
+    private String dataId;
 
 }

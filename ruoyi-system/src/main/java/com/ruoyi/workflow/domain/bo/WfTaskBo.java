@@ -65,4 +65,28 @@ public class WfTaskBo {
      * 下一节点审批人
      */
     private String nextUserIds;
+    /**
+     * 自定义业务主键
+     */
+    private String businessKey;
+    /**
+     * 流程类型
+     */
+    private String category;
+    /**
+     * 加签用户
+     */
+    private String addSignUsers;
+    /**
+     * 加签类型
+     */
+    private String addSignType; //前加签0，后加签1，多实例加签2
+    /**
+     * 目标活动节点id，当跳转或退回或加签减签时使用
+     */
+    private String targetActId;
+    /**
+     * 目标活动节点名称，当跳转或退回或加签减签时使用
+     */
+    private String targetActName;
 }

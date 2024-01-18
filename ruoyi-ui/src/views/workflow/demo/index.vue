@@ -94,12 +94,12 @@
       <el-table-column label="处理人" align="center" prop="todoUsers" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <act-apply-btn @success="getList" :data-id="scope.row.demoId" :serviceName="serviceName" :variables="scope.row"></act-apply-btn>
+          <act-apply-btn @success="getList" :data-id="String(scope.row.demoId)" :serviceName="serviceName" :variables="scope.row"></act-apply-btn>
           <!--<act-handle-btn @success="getList" :data-id="scope.row.demoId" :type="0" text="通过"></act-handle-btn>
           <act-handle-btn @success="getList" :data-id="scope.row.demoId" :type="1" text="驳回"></act-handle-btn>
           <act-handle-btn @success="getList" :data-id="scope.row.demoId" :type="2" text="退回"></act-handle-btn>
           <act-cancel-btn @success="getList" :data-id="scope.row.demoId"></act-cancel-btn>-->
-          <act-historic-detail-btn :data-id="scope.row.demoId"></act-historic-detail-btn>
+          <act-historic-detail-btn :data-id="String(scope.row.demoId)"></act-historic-detail-btn>
           <a-divider type="vertical" />
           <el-button
             size="medium"
