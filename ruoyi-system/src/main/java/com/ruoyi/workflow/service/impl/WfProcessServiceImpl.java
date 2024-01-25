@@ -734,7 +734,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         		curNodeInfo.setProcDefName(historicProcIns.getProcessDefinitionName());
                 curNodeInfo.setProcDefVersion("V"+historicProcIns.getProcessDefinitionVersion().toString());
                 curNodeInfo.setProcInsId(procInsId);
-                curNodeInfo.setTaskId(taskId);
+                curNodeInfo.setTaskId(task.getId());
                 curNodeInfo.setAssignee(task.getAssignee());
                 curNodeInfo.setReceiveTime(task.getCreateTime());
                 listCurNodeInfo.add(curNodeInfo);
@@ -838,7 +838,7 @@ public class WfProcessServiceImpl extends FlowServiceFactory implements IWfProce
         		curNodeInfo.setProcDefName(historicProcIns.getProcessDefinitionName());
                 curNodeInfo.setProcDefVersion("V"+historicProcIns.getProcessDefinitionVersion().toString());
                 curNodeInfo.setProcInsId(procInsId);
-                curNodeInfo.setTaskId(taskId);
+                curNodeInfo.setTaskId(task.getId());
                 curNodeInfo.setAssignee(task.getAssignee());
                 curNodeInfo.setReceiveTime(task.getCreateTime());
                 listCurNodeInfo.add(curNodeInfo);
