@@ -75,7 +75,7 @@ QQ交流群: 703572701
 - [基于jeec-boo3.0的nbcio-boot项目](https://gitee.com/nbacheng/nbcio-boot)： NBCIO 亿事达企业管理平台。
 
 ## 后端技术架构
-- 基础框架：Spring Boot 2.7.11
+- 基础框架：Spring Boot 2.7.18
 
 - 持久层框架：Mybatis-plus 3.5.3.1
 
