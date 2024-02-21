@@ -69,7 +69,8 @@
 
 ## 技术交流群
 
-QQ交流群: 703572701 
+- QQ交流群: 703572701 
+- 微信：![微信](https://oscimg.oschina.net/oscnet/up-b3a9af64dbe74a868a021ea16e1a55317d0.jpg)
 
 ## 友情链接
 - [基于jeec-boo3.0的nbcio-boot项目](https://gitee.com/nbacheng/nbcio-boot)： NBCIO 亿事达企业管理平台。
