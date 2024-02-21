@@ -77,9 +77,9 @@ QQ交流群: 703572701
 ## 后端技术架构
 - 基础框架：Spring Boot 2.7.18
 
-- 持久层框架：Mybatis-plus 3.5.3.1
+- 持久层框架：Mybatis-plus 3.5.5
 
-- 安全框架：Sa-Token 1.34.0
+- 安全框架：Sa-Token 1.37.0
 
 - 缓存框架：redis
 
