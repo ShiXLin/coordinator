@@ -13,6 +13,7 @@
 - 本项目基于 [RuoYi-Flowable-Plus](https://gitee.com/KonBAI-Q/ruoyi-flowable-plus) 进行二次开发，从nbcio-boot(https://gitee.com/nbacheng/nbcio-boot)项目
   移植过来相关功能，脚手架功能同步更新 [RuoYi-Vue-Plus](https://gitee.com/dromara/RuoYi-Vue-Plus) 项目。
 - 项目处于开发移植阶段，目前初步完成流程相关工作，后续还会继续完善，目前仅推荐用于学习、毕业设计等个人使用，确有商业应用的请知会作者。
+- 需要支持Springboot3和java17请看springboot3分支
 
 ## 在线演示
 演示服务不限制操作，希望大家按需使用，不要恶意添加脏数据或对服务器进行攻击等操作。
