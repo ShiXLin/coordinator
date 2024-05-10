@@ -4,16 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ruoyi</groupId>
-    <artifactId>ruoyi-nbcio</artifactId>
+    <groupId>com.lanternfish</groupId>
+    <artifactId>coordinator</artifactId>
     <version>1.0.0</version>
 
-    <name>RuoYi-Nbcio</name>
-    <url>https://gitee.com/nbacheng/ruoyi-nbcio</url>
-    <description>RuoYi-Nbcio后台管理系统</description>
+    <name>coordinator</name>
+    <description>协同办公</description>
 
     <properties>
-        <ruoyi-nbcio.version>1.0.0</ruoyi-nbcio.version>
+        <coordinator.version>1.0.0</coordinator.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -53,6 +52,7 @@
         <aliyun.sms.version>2.0.23</aliyun.sms.version>
         <tencent.sms.version>3.1.687</tencent.sms.version>
         <justauth-spring-boot-starter.version>1.3.4</justauth-spring-boot-starter.version>
+        <fast_dfs_version>1.26.7</fast_dfs_version>
     </properties>
 
     <profiles>
@@ -104,7 +104,7 @@
 				<artifactId>guava</artifactId>
 				<version>${guava.version}</version>
 			</dependency>
-			
+
             <!-- hutool 的依赖配置-->
             <dependency>
                 <groupId>cn.hutool</groupId>
@@ -292,7 +292,7 @@
                 <artifactId>bcprov-jdk15to18</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
-            
+
             <!-- justauth第三方登录  -->
 			<dependency>
 				<groupId>com.xkcoding.justauth</groupId>
@@ -319,82 +319,96 @@
 
             <!-- 定时任务 -->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-job</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-job</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- 代码生成-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-generator</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-generator</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- 核心模块-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-framework</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-framework</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- 系统模块-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-system</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-system</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- 通用工具-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-common</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-common</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- 工作流模块 -->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-flowable</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-flowable</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- OSS对象存储模块 -->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-oss</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-oss</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- SMS短信模块 -->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-sms</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-sms</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
 
             <!-- demo模块 -->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-demo</artifactId>
-                <version>${ruoyi-nbcio.version}</version>
+                <groupId>com.lanternfish</groupId>
+                <artifactId>coordinator-demo</artifactId>
+                <version>${coordinator.version}</version>
             </dependency>
+
+            <!-- mongoDB -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            </dependency>
+
+            <!-- fast_dfs -->
+            <dependency>
+                <groupId>com.github.tobato</groupId>
+                <artifactId>fastdfs-client</artifactId>
+                <version>${fast_dfs_version}</version>
+            </dependency>
+
 
         </dependencies>
     </dependencyManagement>
 
     <modules>
-        <module>ruoyi-admin</module>
-        <module>ruoyi-common</module>
-        <module>ruoyi-demo</module>
-        <module>ruoyi-extend</module>
-        <module>ruoyi-flowable</module>
-        <module>ruoyi-framework</module>
-        <module>ruoyi-generator</module>
-        <module>ruoyi-job</module>
-        <module>ruoyi-oss</module>
-        <module>ruoyi-sms</module>
-        <module>ruoyi-system</module>
+        <module>coordinator-admin</module>
+        <module>coordinator-common</module>
+        <module>coordinator-demo</module>
+        <module>coordinator-extend</module>
+        <module>coordinator-flowable</module>
+        <module>coordinator-framework</module>
+        <module>coordinator-generator</module>
+        <module>coordinator-job</module>
+        <module>coordinator-oss</module>
+        <module>coordinator-sms</module>
+        <module>coordinator-system</module>
     </modules>
     <packaging>pom</packaging>
 
