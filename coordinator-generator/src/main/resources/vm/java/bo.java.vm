@@ -1,0 +1,67 @@
+package ${packageName}.domain.bo;
+
+import com.lanternfish.common.core.validate.AddGroup;
+import com.lanternfish.common.core.validate.EditGroup;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.*;
+
+import java.util.Date;
+
+#foreach ($import in $importList)
+import ${import};
+#end
+#if($table.crud || $table.sub)
+import com.lanternfish.common.core.domain.BaseEntity;
+#elseif($table.tree)
+import com.lanternfish.common.core.domain.TreeEntity;
+#end
+
+/**
+ * ${functionName}业务对象 ${tableName}
+ *
+ * @author ${author}
+ * @date ${datetime}
+ */
+#if($table.crud || $table.sub)
+    #set($Entity="BaseEntity")
+#elseif($table.tree)
+    #set($Entity="TreeEntity<${ClassName}Bo>")
+#end
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class ${ClassName}Bo extends ${Entity} {
+
+    #foreach ($column in $columns)
+        #if(!$table.isSuperColumn($column.javaField) && ($column.query || $column.insert || $column.edit))
+        /**
+         * $column.columnComment
+         */
+        #if($column.insert && $column.edit)
+            #set($Group="AddGroup.class, EditGroup.class")
+        #elseif($column.insert)
+            #set($Group="AddGroup.class")
+        #elseif($column.edit)
+            #set($Group="EditGroup.class")
+        #end
+        #if($column.required)
+        #if($column.javaType == 'String')
+        @NotBlank(message = "$column.columnComment不能为空", groups = { $Group })
+        #else
+        @NotNull(message = "$column.columnComment不能为空", groups = { $Group })
+        #end
+        #end
+        #if($column.columnComment&&$column.columnComment!="")
+        @Schema(description = "$column.columnComment")
+        #end
+        #if($column.javaType == 'Date')
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+        #end
+        private $column.javaType $column.javaField;
+        #end
+    #end
+
+}

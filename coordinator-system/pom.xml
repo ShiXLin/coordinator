@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>coordinator</artifactId>
+        <groupId>com.lanternfish</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>coordinator-system</artifactId>
+
+    <description>
+        system系统模块
+    </description>
+
+    <dependencies>
+
+        <!-- 通用工具-->
+        <dependency>
+            <groupId>com.lanternfish</groupId>
+            <artifactId>coordinator-common</artifactId>
+        </dependency>
+
+        <!-- 代码生成-->
+        <dependency>
+            <groupId>com.lanternfish</groupId>
+            <artifactId>coordinator-generator</artifactId>
+        </dependency>
+
+        <!-- Flowable功能模块 -->
+        <dependency>
+            <groupId>com.lanternfish</groupId>
+            <artifactId>coordinator-flowable</artifactId>
+        </dependency>
+
+        <!-- OSS功能模块 -->
+        <dependency>
+            <groupId>com.lanternfish</groupId>
+            <artifactId>coordinator-oss</artifactId>
+        </dependency>
+
+        <!-- SMS功能模块 -->
+        <dependency>
+            <groupId>com.lanternfish</groupId>
+            <artifactId>coordinator-sms</artifactId>
+        </dependency>
+
+        <!-- fast_dfs模块 -->
+        <dependency>
+            <groupId>com.github.tobato</groupId>
+            <artifactId>fastdfs-client</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>
