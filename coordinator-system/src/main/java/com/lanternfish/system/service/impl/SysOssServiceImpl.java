@@ -28,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -47,9 +46,9 @@ public class SysOssServiceImpl implements ISysOssService , OssService {
 
     private final FastFileStorageClient fastFileStorageClient;
 
-    private final static String PATH_SEGMENTATION = "/";
     @Value("${coordinator.httpPrefix}")
-    private String httpPrefix;
+    private boolean isHttpPrefix;
+
     @Value("${fdfs.web-server-url}")
     private String webServerUrl;
 
@@ -154,7 +153,7 @@ public class SysOssServiceImpl implements ISysOssService , OssService {
             //文件上传
             String fileSuffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(".") + 1);
             StorePath storePath = fastFileStorageClient.uploadFile(file.getInputStream(), file.getSize(), fileSuffix, null);
-            url = httpPrefix + webServerUrl + Constants.PATH_SEGMENTATION + storePath.getFullPath();
+            url = (isHttpPrefix?Constants.HTTPS:Constants.HTTP + webServerUrl) + Constants.PATH_SEGMENTATION + storePath.getFullPath();
 
             //保存文件信息
             SysOssBo sysOssBo = SysOssBo.builder()

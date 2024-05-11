@@ -17,7 +17,7 @@ coordinator:
   # 缓存懒加载
   cacheLazy: true
   #文件服务器是否支持https
-  httpPrefix: http://
+  httpPrefix: false
 
 captcha:
   # 页面 <参数设置> 可开启关闭 验证码校验
