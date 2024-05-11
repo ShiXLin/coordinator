@@ -1,5 +1,6 @@
 package com.lanternfish.web.controller.form;
 
+import com.lanternfish.common.core.controller.BaseController;
 import com.lanternfish.common.core.domain.R;
 import com.lanternfish.common.core.page.TableDataInfo;
 import com.lanternfish.form.domain.bo.FormTemplateDataBo;
@@ -26,7 +27,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "表单相关操作", description = "表单相关操作")
-public class FormTemplateController {
+public class FormTemplateController  extends BaseController {
 
     private final IFormTemplateService formTemplateService;
 

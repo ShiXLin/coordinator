@@ -1,5 +1,6 @@
 package com.lanternfish.web.controller.form;
 
+import com.lanternfish.common.core.controller.BaseController;
 import com.lanternfish.common.core.domain.R;
 import com.lanternfish.common.core.page.TableDataInfo;
 import com.lanternfish.common.core.domain.mongodb.BaseQueryForMongo;
@@ -25,7 +26,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "表单实例信息相关操作", description = "表单实例信息相关操作")
-public class FormInstanceController {
+public class FormInstanceController extends BaseController {
 
     private final IFormInstanceService formInstanceService;
 
