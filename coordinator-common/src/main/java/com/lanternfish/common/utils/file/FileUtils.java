@@ -1,23 +1,18 @@
 package com.lanternfish.common.utils.file;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import cn.hutool.core.io.IoUtil;
 import com.lanternfish.common.config.CoordinatorConfig;
 import com.lanternfish.common.utils.DateUtils;
 import com.lanternfish.common.utils.StringUtils;
 import com.lanternfish.common.utils.uuid.IdUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 文件处理工具类
@@ -59,8 +54,8 @@ public class FileUtils
         }
         finally
         {
-            IOUtils.close(os);
-            IOUtils.close(fis);
+            IoUtil.close(os);
+            IoUtil.close(fis);
         }
     }
 
@@ -98,7 +93,7 @@ public class FileUtils
         }
         finally
         {
-            IOUtils.close(fos);
+            IoUtil.close(fos);
         }
         return FileUploadUtils.getPathFileName(uploadDir, pathName);
     }
