@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.data.mongodb.core.query.Criteria;
 
+import java.util.regex.Pattern;
+
 /**
  * @author Liam
  * @date 2024-5-9
@@ -129,7 +131,7 @@ public class ConditionForMongoQuery {
                 criteria.and(fieldId).ne(value[0]);
                 break;
             case MongoConstants.OperatorType.LIKE:
-                criteria.and(fieldId).regex(value[0].toString());
+                criteria.and(fieldId).regex(".*" + Pattern.quote(value[0].toString()) + ".*");
                 break;
             case MongoConstants.OperatorType.IN:
                 criteria.and(fieldId).in(value);
