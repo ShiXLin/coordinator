@@ -29,7 +29,7 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
     protected String processInstanceId;
     protected FlowElement currentFlowElement;
     private final WfTaskAddSign wfTaskAddSign;
-    private final Map<String,WfTaskAddSignNode> wfTaskAddSignNodeMap;
+    private final Map<String, WfTaskAddSignNode> wfTaskAddSignNodeMap;
 
 
     public AutoInjectUserTaskInProcessInstanceCmd(String processInstanceId,
@@ -40,7 +40,7 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
         this.currentFlowElement = currentFlowElement;
         this.wfTaskAddSign = wfTaskAddSign;
         this.wfTaskAddSignNodeMap = new HashMap<>();
-        wfTaskAddSign.getAddSignNode().forEach(item ->this.wfTaskAddSignNodeMap.put(item.getNodeId(),item));
+        wfTaskAddSign.getAddSignNode().forEach(item -> this.wfTaskAddSignNodeMap.put(item.getNodeId(), item));
     }
 
     @Override
@@ -61,18 +61,7 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
             throw new RuntimeException("加签失败");
         }
         //查找加签前后链接
-        SequenceFlow oldSequenceFlow = null;
-        Collection<FlowElement> flowElements = process.getFlowElements();
-        for (FlowElement flowElement : flowElements) {
-            if (flowElement instanceof SequenceFlow) {
-                SequenceFlow tempSequenceFlow = (SequenceFlow) flowElement;
-                boolean flag = tempSequenceFlow.getSourceRef().equals(startElement.getId())
-                    && tempSequenceFlow.getTargetRef().equals(endElement.getId());
-                if (flag) {
-                    oldSequenceFlow = tempSequenceFlow;
-                }
-            }
-        }
+        SequenceFlow oldSequenceFlow = findSequenceFlowFromProcess(process, startElement, endElement);
         if (Objects.isNull(oldSequenceFlow)) {
             throw new RuntimeException("加签失败");
         }
@@ -97,6 +86,36 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
         }
         new BpmnAutoLayout(bpmnModel).execute();
         BaseDynamicSubProcessInjectUtil.processFlowElements(commandContext, process, bpmnModel, originalProcessDefinitionEntity, newDeploymentEntity);
+    }
+
+    @Override
+    protected void updateExecutions(CommandContext commandContext, ProcessDefinitionEntity processDefinitionEntity, ExecutionEntity processInstance, List<ExecutionEntity> childExecutions) {
+        // 更新流程执行实体
+        ExecutionEntityManager executionEntityManager = CommandContextUtil.getExecutionEntityManager(commandContext);
+        executionEntityManager.update(processInstance);
+    }
+
+    /**
+     * 根据开始节点和结束节点获取流程中的连线
+     *
+     * @param process      流程
+     * @param startElement 开始节点
+     * @param endElement   结束节点
+     * @return 连线
+     */
+    private SequenceFlow findSequenceFlowFromProcess(Process process, FlowElement startElement, FlowElement endElement) {
+        Collection<FlowElement> flowElements = process.getFlowElements();
+        for (FlowElement flowElement : flowElements) {
+            if (flowElement instanceof SequenceFlow) {
+                SequenceFlow tempSequenceFlow = (SequenceFlow) flowElement;
+                boolean flag = tempSequenceFlow.getSourceRef().equals(startElement.getId())
+                    && tempSequenceFlow.getTargetRef().equals(endElement.getId());
+                if (flag) {
+                    return tempSequenceFlow;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -192,8 +211,8 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
         //预添加元素
         UserTask userTask = null;
         ParallelGateway parallelGateway = null;
-        Map<String,FlowElement> existFlowElement = new HashMap<>();
-        addSignFlowElement.forEach(item -> existFlowElement.put(item.getId(),item));
+        Map<String, FlowElement> existFlowElement = new HashMap<>();
+        addSignFlowElement.forEach(item -> existFlowElement.put(item.getId(), item));
         if (!existFlowElement.containsKey(wfTaskAddSignNode.getNodeId())) {
             if (BpmnXMLConstants.ELEMENT_TASK_USER.equals(wfTaskAddSignNode.getNodeType())) {
                 userTask = new UserTask();
@@ -206,7 +225,7 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
                 parallelGateway.setId(wfTaskAddSignNode.getNodeId());
                 addSignFlowElement.add(parallelGateway);
             }
-        }else{
+        } else {
             FlowElement flowElement = existFlowElement.get(wfTaskAddSignNode.getNodeId());
             if (flowElement instanceof UserTask) {
                 userTask = (UserTask) flowElement;
@@ -239,7 +258,7 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
      */
     private List<SequenceFlow> getIncomingFlows(FlowElement currentFlowElement, WfTaskAddSignNode wfTaskAddSignNode, List<FlowElement> addSignFlowElement) {
         List<SequenceFlow> incomingSequenceFlow = FlowableUtils.getElementIncomingFlows(currentFlowElement) == null
-            ?new ArrayList<>():FlowableUtils.getElementIncomingFlows(currentFlowElement);
+            ? new ArrayList<>() : FlowableUtils.getElementIncomingFlows(currentFlowElement);
 
         if (!Objects.nonNull(wfTaskAddSignNode.getPreWfTaskAddSignNodeIds()) || wfTaskAddSignNode.getPreWfTaskAddSignNodeIds().isEmpty()) {
             return incomingSequenceFlow;
@@ -260,14 +279,14 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
     /**
      * 创建节点与下节点的链接
      *
-     * @param currentFlowElement  当前节点
+     * @param currentFlowElement 当前节点
      * @param wfTaskAddSignNode  当前节点
      * @param addSignFlowElement 需要添加的节点
      * @return 出口链接
      */
     private List<SequenceFlow> buildSequenceFlows(FlowElement currentFlowElement, WfTaskAddSignNode wfTaskAddSignNode, List<FlowElement> addSignFlowElement) {
-        List<SequenceFlow> outGoingSequenceFlow = FlowableUtils.getElementOutgoingFlows(currentFlowElement)==null
-            ?new ArrayList<>():FlowableUtils.getElementOutgoingFlows(currentFlowElement);
+        List<SequenceFlow> outGoingSequenceFlow = FlowableUtils.getElementOutgoingFlows(currentFlowElement) == null
+            ? new ArrayList<>() : FlowableUtils.getElementOutgoingFlows(currentFlowElement);
         if (Objects.nonNull(wfTaskAddSignNode.getNextWfTaskAddSignNodeIds()) && !wfTaskAddSignNode.getNextWfTaskAddSignNodeIds().isEmpty()) {
             for (String nextNodeId : wfTaskAddSignNode.getNextWfTaskAddSignNodeIds()) {
                 SequenceFlow sequenceFlow = new SequenceFlow();
@@ -278,12 +297,5 @@ public class AutoInjectUserTaskInProcessInstanceCmd extends AbstractDynamicInjec
             }
         }
         return outGoingSequenceFlow;
-    }
-
-    @Override
-    protected void updateExecutions(CommandContext commandContext, ProcessDefinitionEntity processDefinitionEntity, ExecutionEntity processInstance, List<ExecutionEntity> childExecutions) {
-        // 更新流程执行实体
-        ExecutionEntityManager executionEntityManager = CommandContextUtil.getExecutionEntityManager(commandContext);
-        executionEntityManager.update(processInstance);
     }
 }
