@@ -26,6 +26,7 @@ import com.lanternfish.system.domain.SysAuthUser;
 import com.lanternfish.system.domain.SysPost;
 import com.lanternfish.system.domain.SysUserPost;
 import com.lanternfish.system.domain.SysUserRole;
+import com.lanternfish.system.domain.vo.UserContactInfoVo;
 import com.lanternfish.system.mapper.*;
 import com.lanternfish.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +35,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 用户 业务层处理
@@ -517,4 +516,28 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
 		return userNames;
 
 	}
+
+    @Override
+    public List<UserContactInfoVo> getContactInfo() {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.ne(SysUser::getUserName, "admin");
+        List<SysUser> sysUserList = baseMapper.selectList(wrapper);
+        Map<String, UserContactInfoVo> result = new HashMap<>();
+        sysUserList.forEach(sysUser -> {
+            String prefixUserName = StringUtils.getFirstLetter(sysUser.getNickName());
+            if (result.containsKey(prefixUserName)) {
+                result.get(prefixUserName).getSysUserList().add(sysUser);
+            } else {
+                UserContactInfoVo userContactInfoVo = new UserContactInfoVo();
+                userContactInfoVo.setPrefixUserName(prefixUserName);
+                List<SysUser> list = new ArrayList<>();
+                list.add(sysUser);
+                userContactInfoVo.setSysUserList(list);
+                result.put(prefixUserName, userContactInfoVo);
+            }
+        });
+        List<UserContactInfoVo> resultList = new ArrayList<>(result.values());
+        resultList = resultList.stream().sorted(Comparator.comparing(UserContactInfoVo::getPrefixUserName)).collect(Collectors.toList());
+        return resultList;
+    }
 }

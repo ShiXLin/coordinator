@@ -1,4 +1,4 @@
-package com.lanternfish.system.service;
+package com.lanternfish.system.service.impl;
 
 import cn.dev33.satoken.secure.BCrypt;
 import com.lanternfish.common.constant.CacheConstants;
@@ -15,6 +15,9 @@ import com.lanternfish.common.utils.ServletUtils;
 import com.lanternfish.common.utils.StringUtils;
 import com.lanternfish.common.utils.redis.RedisUtils;
 import com.lanternfish.common.utils.spring.SpringUtils;
+import com.lanternfish.system.service.ISysConfigService;
+import com.lanternfish.system.service.ISysRegisterService;
+import com.lanternfish.system.service.ISysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +28,12 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class SysRegisterService {
+public class SysRegisterServiceImpl implements ISysRegisterService {
 
     private final ISysUserService userService;
     private final ISysConfigService configService;
 
-    /**
-     * 注册
-     */
+    @Override
     public void register(RegisterBody registerBody) {
         String username = registerBody.getUsername();
         String password = registerBody.getPassword();
@@ -57,7 +58,7 @@ public class SysRegisterService {
         if (!regFlag) {
             throw new UserException("user.register.error");
         }
-        recordLogininfor(username, Constants.REGISTER, MessageUtils.message("user.register.success"));
+        recordLoginInfo(username, Constants.REGISTER, MessageUtils.message("user.register.success"));
     }
 
     /**
@@ -67,16 +68,16 @@ public class SysRegisterService {
      * @param code     验证码
      * @param uuid     唯一标识
      */
-    public void validateCaptcha(String username, String code, String uuid) {
+    private void validateCaptcha(String username, String code, String uuid) {
         String verifyKey = CacheConstants.CAPTCHA_CODE_KEY + StringUtils.defaultString(uuid, "");
         String captcha = RedisUtils.getCacheObject(verifyKey);
         RedisUtils.deleteObject(verifyKey);
         if (captcha == null) {
-            recordLogininfor(username, Constants.REGISTER, MessageUtils.message("user.jcaptcha.expire"));
+            recordLoginInfo(username, Constants.REGISTER, MessageUtils.message("user.jcaptcha.expire"));
             throw new CaptchaExpireException();
         }
         if (!code.equalsIgnoreCase(captcha)) {
-            recordLogininfor(username, Constants.REGISTER, MessageUtils.message("user.jcaptcha.error"));
+            recordLoginInfo(username, Constants.REGISTER, MessageUtils.message("user.jcaptcha.error"));
             throw new CaptchaException();
         }
     }
@@ -87,9 +88,8 @@ public class SysRegisterService {
      * @param username 用户名
      * @param status   状态
      * @param message  消息内容
-     * @return
      */
-    private void recordLogininfor(String username, String status, String message) {
+    private void recordLoginInfo(String username, String status, String message) {
         LogininforEvent logininforEvent = new LogininforEvent();
         logininforEvent.setUsername(username);
         logininforEvent.setStatus(status);

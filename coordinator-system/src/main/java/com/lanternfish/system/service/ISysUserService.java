@@ -4,6 +4,8 @@ import com.lanternfish.common.core.domain.PageQuery;
 import com.lanternfish.common.core.domain.entity.SysUser;
 import com.lanternfish.common.core.page.TableDataInfo;
 import com.lanternfish.system.domain.SysAuthUser;
+import com.lanternfish.system.domain.vo.UserContactInfoVo;
+
 import java.util.List;
 
 /**
@@ -224,4 +226,12 @@ public interface ISysUserService {
      * @return 用户账号列表
      */
     public List<String> selectUserNames(List<Long> userIds);
+
+
+    /**
+     * 获取用户通讯录信息
+     *
+     * @return 用户通讯录信息
+     */
+    public List<UserContactInfoVo> getContactInfo();
 }

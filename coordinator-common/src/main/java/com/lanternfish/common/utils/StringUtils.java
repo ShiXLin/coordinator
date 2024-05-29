@@ -4,12 +4,14 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.pinyin.PinyinUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -323,23 +325,41 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     }
 
     /**
-	 * 将驼峰命名转化成下划线
-	 * @param para
-	 * @return
-	 */
-	public static String camelToUnderline(String para){
-        if(para.length()<3){
-        	return para.toLowerCase();
+     * 将驼峰命名转化成下划线
+     *
+     * @param para
+     * @return
+     */
+    public static String camelToUnderline(String para) {
+        if (para.length() < 3) {
+            return para.toLowerCase();
         }
-        StringBuilder sb=new StringBuilder(para);
-        int temp=0;//定位
+        StringBuilder sb = new StringBuilder(para);
+        int temp = 0;//定位
         //从第三个字符开始 避免命名不规范
-        for(int i=2;i<para.length();i++){
-            if(Character.isUpperCase(para.charAt(i))){
-                sb.insert(i+temp, "_");
-                temp+=1;
+        for (int i = 2; i < para.length(); i++) {
+            if (Character.isUpperCase(para.charAt(i))) {
+                sb.insert(i + temp, "_");
+                temp += 1;
             }
         }
         return sb.toString().toLowerCase();
-	}
+    }
+
+    /**
+     * 判断是否为英文字母如果为汉字则返回汉字拼音首字母
+     *
+     * @param content 字符串内容
+     * @return 首字母
+     */
+    public static String getFirstLetter(String content) {
+        char firstChar = content.charAt(0);
+        if (Character.isLetter(firstChar) || PinyinUtil.isChinese(firstChar)) {
+
+            return String.valueOf(PinyinUtil.getFirstLetter(firstChar)).toUpperCase();
+        } else {
+            return "#";
+        }
+    }
+
 }

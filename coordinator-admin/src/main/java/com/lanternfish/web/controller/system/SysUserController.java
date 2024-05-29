@@ -2,6 +2,7 @@ package com.lanternfish.web.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.tree.Tree;
@@ -23,6 +24,7 @@ import com.lanternfish.common.utils.StringUtils;
 import com.lanternfish.common.utils.poi.ExcelUtil;
 import com.lanternfish.system.domain.vo.SysUserExportVo;
 import com.lanternfish.system.domain.vo.SysUserImportVo;
+import com.lanternfish.system.domain.vo.UserContactInfoVo;
 import com.lanternfish.system.listener.SysUserImportListener;
 import com.lanternfish.system.service.ISysDeptService;
 import com.lanternfish.system.service.ISysPostService;
@@ -263,5 +265,17 @@ public class SysUserController extends BaseController {
     public R<List<Tree<Long>>> deptTree(SysDept dept) {
         return R.ok(deptService.selectDeptTreeList(dept));
     }
+
+    /**
+     * 获取通讯录信息
+     */
+//    @SaCheckPermission("system:user:getContactInfo")
+    @SaIgnore
+    @GetMapping("/getContactInfo")
+    public R<List<UserContactInfoVo>> getContactInfo() {
+
+        return R.ok(userService.getContactInfo());
+    }
+
 
 }

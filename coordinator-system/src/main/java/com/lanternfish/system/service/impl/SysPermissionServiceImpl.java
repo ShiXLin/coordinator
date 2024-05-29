@@ -1,6 +1,9 @@
-package com.lanternfish.system.service;
+package com.lanternfish.system.service.impl;
 
 import com.lanternfish.common.core.domain.entity.SysUser;
+import com.lanternfish.system.service.ISysMenuService;
+import com.lanternfish.system.service.ISysPermissionService;
+import com.lanternfish.system.service.ISysRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +17,12 @@ import java.util.Set;
  */
 @RequiredArgsConstructor
 @Service
-public class SysPermissionService {
+public class SysPermissionServiceImpl implements ISysPermissionService {
 
     private final ISysRoleService roleService;
     private final ISysMenuService menuService;
 
-    /**
-     * 获取角色数据权限
-     *
-     * @param user 用户信息
-     * @return 角色权限信息
-     */
+    @Override
     public Set<String> getRolePermission(SysUser user) {
         Set<String> roles = new HashSet<>();
         // 管理员拥有所有权限
@@ -36,12 +34,7 @@ public class SysPermissionService {
         return roles;
     }
 
-    /**
-     * 获取菜单数据权限
-     *
-     * @param user 用户信息
-     * @return 菜单权限信息
-     */
+    @Override
     public Set<String> getMenuPermission(SysUser user) {
         Set<String> perms = new HashSet<>();
         // 管理员拥有所有权限

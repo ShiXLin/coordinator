@@ -1,4 +1,4 @@
-package com.lanternfish.system.service;
+package com.lanternfish.system.service.impl;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.BCrypt;
@@ -6,14 +6,13 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.lanternfish.common.constant.CacheConstants;
 import com.lanternfish.common.constant.Constants;
-import com.lanternfish.common.core.domain.event.LogininforEvent;
 import com.lanternfish.common.core.domain.dto.RoleDTO;
 import com.lanternfish.common.core.domain.entity.SysUser;
-import com.lanternfish.common.core.domain.model.LoginBody;
+import com.lanternfish.common.core.domain.event.LogininforEvent;
 import com.lanternfish.common.core.domain.model.LoginUser;
-import com.lanternfish.common.core.domain.model.XcxLoginUser;
 import com.lanternfish.common.enums.DeviceType;
 import com.lanternfish.common.enums.LoginType;
 import com.lanternfish.common.enums.UserStatus;
@@ -28,13 +27,15 @@ import com.lanternfish.common.utils.StringUtils;
 import com.lanternfish.common.utils.redis.RedisUtils;
 import com.lanternfish.common.utils.spring.SpringUtils;
 import com.lanternfish.system.mapper.SysUserMapper;
+import com.lanternfish.system.service.ISysConfigService;
+import com.lanternfish.system.service.ISysLoginService;
+import com.lanternfish.system.service.ISysPermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -45,11 +46,11 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class SysLoginService {
+public class SysLoginServiceImpl implements ISysLoginService {
 
     private final SysUserMapper userMapper;
     private final ISysConfigService configService;
-    private final SysPermissionService permissionService;
+    private final ISysPermissionService permissionService;
 
     @Value("${user.password.maxRetryCount}")
     private Integer maxRetryCount;
@@ -57,15 +58,8 @@ public class SysLoginService {
     @Value("${user.password.lockTime}")
     private Integer lockTime;
 
-    /**
-     * 登录验证
-     *
-     * @param username 用户名
-     * @param password 密码
-     * @param code     验证码
-     * @param uuid     唯一标识
-     * @return 结果
-     */
+
+    @Override
     public String login(String username, String password, String code, String uuid) {
         boolean captchaEnabled = configService.selectCaptchaEnabled();
         // 验证码开关
@@ -79,26 +73,30 @@ public class SysLoginService {
         // 生成token
         LoginHelper.loginByDevice(loginUser, DeviceType.PC);
 
-        recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
+        recordLoginInfo(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
         recordLoginInfo(user.getUserId(), username);
         return StpUtil.getTokenValue();
     }
 
-    public String smsLogin(String phonenumber, String smsCode) {
-        // 通过手机号查找用户
-        SysUser user = loadUserByPhonenumber(phonenumber);
 
-        checkLogin(LoginType.SMS, user.getUserName(), () -> !validateSmsCode(phonenumber, smsCode));
+    @Override
+    public String smsLogin(String phoneNumber, String smsCode) {
+        // 通过手机号查找用户
+        SysUser user = loadUserByPhoneNumber(phoneNumber);
+
+        checkLogin(LoginType.SMS, user.getUserName(), () -> !validateSmsCode(phoneNumber, smsCode));
         // 此处可根据登录用户的数据不同 自行创建 loginUser
         LoginUser loginUser = buildLoginUser(user);
         // 生成token
         LoginHelper.loginByDevice(loginUser, DeviceType.APP);
 
-        recordLogininfor(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
+        recordLoginInfo(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
         recordLoginInfo(user.getUserId(), user.getUserName());
         return StpUtil.getTokenValue();
     }
 
+
+    @Override
     public String emailLogin(String email, String emailCode) {
         // 通过手机号查找用户
         SysUser user = loadUserByEmail(email);
@@ -109,40 +107,29 @@ public class SysLoginService {
         // 生成token
         LoginHelper.loginByDevice(loginUser, DeviceType.APP);
 
-        recordLogininfor(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
+        recordLoginInfo(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
         recordLoginInfo(user.getUserId(), user.getUserName());
         return StpUtil.getTokenValue();
     }
 
-    public String xcxLogin(String xcxCode) {
-        // xcxCode 为 小程序调用 wx.login 授权后获取
-        // todo 以下自行实现
-        // 校验 appid + appsrcret + xcxCode 调用登录凭证校验接口 获取 session_key 与 openid
-        String openid = "";
-        SysUser user = loadUserByOpenid(openid);
 
-        // 此处可根据登录用户的数据不同 自行创建 loginUser
-        XcxLoginUser loginUser = new XcxLoginUser();
-        loginUser.setUserId(user.getUserId());
-        loginUser.setUsername(user.getUserName());
-        loginUser.setUserType(user.getUserType());
-        loginUser.setOpenid(openid);
-        // 生成token
-        LoginHelper.loginByDevice(loginUser, DeviceType.XCX);
-
-        recordLogininfor(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
-        recordLoginInfo(user.getUserId(), user.getUserName());
-        return StpUtil.getTokenValue();
+    @Override
+    public String wechatLogin(String wechatOpenId) {
+        return loginByOpenId(wechatOpenId, SysUser::getWechatOpenId);
     }
 
-    /**
-     * 退出登录
-     */
+    @Override
+    public String dingTalkLogin(String dingTalkOpenId) {
+        return loginByOpenId(dingTalkOpenId, SysUser::getDingTalkOpenId);
+    }
+
+
+    @Override
     public void logout() {
         try {
             LoginUser loginUser = LoginHelper.getLoginUser();
             StpUtil.logout();
-            recordLogininfor(loginUser.getUsername(), Constants.LOGOUT, MessageUtils.message("user.logout.success"));
+            recordLoginInfo(loginUser.getUsername(), Constants.LOGOUT, MessageUtils.message("user.logout.success"));
         } catch (NotLoginException ignored) {
         }
     }
@@ -154,7 +141,7 @@ public class SysLoginService {
      * @param status   状态
      * @param message  消息内容
      */
-    public void recordLogininfor(String username, String status, String message) {
+    public void recordLoginInfo(String username, String status, String message) {
         LogininforEvent logininforEvent = new LogininforEvent();
         logininforEvent.setUsername(username);
         logininforEvent.setStatus(status);
@@ -165,11 +152,15 @@ public class SysLoginService {
 
     /**
      * 校验短信验证码
+     *
+     * @param phoneNumber 手机号码
+     * @param smsCode     短信验证码
+     * @return 是否成功
      */
-    private boolean validateSmsCode(String phonenumber, String smsCode) {
-        String code = RedisUtils.getCacheObject(CacheConstants.CAPTCHA_CODE_KEY + phonenumber);
+    private boolean validateSmsCode(String phoneNumber, String smsCode) {
+        String code = RedisUtils.getCacheObject(CacheConstants.CAPTCHA_CODE_KEY + phoneNumber);
         if (StringUtils.isBlank(code)) {
-            recordLogininfor(phonenumber, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
+            recordLoginInfo(phoneNumber, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
             throw new CaptchaExpireException();
         }
         return code.equals(smsCode);
@@ -177,11 +168,15 @@ public class SysLoginService {
 
     /**
      * 校验邮箱验证码
+     *
+     * @param email     邮箱
+     * @param emailCode 验证码
+     * @return 是否成功
      */
     private boolean validateEmailCode(String email, String emailCode) {
         String code = RedisUtils.getCacheObject(CacheConstants.CAPTCHA_CODE_KEY + email);
         if (StringUtils.isBlank(code)) {
-            recordLogininfor(email, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
+            recordLoginInfo(email, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
             throw new CaptchaExpireException();
         }
         return code.equals(emailCode);
@@ -199,93 +194,90 @@ public class SysLoginService {
         String captcha = RedisUtils.getCacheObject(verifyKey);
         RedisUtils.deleteObject(verifyKey);
         if (captcha == null) {
-            recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
+            recordLoginInfo(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.expire"));
             throw new CaptchaExpireException();
         }
         if (!code.equalsIgnoreCase(captcha)) {
-            recordLogininfor(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.error"));
+            recordLoginInfo(username, Constants.LOGIN_FAIL, MessageUtils.message("user.jcaptcha.error"));
             throw new CaptchaException();
         }
     }
 
-    private SysUser loadUserByUsername(String username) {
-        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>()
-            .select(SysUser::getUserName, SysUser::getStatus)
-            .eq(SysUser::getUserName, username));
+
+    private String loginByOpenId(String openId, SFunction<SysUser, ?> column) {
+        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().select(column, SysUser::getStatus).eq(column, openId));
+        checkUserStatus(user, openId, user.getUserName());
+        // 此处可根据登录用户的数据不同 自行创建 loginUser
+        LoginUser loginUser = buildLoginUser(user);
+        // 生成token
+        LoginHelper.loginByDevice(loginUser, DeviceType.PC);
+        recordLoginInfo(user.getUserName(), Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success"));
+        recordLoginInfo(user.getUserId(), user.getUserName());
+        return StpUtil.getTokenValue();
+    }
+
+    private void checkUserStatus(SysUser user, String notExistsMsg, String disabledMsg) {
         if (ObjectUtil.isNull(user)) {
-            log.info("登录用户：{} 不存在.", username);
-            throw new UserException("user.not.exists", username);
+            log.info("登录用户：{} 不存在.", notExistsMsg);
+            throw new UserException("user.not.exists", notExistsMsg);
         } else if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            log.info("登录用户：{} 已被停用.", username);
-            throw new UserException("user.blocked", username);
+            log.info("登录用户：{} 已被停用.", disabledMsg);
+            throw new UserException("user.blocked", disabledMsg);
         }
+    }
+
+    private SysUser loadUserByUsername(String username) {
+        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().select(SysUser::getUserName, SysUser::getStatus).eq(SysUser::getUserName, username));
+        checkUserStatus(user, username, username);
         return userMapper.selectUserByUserName(username);
     }
 
-    private SysUser loadUserByPhonenumber(String phonenumber) {
-        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>()
-            .select(SysUser::getPhonenumber, SysUser::getStatus)
-            .eq(SysUser::getPhonenumber, phonenumber));
-        if (ObjectUtil.isNull(user)) {
-            log.info("登录用户：{} 不存在.", phonenumber);
-            throw new UserException("user.not.exists", phonenumber);
-        } else if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            log.info("登录用户：{} 已被停用.", phonenumber);
-            throw new UserException("user.blocked", phonenumber);
-        }
-        return userMapper.selectUserByPhonenumber(phonenumber);
-    }
-
-    private SysUser loadUserByEmail(String email) {
-        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>()
-            .select(SysUser::getPhonenumber, SysUser::getStatus)
-            .eq(SysUser::getEmail, email));
-        if (ObjectUtil.isNull(user)) {
-            log.info("登录用户：{} 不存在.", email);
-            throw new UserException("user.not.exists", email);
-        } else if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            log.info("登录用户：{} 已被停用.", email);
-            throw new UserException("user.blocked", email);
-        }
-        return userMapper.selectUserByEmail(email);
-    }
-
-    private SysUser loadUserByOpenid(String openid) {
-        // 使用 openid 查询绑定用户 如未绑定用户 则根据业务自行处理 例如 创建默认用户
-        // todo 自行实现 userService.selectUserByOpenid(openid);
-        SysUser user = new SysUser();
-        if (ObjectUtil.isNull(user)) {
-            log.info("登录用户：{} 不存在.", openid);
-            // todo 用户不存在 业务逻辑自行实现
-        } else if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
-            log.info("登录用户：{} 已被停用.", openid);
-            // todo 用户已被停用 业务逻辑自行实现
-        }
-        return user;
+    /**
+     * 通过手机号码加载用户
+     *
+     * @param phoneNumber 手机号码
+     * @return 用户
+     */
+    private SysUser loadUserByPhoneNumber(String phoneNumber) {
+        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().select(SysUser::getPhonenumber, SysUser::getStatus).eq(SysUser::getPhonenumber, phoneNumber));
+        checkUserStatus(user, phoneNumber, phoneNumber);
+        return userMapper.selectUserByPhonenumber(phoneNumber);
     }
 
     /**
+     * 通过邮箱加载用户
+     *
+     * @param email 邮箱
+     * @return 用户
+     */
+    private SysUser loadUserByEmail(String email) {
+        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().select(SysUser::getPhonenumber, SysUser::getStatus).eq(SysUser::getEmail, email));
+        checkUserStatus(user, email, email);
+        return userMapper.selectUserByEmail(email);
+    }
+
+
+    /**
      * 构建登录用户
+     *
+     * @param user 系统用户数据对象
+     * @return 登陆用户
      */
     public LoginUser buildLoginUser(SysUser user) {
         LoginUser loginUser = new LoginUser();
-        loginUser.setUserId(user.getUserId());
-        loginUser.setDeptId(user.getDeptId());
-        loginUser.setUsername(user.getUserName());
-        loginUser.setNickName(user.getNickName());
-        loginUser.setUserType(user.getUserType());
+        BeanUtil.copyProperties(user, loginUser);
         loginUser.setMenuPermission(permissionService.getMenuPermission(user));
         loginUser.setRolePermission(permissionService.getRolePermission(user));
         loginUser.setDeptName(ObjectUtil.isNull(user.getDept()) ? "" : user.getDept().getDeptName());
-        List<RoleDTO> roles = BeanUtil.copyToList(user.getRoles(), RoleDTO.class);
-        loginUser.setRoles(roles);
+        loginUser.setRoles(BeanUtil.copyToList(user.getRoles(), RoleDTO.class));
         return loginUser;
     }
 
     /**
      * 记录登录信息
      *
-     * @param userId 用户ID
+     * @param userId   用户id
+     * @param username 用户账号
      */
     public void recordLoginInfo(Long userId, String username) {
         SysUser sysUser = new SysUser();
@@ -298,6 +290,10 @@ public class SysLoginService {
 
     /**
      * 登录校验
+     *
+     * @param loginType 登陆方式
+     * @param username  用户名
+     * @param supplier  登陆结果
      */
     private void checkLogin(LoginType loginType, String username, Supplier<Boolean> supplier) {
         String errorKey = CacheConstants.PWD_ERR_CNT_KEY + username;
@@ -307,7 +303,7 @@ public class SysLoginService {
         Integer errorNumber = RedisUtils.getCacheObject(errorKey);
         // 锁定时间内登录 则踢出
         if (ObjectUtil.isNotNull(errorNumber) && errorNumber.equals(maxRetryCount)) {
-            recordLogininfor(username, loginFail, MessageUtils.message(loginType.getRetryLimitExceed(), maxRetryCount, lockTime));
+            recordLoginInfo(username, loginFail, MessageUtils.message(loginType.getRetryLimitExceed(), maxRetryCount, lockTime));
             throw new UserException(loginType.getRetryLimitExceed(), maxRetryCount, lockTime);
         }
 
@@ -317,12 +313,12 @@ public class SysLoginService {
             // 达到规定错误次数 则锁定登录
             if (errorNumber.equals(maxRetryCount)) {
                 RedisUtils.setCacheObject(errorKey, errorNumber, Duration.ofMinutes(lockTime));
-                recordLogininfor(username, loginFail, MessageUtils.message(loginType.getRetryLimitExceed(), maxRetryCount, lockTime));
+                recordLoginInfo(username, loginFail, MessageUtils.message(loginType.getRetryLimitExceed(), maxRetryCount, lockTime));
                 throw new UserException(loginType.getRetryLimitExceed(), maxRetryCount, lockTime);
             } else {
                 // 未达到规定错误次数 则递增
                 RedisUtils.setCacheObject(errorKey, errorNumber);
-                recordLogininfor(username, loginFail, MessageUtils.message(loginType.getRetryLimitCount(), errorNumber));
+                recordLoginInfo(username, loginFail, MessageUtils.message(loginType.getRetryLimitCount(), errorNumber));
                 throw new UserException(loginType.getRetryLimitCount(), errorNumber);
             }
         }

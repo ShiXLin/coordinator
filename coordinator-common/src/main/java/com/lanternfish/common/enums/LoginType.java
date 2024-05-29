@@ -30,7 +30,18 @@ public enum LoginType {
     /**
      * 小程序登录
      */
-    XCX("", "");
+    XCX("", ""),
+
+    /**
+     * 微信扫码登陆
+     */
+    WECHAT("wechat.code.retry.limit.exceed", "wechat.code.retry.limit.count"),
+
+    /**
+     * 钉钉扫码登陆
+     */
+    DING_TALK("ding.talk.code.retry.limit.exceed","ding.talk.code.retry.limit.count")
+    ;
 
     /**
      * 登录重试超出限制提示

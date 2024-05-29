@@ -157,6 +157,16 @@ public class SysUser extends BaseEntity {
     @TableField(exist = false)
     private Long roleId;
 
+    /**
+     * 微信唯一id
+     */
+    private String wechatOpenId;
+
+    /**
+     * 钉钉唯一id
+     */
+    private String dingTalkOpenId;
+
     public SysUser(Long userId) {
         this.userId = userId;
     }

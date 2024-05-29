@@ -5,7 +5,7 @@ import com.lanternfish.common.core.controller.BaseController;
 import com.lanternfish.common.core.domain.R;
 import com.lanternfish.common.core.domain.model.RegisterBody;
 import com.lanternfish.system.service.ISysConfigService;
-import com.lanternfish.system.service.SysRegisterService;
+import com.lanternfish.system.service.ISysRegisterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SysRegisterController extends BaseController {
 
-    private final SysRegisterService registerService;
+    private final ISysRegisterService registerService;
     private final ISysConfigService configService;
 
     /**

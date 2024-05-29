@@ -15,7 +15,7 @@ import com.lanternfish.system.domain.SysUserRole;
 import com.lanternfish.system.service.ISysDeptService;
 import com.lanternfish.system.service.ISysRoleService;
 import com.lanternfish.system.service.ISysUserService;
-import com.lanternfish.system.service.SysPermissionService;
+import com.lanternfish.system.service.impl.SysPermissionServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +39,7 @@ public class SysRoleController extends BaseController {
     private final ISysRoleService roleService;
     private final ISysUserService userService;
     private final ISysDeptService deptService;
-    private final SysPermissionService permissionService;
+    private final SysPermissionServiceImpl permissionService;
 
     /**
      * 获取角色信息列表

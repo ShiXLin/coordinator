@@ -30,6 +30,7 @@
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <p6spy.version>3.9.1</p6spy.version>
         <hutool.version>5.8.18</hutool.version>
+        <pingyin4j.version>2.5.1</pingyin4j.version>
         <okhttp.version>4.10.0</okhttp.version>
         <spring-boot-admin.version>2.7.10</spring-boot-admin.version>
         <redisson.version>3.20.1</redisson.version>
@@ -99,11 +100,11 @@
             </dependency>
 
             <!-- guava工具类 -->
-			<dependency>
-				<groupId>com.google.guava</groupId>
-				<artifactId>guava</artifactId>
-				<version>${guava.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
 
             <!-- hutool 的依赖配置-->
             <dependency>
@@ -112,6 +113,17 @@
                 <version>${hutool.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- 拼音依赖 -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-extra</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.belerweb</groupId>
+                <artifactId>pinyin4j</artifactId>
+                <version>${pingyin4j.version}</version> <!-- 请使用最新版本 -->
             </dependency>
 
             <dependency>
@@ -294,21 +306,21 @@
             </dependency>
 
             <!-- justauth第三方登录  -->
-			<dependency>
-				<groupId>com.xkcoding.justauth</groupId>
-				<artifactId>justauth-spring-boot-starter</artifactId>
-				<version>${justauth-spring-boot-starter.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>hutool-core</artifactId>
-						<groupId>cn.hutool</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>fastjson</artifactId>
-						<groupId>com.alibaba</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
+            <dependency>
+                <groupId>com.xkcoding.justauth</groupId>
+                <artifactId>justauth-spring-boot-starter</artifactId>
+                <version>${justauth-spring-boot-starter.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>hutool-core</artifactId>
+                        <groupId>cn.hutool</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>fastjson</artifactId>
+                        <groupId>com.alibaba</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
             <!-- flowable -->
             <dependency>

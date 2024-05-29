@@ -11,9 +11,9 @@ import com.lanternfish.common.core.domain.model.LoginUser;
 import com.lanternfish.common.core.domain.model.SmsLoginBody;
 import com.lanternfish.common.helper.LoginHelper;
 import com.lanternfish.system.domain.vo.RouterVo;
+import com.lanternfish.system.service.ISysLoginService;
 import com.lanternfish.system.service.ISysMenuService;
 import com.lanternfish.system.service.ISysUserService;
-import com.lanternfish.system.service.SysLoginService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.NotBlank;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,7 @@ import java.util.Map;
 @RestController
 public class SysLoginController {
 
-    private final SysLoginService loginService;
+    private final ISysLoginService loginService;
     private final ISysMenuService menuService;
     private final ISysUserService userService;
 
@@ -88,21 +87,7 @@ public class SysLoginController {
         return R.ok(ajax);
     }
 
-    /**
-     * 小程序登录(示例)
-     *
-     * @param xcxCode 小程序code
-     * @return 结果
-     */
-    @SaIgnore
-    @PostMapping("/xcxLogin")
-    public R<Map<String, Object>> xcxLogin(@NotBlank(message = "{xcx.code.not.blank}") String xcxCode) {
-        Map<String, Object> ajax = new HashMap<>();
-        // 生成令牌
-        String token = loginService.xcxLogin(xcxCode);
-        ajax.put(Constants.TOKEN, token);
-        return R.ok(ajax);
-    }
+
 
     /**
      * 退出登录
