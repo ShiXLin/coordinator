@@ -43,9 +43,7 @@ public class SysOssConfigServiceImpl implements ISysOssConfigService {
 
     private final SysOssConfigMapper baseMapper;
 
-    /**
-     * 项目启动时，初始化参数到缓存，加载配置类
-     */
+
     @Override
     public void init() {
         List<SysOssConfig> list = baseMapper.selectList();

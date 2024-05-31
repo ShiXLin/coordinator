@@ -17,7 +17,7 @@ import java.util.Collection;
 public interface ISysOssConfigService {
 
     /**
-     * 初始化OSS配置
+     * 项目启动时，初始化参数到缓存，加载配置类
      */
     void init();
 
