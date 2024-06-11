@@ -53,6 +53,12 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
         return baseMapper.selectVoList(lqw);
     }
 
+    /**
+     * 根据传入的分类对象构建查询条件封装器。
+     *
+     * @param category 分类对象，包含待查询的分类名称和代码等参数。
+     * @return 返回构建好的查询条件封装器，用于后续的分类查询操作。
+     */
     private LambdaQueryWrapper<WfCategory> buildQueryWrapper(WfCategory category) {
         Map<String, Object> params = category.getParams();
         LambdaQueryWrapper<WfCategory> lqw = Wrappers.lambdaQuery();
@@ -97,9 +103,8 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
 
 	@Override
 	public List<WfAppTypeVo> queryInfoByCode(@NotNull(message = "主键不能为空") String code) {
-		WfAppTypeVo wfAppTypeVo = new WfAppTypeVo();
-		wfAppTypeVo = baseMapper.selectAppTypeVoByCode(code);
-		ArrayList<WfAppTypeVo> wfAppTypeVoList = new ArrayList<WfAppTypeVo>();
+		WfAppTypeVo wfAppTypeVo = baseMapper.selectAppTypeVoByCode(code);
+		ArrayList<WfAppTypeVo> wfAppTypeVoList = new ArrayList<>();
 		wfAppTypeVoList.add(wfAppTypeVo);
 		return wfAppTypeVoList;
 	}

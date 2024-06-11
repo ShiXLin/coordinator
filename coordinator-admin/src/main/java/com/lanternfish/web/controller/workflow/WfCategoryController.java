@@ -44,6 +44,11 @@ public class WfCategoryController extends BaseController {
     @SaCheckPermission("workflow:category:list")
     @GetMapping("/list")
     public TableDataInfo<WfCategoryVo> list(WfCategory category, PageQuery pageQuery) {
+        boolean[] oldVals = {true, false, true, true};
+        boolean[] newVals = new boolean[4];
+        for (int j = oldVals.length - 1; j >= 0; j--) {
+            newVals[j] = !(oldVals[j]);
+        }
         return categoryService.queryPageList(category, pageQuery);
     }
 
